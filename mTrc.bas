@@ -1,7 +1,7 @@
 Attribute VB_Name = "mTrc"
 Option Explicit
-' ---------------------------------------------------------------------------------
-' Standard Module mTrc Procedure/code execution trace with display of the result.
+' ------------------------------------------------------------------------
+' Standard Module mTrc Procedure/code execution trace with result display.
 '
 ' Uses: mErrHndlr
 '       fMsg
@@ -41,13 +41,14 @@ Private Const DIR_BEGIN_ID  As String = ">"     ' Begin procedure or code trace 
 Private Const DIR_END_ID    As String = "<"     ' End procedure or code trace indicator
 Private Const COMMENT       As String = " !!! "
 
+Private cllStck             As Collection       ' Trace stack
 Private cllNtryLast         As Collection       '
-Private cllTrc            As Collection       ' Collection of begin and end trace entries
+Private cllTrc              As Collection       ' Collection of begin and end trace entries
 Private cySysFrequency      As Currency         ' Execution Trace SysFrequency (initialized with init)
 Private cyTcksOvrhd         As Currency         ' Overhead ticks caused by the collection of a traced item's entry
 Private cyTcksOvrhdItm      As Currency         ' Execution Trace time accumulated by caused by the time tracking itself
 Private dtTraceBegin        As Date             ' Initialized at start of execution trace
-Private iTraceLevel         As Long             ' Increased with each begin entry and decreased with each end entry
+Private iTrcLvl             As Long             ' Increased with each begin entry and decreased with each end entry
 Private lDisplayedInfo      As Long             ' Detailed or Compact, defaults to Compact
 Private lPrecision          As Long             ' Precision for displayed seconds, defaults to 6 decimals (0,000000)
 Private sFrmtScsElpsd       As String           ' -------------
@@ -237,6 +238,30 @@ End Property
 
 Private Property Let NtryTcksSys(Optional ByRef entry As Collection, ByRef cy As Currency)
     entry.Add cy, "TS"
+End Property
+
+Private Property Get StckNtryDir(Optional cll As Collection) As String
+    StckNtryDir = cll("SND")
+End Property
+
+Private Property Let StckNtryDir(Optional cll As Collection, ByVal dir As String)
+    cll.Add dir, "SND"
+End Property
+
+Private Property Get StckNtryItm(Optional cll As Collection) As String
+    StckNtryItm = cll("SNI")
+End Property
+
+Private Property Let StckNtryItm(Optional cll As Collection, ByVal itm As String)
+    cll.Add itm, "SNI"
+End Property
+
+Private Property Get StckNtryLvl(Optional cll As Collection) As Long
+    StckNtryLvl = cll("SNL")
+End Property
+
+Private Property Let StckNtryLvl(Optional cll As Collection, ByVal lvl As Long)
+    cll.Add lvl, "SNL"
 End Property
 
 Private Property Get SysCrrntTcks() As Currency
@@ -820,6 +845,18 @@ Public Sub EoP(ByVal s As String, _
 #End If
 End Sub
 
+Private Sub ErrMsg(ByVal errno As Long, _
+                   ByVal errsource As String, _
+                   ByVal errdscrptn As String, _
+                   ByVal errline As Long)
+' ----------------------------------------------
+' Display of a module's error message.
+' ----------------------------------------------
+    MsgBox Prompt:="Error description" & vbLf & err.Description, _
+           buttons:=vbOKOnly, _
+           Title:="VB Runtime error " & errno & " in " & errsource & IIf(errline <> 0, " at line " & errline, "")
+End Sub
+
 Private Function ErrSrc(ByVal sProc As String) As String
     ErrSrc = "mTrc." & sProc
 End Function
@@ -832,7 +869,7 @@ Private Sub Initialize()
     Set cllNtryLast = Nothing
     dtTraceBegin = Now()
     cyTcksOvrhdItm = 0
-    iTraceLevel = 0
+    iTrcLvl = 0
     cySysFrequency = 0
     sFirstTraceItem = vbNullString
     If lPrecision = 0 Then lPrecision = 6 ' default when another valus has not been set by the caller
@@ -917,12 +954,61 @@ Private Function Repeat( _
     
 End Function
 
+Private Function StckNtry(ByVal dir As String, _
+                          ByVal lvl As Long, _
+                          ByVal itm As String) As Collection
+' ----------------------------------------------------------
+' Returns a stack entry as collection.
+' ----------------------------------------------------------
+    Dim cll As New Collection
+    StckNtryLvl(cll) = lvl
+    StckNtryDir(cll) = dir
+    StckNtryItm(cll) = itm
+    Set StckNtry = cll
+End Function
+
+Private Sub StckPop( _
+              ByVal itm As String, _
+     Optional ByVal lvl As Long, _
+     Optional ByVal dir As String)
+' ----------------------------------
+'
+' ----------------------------------
+    
+    If itm = StckNtryItm(StckTop) Then
+        Debug.Print "Pop:   " & StckNtryLvl(StckTop) & " " & StckNtryDir(StckTop) & " " & StckNtryItm(StckTop)
+        cllStck.Remove cllStck.Count
+    Else
+        Debug.Print "Stack Pop ='" & itm _
+                  & "', Stack Top = '" & StckNtryItm(StckTop) _
+                  & "', Stack Dir = '" & StckNtryDir(StckTop) _
+                  & "', Stack Lvl = '" & StckNtryLvl(StckTop) _
+                  & "', Stack Cnt = '" & cllStck.Count
+        Stop
+    End If
+End Sub
+
+Private Sub StckPush(ByVal lvl As Long, _
+                     ByVal dir As String, _
+                     ByVal itm As String)
+      
+    If cllStck Is Nothing _
+    Then Set cllStck = New Collection
+    cllStck.Add StckNtry(lvl:=lvl, dir:=dir, itm:=itm)
+    Debug.Print "Push:  " & lvl & " " & dir & " " & itm
+End Sub
+
+Private Function StckTop() As Collection
+    Set StckTop = cllStck(cllStck.Count)
+End Function
+
 Public Sub Terminate()
 ' -----------------------------------------------------------------
 ' Should be called by any error handling when a new execution trace
 ' is about to begin with the very first procedure's execution.
 ' -----------------------------------------------------------------
     Set cllTrc = Nothing
+    Set cllStck = Nothing
 End Sub
 
 Private Sub TrcAdd( _
@@ -941,12 +1027,12 @@ Private Sub TrcAdd( _
     
     Set cllNtryLast = Ntry(tcks:=tcks, dir:=dir, itm:=itm, lvl:=lvl, err:=err)
     cllTrc.Add cllNtryLast
-    Debug.Print lvl & " " & dir & " " & itm & " " & err
+    Debug.Print "Entry: "; lvl & " " & dir & " " & itm & " " & err
 End Sub
 
 Private Sub TrcBgn( _
-            ByVal itm As String, _
-            ByVal dir As String)
+      ByVal itm As String, _
+      ByVal dir As String)
 ' --------------------------------
 ' Collect a trace begin entry with
 ' the current ticks count for the
@@ -955,14 +1041,15 @@ Private Sub TrcBgn( _
     
     Dim cy  As Currency:    cy = SysCrrntTcks
     
-    iTraceLevel = iTraceLevel + 1
-    TrcAdd tcks:=cy, dir:=dir, itm:=itm, lvl:=iTraceLevel
+    iTrcLvl = iTrcLvl + 1
+    TrcAdd tcks:=cy, dir:=dir, itm:=itm, lvl:=iTrcLvl
     cyTcksOvrhd = SysCrrntTcks - cy ' overhead ticks caused by the collection of the begin trace entry
+    StckPush lvl:=iTrcLvl, dir:=dir, itm:=itm
     
 End Sub
 
 Private Sub TrcEnd( _
-            ByVal s As String, _
+            ByVal itm As String, _
    Optional ByVal dir As String = vbNullString, _
    Optional ByVal errinf As String = vbNullString)
 ' ------------------------------------------------
@@ -978,10 +1065,11 @@ Private Sub TrcEnd( _
         errinf = COMMENT & errinf & COMMENT
     End If
     
-    TrcAdd itm:=s, tcks:=cy, dir:=Trim(dir), lvl:=iTraceLevel, err:=errinf
-    iTraceLevel = iTraceLevel - 1
+    TrcAdd itm:=itm, tcks:=cy, dir:=Trim(dir), lvl:=iTrcLvl, err:=errinf
+    StckPop lvl:=iTrcLvl, dir:=dir, itm:=itm
+    iTrcLvl = iTrcLvl - 1
     cyTcksOvrhd = SysCrrntTcks - cy ' overhead ticks caused by the collection of the begin trace entry
-    If iTraceLevel = 0 Then
+    If iTrcLvl = 0 Then
         Dsply
     End If
 
@@ -997,17 +1085,4 @@ Private Function TrcIsEmpty() As Boolean
     TrcIsEmpty = cllTrc Is Nothing
     If Not TrcIsEmpty Then TrcIsEmpty = cllTrc.Count = 0
 End Function
-
-Private Sub ErrMsg(ByVal errno As Long, _
-                   ByVal errsource As String, _
-                   ByVal errdscrptn As String, _
-                   ByVal errline As Long)
-' ----------------------------------------------
-'
-' ----------------------------------------------
-    MsgBox Prompt:="Error description" & vbLf & _
-                    err.Description, _
-           buttons:=vbOKOnly, _
-           Title:="VB Runtime error " & errno & " in " & errsource & IIf(errline <> 0, " at line " & errline, "")
-End Sub
 
