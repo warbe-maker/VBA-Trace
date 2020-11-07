@@ -415,7 +415,7 @@ Public Property Get MsgMonoSpaced(Optional ByVal section As Long) As Boolean
     Else
         With dctSectionsMonoSpaced
             If .Exists(section) _
-            Then MsgMonoSpaced = .Item(section) _
+            Then MsgMonoSpaced = .item(section) _
             Else MsgMonoSpaced = False
         End With
     End If
@@ -432,7 +432,7 @@ Public Property Get MsgText(Optional ByVal section As Long) As String
     Else
         With dctSectionsText
             If .Exists(section) _
-            Then MsgText = .Item(section) _
+            Then MsgText = .item(section) _
             Else MsgText = vbNullString
         End With
     End If
