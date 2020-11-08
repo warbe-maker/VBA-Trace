@@ -7,10 +7,9 @@ or a very detailed
 ![image](ExecutionTraceDetailed.png)
 execution trace which includes all executed procedures which have BoP/EoP statements in an executed procedure or BoC/EoC statements in an executed part of code.
 
-## Constraints
-This execution trace module is an optional component of the _Common VBA Error Handler_ (see the corresponding [blog post](#https://warbe-maker.github.io/vba/common/2020/10/02/Comprehensive-Common-VBA-Error-Handler.html)). The execution trace will function identically when installed without the error handler it but requires some more steps to install it.
-
 ## Installation
+This module is also an optional component of the _Common VBA Error Handler_ (see the corresponding [blog post](#https://warbe-maker.github.io/vba/common/2020/10/02/Comprehensive-Common-VBA-Error-Handler.html)). When used alone some more steps are required to install it.
+
 - Download (not required when the mErH module is installed)  [fMsg.frm](https://gitcdn.link/repo/warbe-maker/VBA-MsgBox-alternative/master/fMsg.frm) and   [fMsg.frx](https://gitcdn.link/repo/warbe-maker/VBA-MsgBox-alternative/master/fMsg.frx) and import _fMsg.frm_
 - Download  [mTrc.frm](https://gitcdn.link/repo/warbe-maker/Trc/master/mTrc.bas) and import it
 - Copy the following to any module with to-be-traced procedures:<br>
@@ -57,4 +56,10 @@ xt: mTrc.EoP ErrSrc(PROC)
 eh: ' any error haning
 End Sub
 ```
-Note: Never use Exit but Go-to xt instead to ensure the EoP (end of procedure) statement is not bypassed.
+Attention: Never use Exit but Goto xt instead to ensure the EoP (end of procedure) statement is not bypassed.
+
+## Note
+This execution trace module an the error handler module have three main things in common:
+1. Both use the _fMsg_ UserForm because of its flexibility
+2. Both require for each concerned module a function which uniquely identifies a procedure
+3. Both use BoP (Begin of Procedure) and EoP (End of Procedure) statements. The execution trace to trace the procedures start/end when executed and the error handler to maintain a _path to the error_
