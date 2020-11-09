@@ -61,7 +61,7 @@ Public Sub Regression_Test()
     bRegressionTest = True
     
     mTrc.BoP ErrSrc(PROC)
-    Test_6_Execution_Trace
+    Test_2_Execution_Trace_With_Error
 
 xt: mTrc.EoP ErrSrc(PROC)
     bRegressionTest = False
@@ -73,7 +73,7 @@ eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
 #End If
 End Sub
 
-Public Sub Test_6_Execution_Trace()
+Public Sub Test_1_Execution_Trace()
 ' ------------------------------------------------------
 ' White-box- and regression-test procedure obligatory
 ' to be performed after any code modification.
@@ -81,13 +81,13 @@ Public Sub Test_6_Execution_Trace()
 ' requires a conditional compile argument ExecTrace = 1.
 ' ------------------------------------------------------
     
-    Const PROC = "Test_6_Execution_Trace"
+    Const PROC = "Test_1_Execution_Trace"
     On Error GoTo eh
 '    mTrc.DisplayedInfo = Compact
     mTrc.DisplayedInfo = Detailed
     
     mTrc.BoP ErrSrc(PROC)
-    Test_6_Execution_Trace_TestProc_6a
+    Test_1_Execution_Trace_TestProc_6a
     mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
@@ -97,15 +97,15 @@ eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
 #End If
 End Sub
 
-Private Sub Test_6_Execution_Trace_TestProc_6a()
+Private Sub Test_1_Execution_Trace_TestProc_6a()
 
     On Error GoTo eh
-    Const PROC = "Test_6_Execution_Trace_TestProc_6a"
+    Const PROC = "Test_1_Execution_Trace_TestProc_6a"
     
     mTrc.BoP ErrSrc(PROC)
     mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
-    Test_6_Execution_Trace_TestProc_6b
-    Test_6_Execution_Trace_TestProc_6c
+    Test_1_Execution_Trace_TestProc_6b
+    Test_1_Execution_Trace_TestProc_6c
     mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
     mTrc.EoP ErrSrc(PROC)
     Exit Sub
@@ -116,9 +116,9 @@ eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
 #End If
 End Sub
 
-Private Sub Test_6_Execution_Trace_TestProc_6b()
+Private Sub Test_1_Execution_Trace_TestProc_6b()
     
-    Const PROC = "Test_6_Execution_Trace_TestProc_6b"
+    Const PROC = "Test_1_Execution_Trace_TestProc_6b"
     On Error GoTo eh
 
     mTrc.BoP ErrSrc(PROC)
@@ -138,9 +138,9 @@ eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
 #End If
 End Sub
 
-Private Sub Test_6_Execution_Trace_TestProc_6c()
+Private Sub Test_1_Execution_Trace_TestProc_6c()
     
-    Const PROC = "Test_6_Execution_Trace_TestProc_6c"
+    Const PROC = "Test_1_Execution_Trace_TestProc_6c"
     On Error GoTo eh
 
     mTrc.BoP ErrSrc(PROC)
@@ -154,6 +154,83 @@ eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
 #End If
 End Sub
 
+
+Public Sub Test_2_Execution_Trace_With_Error()
+' ------------------------------------------------------
+' White-box- and regression-test procedure obligatory
+' to be performed after any code modification.
+' Display of an execution trace along with this test
+' requires a conditional compile argument ExecTrace = 1.
+' ------------------------------------------------------
+    
+    Const PROC = "Test_2_Execution_Trace_With_Error"
+    On Error GoTo eh
+'    mTrc.DisplayedInfo = Compact
+    mTrc.DisplayedInfo = Detailed
+    
+    mTrc.BoP ErrSrc(PROC)
+    Test_2_Execution_Trace_With_Error_TestProc_6a
+    mTrc.EoP ErrSrc(PROC)
+    Exit Sub
+
+eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
+#If Debugging Then
+    Stop: Resume
+#End If
+End Sub
+
+Private Sub Test_2_Execution_Trace_With_Error_TestProc_6a()
+
+    On Error GoTo eh
+    Const PROC = "Test_2_Execution_Trace_With_Error_TestProc_6a"
+    
+    mTrc.BoP ErrSrc(PROC)
+    mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
+    Test_2_Execution_Trace_With_Error_TestProc_6b
+    Test_2_Execution_Trace_With_Error_TestProc_6c
+    mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
+    mTrc.EoP ErrSrc(PROC)
+    Exit Sub
+
+eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
+End Sub
+
+Private Sub Test_2_Execution_Trace_With_Error_TestProc_6b()
+    
+    Const PROC = "Test_2_Execution_Trace_With_Error_TestProc_6b"
+    On Error GoTo eh
+
+    mTrc.BoP ErrSrc(PROC)
+    
+    Dim i As Long
+    Dim s As String
+    For i = 1 To 10000
+        s = Application.Path ' to produce some execution time
+    Next i
+    
+    mTrc.EoP ErrSrc(PROC)
+    Exit Sub
+
+eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
+#If Debugging Then
+    Stop: Resume
+#End If
+End Sub
+
+Private Sub Test_2_Execution_Trace_With_Error_TestProc_6c()
+    
+    Const PROC = "Test_2_Execution_Trace_With_Error_TestProc_6c"
+    On Error GoTo eh
+
+    mTrc.BoP ErrSrc(PROC)
+    Dim i As Long: i = i / 0 ' Error !!!!
+
+xt: mTrc.EoP ErrSrc(PROC)
+    Exit Sub
+
+eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
+End Sub
+
 Private Sub ErrMsg(ByVal errno As Long, _
                    ByVal errsource As String, _
                    ByVal errdscrptn As String, _
@@ -161,9 +238,12 @@ Private Sub ErrMsg(ByVal errno As Long, _
 ' ----------------------------------------------
 '
 ' ----------------------------------------------
+    Dim sTitle As String: sTitle = "VB Runtime error " & errno & " in " & errsource & IIf(errline <> 0, " at line " & errline, "")
     MsgBox Prompt:="Error description" & vbLf & _
                     err.Description, _
            buttons:=vbOKOnly, _
-           Title:="VB Runtime error " & errno & " in " & errsource & IIf(errline <> 0, " at line " & errline, "")
+           Title:=sTitle
+    mTrc.Finish sTitle
+    mTrc.Terminate
 End Sub
 
