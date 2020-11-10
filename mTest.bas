@@ -230,6 +230,38 @@ xt: mTrc.EoP ErrSrc(PROC)
 
 eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
 End Sub
+Private Sub ErrMsgMatter(ByVal errsource As String, _
+                         ByVal errno As Long, _
+                         ByVal errline As Long, _
+                         ByVal errdscrptn As String, _
+                 Optional ByRef msgtitle As String, _
+                 Optional ByRef msgtype As String, _
+                 Optional ByRef msgline As String, _
+                 Optional ByRef msgno As Long, _
+                 Optional ByRef msgdetails As String, _
+                 Optional ByRef msgdscrptn As String, _
+                 Optional ByRef msginfo As String)
+' -------------------------------------------------------
+' Returns all the matter to build a proper error message.
+' -------------------------------------------------------
+                
+    If InStr(1, errsource, "DAO") <> 0 _
+    Or InStr(1, errsource, "ODBC Teradata Driver") <> 0 _
+    Or InStr(1, errsource, "ODBC") <> 0 _
+    Or InStr(1, errsource, "Oracle") <> 0 Then
+        msgtype = "Database Error "
+    Else
+      msgtype = IIf(errno > 0, "VB-Runtime Error ", "Application Error ")
+    End If
+   
+    msgline = IIf(errline <> 0, "at line " & errline, vbNullString)     ' Message error line
+    msgno = IIf(errno < 0, errno - vbObjectError, errno)                ' Message error number
+    msgtitle = msgtype & msgno & " in " & errsource & " " & msgline             ' Message title
+    msgdetails = IIf(errline <> 0, msgtype & msgno & " in " & errsource & " (at line " & errline & ")", msgtype & msgno & " in " & errsource)
+    msgdscrptn = IIf(InStr(errdscrptn, CONCAT) <> 0, Split(errdscrptn, CONCAT)(0), errdscrptn)
+    If InStr(errdscrptn, CONCAT) <> 0 Then msginfo = Split(errdscrptn, CONCAT)(1)
+
+End Sub
 
 Private Sub ErrMsg(ByVal errno As Long, _
                    ByVal errsource As String, _
@@ -238,9 +270,14 @@ Private Sub ErrMsg(ByVal errno As Long, _
 ' ----------------------------------------------
 '
 ' ----------------------------------------------
-    Dim sTitle As String: sTitle = "VB Runtime error " & errno & " in " & errsource & IIf(errline <> 0, " at line " & errline, "")
-    MsgBox Prompt:="Error description" & vbLf & _
-                    err.Description, _
+    Dim sTitle As String
+    
+    ErrMsgMatter errsource:=errsource, errno:=errno, errline:=errline, errdscrptn:=errdscrptn, msgtitle:=sTitle
+    
+    MsgBox Prompt:="Error description:" & vbLf & _
+                    errdscrptn & vbLf & vbLf & _
+                   "Error source:" & vbLf & _
+                   errsource, _
            buttons:=vbOKOnly, _
            Title:=sTitle
     mTrc.Finish sTitle

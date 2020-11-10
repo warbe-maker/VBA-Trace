@@ -262,7 +262,6 @@ Public Sub BoC(ByVal s As String)
     cyTcksOvrhdTrcStrt = SysCrrntTcks
     
     TrcBgn itm:=s, dir:=DIR_BEGIN_CODE, cll:=cll
-    StckPush cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 #End If
 End Sub
@@ -286,7 +285,6 @@ Public Sub BoP(ByVal s As String)
         End If
     End If
     TrcBgn itm:=s, dir:=DIR_BEGIN_PROC, cll:=cll
-    StckPush cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 #End If
 End Sub
@@ -442,6 +440,8 @@ Public Sub Dsply()
     Dim sTrace      As String
     Dim lLenHeader  As Long
     
+    If TrcIsEmpty Then Exit Sub
+    
     NtryTcksOvrhdNtry(cllNtryLast) = cyTcksOvrhd
     If DisplayedInfo = 0 Then DisplayedInfo = Compact
 
@@ -450,7 +450,7 @@ Public Sub Dsply()
             sTrace = sTrace & dct(v) & v & vbLf
         Next v
         With fMsg
-            .MsgTitle = "Inconsistent begin/end trace code lines!"
+            .msgtitle = "Inconsistent begin/end trace code lines!"
             .MsgLabel(1) = "The following incositencies had been detected which made the display of the execution trace result useless:"
             .MsgText(1) = sTrace:   .MsgMonoSpaced(1) = True
             .Setup
@@ -472,7 +472,7 @@ Public Sub Dsply()
     sTrace = sTrace & vbLf & DsplyFtr(lLenHeader)
     With fMsg
         .MaxFormWidthPrcntgOfScreenSize = 95
-        .MsgTitle = "Execution Trace, displayed because the Conditional Compile Argument ""ExecTrace = 1""!"
+        .msgtitle = "Execution Trace, displayed because the Conditional Compile Argument ""ExecTrace = 1""!"
         .MsgText(1) = sTrace:   .MsgMonoSpaced(1) = True
         .MsgLabel(2) = "About overhead, precision, etc.:": .MsgText(2) = DsplyAbout
         .Setup
@@ -714,7 +714,6 @@ Private Function DsplyNtryAllCnsstnt(ByRef dct As Dictionary) As Boolean
     '~~ Check for missing corresponding end entries while calculating the execution time for each end entry.
     For i = 1 To NtryLastBegin
         If NtryIsBegin(cllTrc(i), cllBeginEntry) Then
-            Debug.Print NtryCllLvl(cllBeginEntry) & " " & NtryDrctv(cllBeginEntry) & " " & NtryItm(cllBeginEntry)
             bConsistent = False
             For j = i + 1 To cllTrc.Count
                 If NtryIsEnd(cllTrc(j), cllEndEntry) Then
@@ -825,7 +824,6 @@ Public Sub EoC(ByVal itm As String, _
     If StckIsEmpty Then Exit Sub
     If cllTrc Is Nothing Then Exit Sub
     TrcEnd itm:=itm, dir:=DIR_END_CODE, inf:=inf, cll:=cll
-    StckPop cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 
 #End If
@@ -843,8 +841,7 @@ Public Sub EoP(ByVal itm As String, _
     If StckIsEmpty Then Exit Sub        ' Nothing to trace any longer. Stack has been emptied after an error to finish the trace
     If cllTrc Is Nothing Then Exit Sub  ' No trace or trace has finished
     TrcEnd itm:=itm, dir:=DIR_END_PROC, inf:=inf, cll:=cll
-    StckPop cll
-    If StckIsEmpty And Not TrcIsEmpty Then
+    If StckIsEmpty Then
         Dsply
     End If
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
@@ -1087,9 +1084,8 @@ Private Sub TrcAdd( _
         NtryTcksOvrhdNtry(cllNtryLast) = cyTcksOvrhdTrc
     End If
     
-    Set cll = Ntry(tcks:=tcks, dir:=dir, itm:=itm, lvl:=lvl, err:=err)
+    If cll Is Nothing Then Set cll = Ntry(tcks:=tcks, dir:=dir, itm:=itm, lvl:=lvl, err:=err)
     cllTrc.Add cll
-    Debug.Print lvl & " " & dir & " " & itm
     Set cllNtryLast = cll
 
 End Sub
@@ -1106,8 +1102,10 @@ Private Sub TrcBgn(ByVal itm As String, _
     Dim cy  As Currency:    cy = SysCrrntTcks
     
     iTrcLvl = iTrcLvl + 1
+    Set cll = Ntry(tcks:=cy, dir:=dir, itm:=itm, lvl:=iTrcLvl, err:=vbNullString)
     TrcAdd tcks:=cy, dir:=dir, itm:=itm, lvl:=iTrcLvl, cll:=cll
-    
+    StckPush cll
+
 End Sub
 
 Private Sub TrcEnd( _
@@ -1123,12 +1121,19 @@ Private Sub TrcEnd( _
     
     On Error GoTo eh
     Dim cy  As Currency:    cy = SysCrrntTcks
-
+    Dim top As Collection:  Set top = StckTop
+    
     If inf <> vbNullString Then
         inf = COMMENT & inf & COMMENT
     End If
     
+    If NtryItm(top) <> itm And NtryCllLvl(top) = iTrcLvl Then
+        iTrcLvl = iTrcLvl - 1
+        StckPop top
+    End If
+    
     TrcAdd itm:=itm, tcks:=cy, dir:=Trim(dir), lvl:=iTrcLvl, err:=inf, cll:=cll
+    StckPop cll
     iTrcLvl = iTrcLvl - 1
 
 xt: Exit Sub
