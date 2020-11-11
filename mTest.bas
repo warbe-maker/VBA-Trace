@@ -165,8 +165,8 @@ Public Sub Test_2_Execution_Trace_With_Error()
     
     Const PROC = "Test_2_Execution_Trace_With_Error"
     On Error GoTo eh
-'    mTrc.DisplayedInfo = Compact
-    mTrc.DisplayedInfo = Detailed
+    mTrc.DisplayedInfo = Compact
+'    mTrc.DisplayedInfo = Detailed
     
     mTrc.BoP ErrSrc(PROC)
     Test_2_Execution_Trace_With_Error_TestProc_6a

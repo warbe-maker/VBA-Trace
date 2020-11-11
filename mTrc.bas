@@ -3,30 +3,34 @@ Option Explicit
 ' ------------------------------------------------------------------------
 ' Standard Module mTrc Procedure/code execution trace with result display.
 '
-' Uses: mErrHndlr
-'       fMsg
+' Uses: fMsg to display the trace result
+'
+' Data structure of any collected begin/end trace entry:
+'
+' | Item/Entry        | Origin    |   Type    | Key | Impl.|
+' |-------------------|-----------|-----------|-----|------|
+' | ItmDrctv          | Collected | String    |  1  |  1)  |
+' | ItmId             | Collected | String    |  2  |  1)  |
+' | ItmInf            | Collected | String    |  3  |  1)  |
+' | ItmLvl            | Computed  | Long      |  4  |  1)  |
+' | ItmTcksSys        | Collected | Currency  |  5  |  1)  |
+' | NtryItm           | Computed  | Currency  |  I  |  3)  |
+' | NtryScsElpsd      | Computed  | Currency  | SE  |  2)  |
+' | NtryScsGrss       | Computed  | Currency  | SG  |  2)  |
+' | NtryScsNt         | Computed  | Currency  | SN  |  2)  |
+' | NtryScsOvrhdItm   | Computed  | Currency  | SOI |  2)  |
+' | NtryScsOvrhdNtry  | Computed  | Currency  | SON |  2)  |
+' | NtryTcksElpsd     | Computed  | Currency  | TE  |  2)  |
+' | NtryTcksGrss      | Computed  | Currency  | TG  |  2)  |
+' | NtryTcksOvrhdItm  | Computed  | Currency  | TOI |  2)  |
+' | NtryTcksOvrhdNtry | Collected | Currency  | TON |  2)  |
+'
+' 1) Implemented as element of an array (arItm)
+' 2) Implemented as item of an entry collection (Ntry)
+' 3) Item which carries the array (arItm)
 '
 ' W. Rauschenberger, Berlin, Nov. 1 2020
-' Data structure of any collected begin/end trace entry:
-
-' | Entry Item          | Origin, Transformation |   Type    | Key |
-' |---------------------|------------------------|-----------+-----+
-' | NtryTcksSys         | Collected              | Currency  | TS  |
-' | NtryTcksElpsd       | Computed               | Currency  | TE  |
-' | NtryTcksGrss        | Computed               | Currency  | TG  |
-' | NtryTcksOvrhdNtry   | Collected              | Currency  | TON |
-' | NtryTcksOvrhdItm    | Computed               | Currency  | TOI |
-' | NtryScsElpsd        | Computed               | Currency  | SE  |
-' | NtryScsGrss         | Computed               | Currency  | SG  |
-' | NtryScsOvrhdNtry    | Computed               | Currency  | SON |
-' | NtryScsOvrhdItm     | Computed               | Currency  | SOI |
-' | NtryScsNt           | Computed               | Currency  | SN  |
-' |                     | gross - overhad        |           |     |
-' | NtryCllLvl          | Computed               | Long      | CL  |
-' | NtryDrctv           | Collected              | String    | D   |
-' | NtryItm            | Collected              | String    | I   |
-' | NtryError           | Computed               | String    | E   |
-
+' ------------------------------------------------------------------------
 Public Enum enDisplayedInfo
     Detailed = 1
     Compact = 2
@@ -40,6 +44,12 @@ Alias "QueryPerformanceCounter" (cyTickCount As Currency) As Long
 Private Const DIR_BEGIN_ID  As String = ">"     ' Begin procedure or code trace indicator
 Private Const DIR_END_ID    As String = "<"     ' End procedure or code trace indicator
 Private Const COMMENT       As String = " !!! "
+
+Private Const POS_ITMDRCTV      As Long = 1
+Private Const POS_ITMID         As Long = 2
+Private Const POS_ITMINF        As Long = 3
+Private Const POS_ITMLVL        As Long = 4
+Private Const POS_ITMTCKSSYS    As Long = 5
 
 Private cllStck             As Collection       ' Trace stack
 Private cllNtryLast         As Collection       '
@@ -99,41 +109,33 @@ Public Property Let DisplayedSecsPrecision(ByVal l As Long)
 End Property
 
 Private Property Get DsplyLnIndnttn(Optional ByRef entry As Collection) As String
-    DsplyLnIndnttn = Repeat("|  ", NtryCllLvl(entry))
+    DsplyLnIndnttn = Repeat("|  ", ItmLvl(entry))
 End Property
 
-Private Property Get NtryCllLvl(Optional ByRef entry As Collection) As Long
-    NtryCllLvl = entry("CL")
+Private Property Get ItmDrctv(Optional ByRef entry As Collection) As String
+    ItmDrctv = entry("I")(POS_ITMDRCTV)
 End Property
 
-Private Property Let NtryCllLvl(Optional ByRef entry As Collection, ByRef l As Long)
-    entry.Add l, "CL"
+Private Property Get ItmId(Optional ByRef entry As Collection) As String
+    ItmId = entry("I")(POS_ITMID)
 End Property
 
-Private Property Get NtryDrctv(Optional ByRef entry As Collection) As String
-    NtryDrctv = entry("D")
-End Property
-
-Private Property Let NtryDrctv(Optional ByRef entry As Collection, ByRef s As String)
-    entry.Add s, "D"
-End Property
-
-Private Property Get NtryError(Optional ByRef entry As Collection) As String
+Private Property Get ItmInf(Optional ByRef entry As Collection) As String
     On Error Resume Next ' in case this has never been collected
-    NtryError = entry("E")
-    If err.Number <> 0 Then NtryError = vbNullString
+    ItmInf = entry("I")(POS_ITMINF)
+    If err.Number <> 0 Then ItmInf = vbNullString
 End Property
 
-Private Property Let NtryError(Optional ByRef entry As Collection, ByRef s As String)
-    entry.Add s, "E"
+Private Property Get ItmLvl(Optional ByRef entry As Collection) As Long
+    ItmLvl = entry("I")(POS_ITMLVL)
 End Property
 
-Private Property Get NtryItm(Optional ByRef entry As Collection) As String
-    NtryItm = entry("I")
+Private Property Get ItmTcksSys(Optional ByRef entry As Collection) As Currency
+    ItmTcksSys = entry("I")(POS_ITMTCKSSYS)
 End Property
 
-Private Property Let NtryItm(Optional ByRef entry As Collection, ByRef s As String)
-    entry.Add s, "I"
+Private Property Let NtryItm(Optional ByVal entry As Collection, ByVal v As Variant)
+    entry.Add v, "I"
 End Property
 
 Private Property Get NtryScsElpsd(Optional ByRef entry As Collection) As Currency
@@ -234,14 +236,6 @@ Private Property Let NtryTcksOvrhdNtry(Optional ByRef entry As Collection, ByRef
     entry.Add cy, "TON"
 End Property
 
-Private Property Get NtryTcksSys(Optional ByRef entry As Collection) As Currency
-    NtryTcksSys = entry("TS")
-End Property
-
-Private Property Let NtryTcksSys(Optional ByRef entry As Collection, ByRef cy As Currency)
-    entry.Add cy, "TS"
-End Property
-
 Private Property Get SysCrrntTcks() As Currency
     getTickCount SysCrrntTcks
 End Property
@@ -261,7 +255,7 @@ Public Sub BoC(ByVal s As String)
     Dim cll As Collection
     cyTcksOvrhdTrcStrt = SysCrrntTcks
     
-    TrcBgn itm:=s, dir:=DIR_BEGIN_CODE, cll:=cll
+    TrcBgn id:=s, dir:=DIR_BEGIN_CODE, cll:=cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 #End If
 End Sub
@@ -284,7 +278,7 @@ Public Sub BoP(ByVal s As String)
             Initialize
         End If
     End If
-    TrcBgn itm:=s, dir:=DIR_BEGIN_PROC, cll:=cll
+    TrcBgn id:=s, dir:=DIR_BEGIN_PROC, cll:=cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 #End If
 End Sub
@@ -324,7 +318,7 @@ Private Function ComputeSecsOvrhdTtlEntry() As Double
 ' --------------------------------------------------
 ' Returns the total overhead seconds caused by the
 ' collection of the traced item's data.
-' ----------------------------------------------
+' --------------------------------------------------
     Const PROC = "ComputeSecsOvrhdTtlEntry"
     
     On Error GoTo eh
@@ -361,8 +355,8 @@ Private Sub ComputeTcksElpsd()
     
     For Each v In cllTrc
         Set cll = v
-        If cyTcksBegin = 0 Then cyTcksBegin = NtryTcksSys(cll)
-        cyTcksElapsed = NtryTcksSys(cll) - cyTcksBegin
+        If cyTcksBegin = 0 Then cyTcksBegin = ItmTcksSys(cll)
+        cyTcksElapsed = ItmTcksSys(cll) - cyTcksBegin
         NtryTcksElpsd(cll) = cyTcksElapsed
     Next v
     Set cll = Nothing
@@ -524,14 +518,13 @@ Private Function DsplyFtr(ByVal lLenHeaderData As Long) ' Displayed trace footer
       & Format(Now(), "hh:mm:ss")
 End Function
 
-Private Function DsplyHdr( _
-                 ByRef lLenHeaderData As Long) As String
-' ------------------------------------------------------
+Private Function DsplyHdr(ByRef lLenHeaderData As Long) As String
+' ---------------------------------------------------------------
 ' Compact:  Header1 = Elapsed Exec >> Start
 ' Detailed: Header1 =    Ticks   |   Secs
 '           Header2 = xxx xxxx xx xxx xxx xx
 '           Header3 " --- ---- -- --- --- -- >> Start
-' ------------------------------------------------------
+' ---------------------------------------------------------------
     Const PROC = "DsplyHdr"
     
     On Error GoTo eh
@@ -624,15 +617,14 @@ eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Descripti
     Set cllTrc = Nothing
 End Function
 
-Public Function DsplyHdrCntrAbv( _
-                          ByVal s1 As String, _
-                          ByVal s2 As String, _
-                 Optional ByVal sLeft As String = vbNullString, _
-                 Optional ByVal sRight As String = vbNullString, _
-                 Optional ByVal sFillChar As String = " ") As String
-' ---------------------------------------------------------------------------
+Public Function DsplyHdrCntrAbv(ByVal s1 As String, _
+                                ByVal s2 As String, _
+                       Optional ByVal sLeft As String = vbNullString, _
+                       Optional ByVal sRight As String = vbNullString, _
+                       Optional ByVal sFillChar As String = " ") As String
+' ------------------------------------------------------------------------
 ' Returns s1 centered above s2 considering any characters left and right.
-' ---------------------------------------------------------------------------
+' ------------------------------------------------------------------------
     
     If Len(s1) > Len(s2) Then
         DsplyHdrCntrAbv = s1
@@ -657,12 +649,12 @@ Private Function DsplyLn(ByVal entry As Collection) As String
                       DsplyValue(entry, NtryScsElpsd(entry), sFrmtScsElpsd) _
               & " " & DsplyValue(entry, NtryScsNt(entry), sFrmtScsNt) _
               & " " & DsplyLnIndnttn(entry) _
-                    & NtryDrctv(entry) _
-              & " " & NtryItm(entry) _
-              & " " & NtryError(entry)
+                    & ItmDrctv(entry) _
+              & " " & ItmId(entry) _
+              & " " & ItmInf(entry)
         Case Detailed
             DsplyLn = _
-                        DsplyValue(entry, NtryTcksSys(entry), sFrmtTcksSys) _
+                        DsplyValue(entry, ItmTcksSys(entry), sFrmtTcksSys) _
                 & " " & DsplyValue(entry, NtryTcksElpsd(entry), sFrmtTcksElpsd) _
                 & " " & DsplyValue(entry, NtryTcksGrss(entry), sFrmtTcksGrss) _
                 & " " & DsplyValue(entry, NtryTcksOvrhdNtry(entry), sFrmtTcksOvrhdItm) _
@@ -674,9 +666,9 @@ Private Function DsplyLn(ByVal entry As Collection) As String
                 & " " & DsplyValue(entry, NtryScsOvrhdItm(entry), sFrmtScsOvrhdItm) _
                 & " " & DsplyValue(entry, NtryScsNt(entry), sFrmtScsNt) _
                 & " " & DsplyLnIndnttn(entry) _
-                      & NtryDrctv(entry) _
-                & " " & NtryItm(entry) _
-                & " " & NtryError(entry)
+                      & ItmDrctv(entry) _
+                & " " & ItmId(entry) _
+                & " " & ItmInf(entry)
     End Select
 
 xt: Exit Function
@@ -717,8 +709,8 @@ Private Function DsplyNtryAllCnsstnt(ByRef dct As Dictionary) As Boolean
             bConsistent = False
             For j = i + 1 To cllTrc.Count
                 If NtryIsEnd(cllTrc(j), cllEndEntry) Then
-                    If NtryItm(cllBeginEntry) = NtryItm(cllEndEntry) Then
-                        If NtryCllLvl(cllBeginEntry) = NtryCllLvl(cllEndEntry) Then
+                    If ItmId(cllBeginEntry) = ItmId(cllEndEntry) Then
+                        If ItmLvl(cllBeginEntry) = ItmLvl(cllEndEntry) Then
                             '~~ Calculate the executesd seconds for the end entry
                             NtryTcksGrss(cllEndEntry) = NtryTcksElpsd(cllEndEntry) - NtryTcksElpsd(cllBeginEntry)
                             NtryTcksOvrhdItm(cllEndEntry) = NtryTcksOvrhdNtry(cllBeginEntry) + NtryTcksOvrhdNtry(cllEndEntry)
@@ -728,11 +720,11 @@ Private Function DsplyNtryAllCnsstnt(ByRef dct As Dictionary) As Boolean
                 End If
             Next j
             '~~ No corresponding end entry found
-            Select Case NtryDrctv(cllBeginEntry)
+            Select Case ItmDrctv(cllBeginEntry)
                 Case DIR_BEGIN_PROC: sComment = "No corresponding End of Procedure (EoP) code line in:    "
                 Case DIR_BEGIN_CODE: sComment = "No corresponding End of CodeTrace (EoC) code line in:    "
             End Select
-            If Not dct.Exists(NtryItm(cllBeginEntry)) Then dct.Add NtryItm(cllBeginEntry), sComment
+            If Not dct.Exists(ItmId(cllBeginEntry)) Then dct.Add ItmId(cllBeginEntry), sComment
         End If
 
 next_begin_entry:
@@ -743,11 +735,11 @@ next_begin_entry:
         If NtryIsEnd(v, cllEndEntry) Then
             If NtryTcksGrss(cllEndEntry) = 0 Then
                 '~~ No corresponding begin entry found
-                Select Case NtryDrctv(cllEndEntry)
+                Select Case ItmDrctv(cllEndEntry)
                     Case DIR_END_PROC: sComment = "No corresponding Begin of Procedure (BoP) code line in:  "
                     Case DIR_END_CODE: sComment = "No corresponding Begin of CodeTrace (BoC) code line in:  "
                 End Select
-                If Not dct.Exists(NtryItm(cllBeginEntry)) Then dct.Add NtryItm(cllBeginEntry), sComment
+                If Not dct.Exists(ItmId(cllBeginEntry)) Then dct.Add ItmId(cllBeginEntry), sComment
             End If
         End If
     Next v
@@ -761,12 +753,11 @@ eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Descripti
 #End If
 End Function
 
-Private Function DsplyTcksDffToScs( _
-                             ByVal beginticks As Currency, _
-                             ByVal endticks As Currency) As Currency
-' ------------------------------------------------------------------
+Private Function DsplyTcksDffToScs(ByVal beginticks As Currency, _
+                                   ByVal endticks As Currency) As Currency
+' ------------------------------------------------------------------------
 ' Returns the difference between begin- and endticks as seconds.
-' ------------------------------------------------------------------
+' ------------------------------------------------------------------------
     IIf endticks - beginticks > 0, DsplyTcksDffToScs = (endticks - beginticks) / cySysFrequency, DsplyTcksDffToScs = 0
 End Function
 
@@ -776,12 +767,10 @@ Private Function DsplyValue(ByVal entry As Collection, _
     If NtryIsBegin(entry) And value = 0 _
     Then DsplyValue = Space$(Len(frmt)) _
     Else DsplyValue = IIf(value >= 0, Format(value, frmt), Space$(Len(frmt)))
-
 End Function
 
-Private Function DsplyValueFormat( _
-                 ByRef thisformat As String, _
-                 ByVal forvalue As Variant) As String
+Private Function DsplyValueFormat(ByRef thisformat As String, _
+                                  ByVal forvalue As Variant) As String
     thisformat = String$(DsplyValueLength(forvalue), "0") & "." & String$(DisplayedSecsPrecision, "0")
 End Function
 
@@ -799,7 +788,7 @@ End Function
 
 Private Sub DsplyValuesFormatSet()
     Dim cllLast As Collection:  Set cllLast = NtryLst
-    DsplyValueFormat thisformat:=sFrmtTcksSys, forvalue:=NtryTcksSys(cllLast)
+    DsplyValueFormat thisformat:=sFrmtTcksSys, forvalue:=ItmTcksSys(cllLast)
     DsplyValueFormat thisformat:=sFrmtTcksElpsd, forvalue:=NtryTcksElpsd(cllLast)
     DsplyValueFormat thisformat:=sFrmtTcksGrss, forvalue:=NtryTcksGrss(cllLast)
     DsplyValueFormat thisformat:=sFrmtTcksOvrhdNtry, forvalue:=NtryTcksOvrhdNtry(cllLast)
@@ -812,7 +801,7 @@ Private Sub DsplyValuesFormatSet()
     DsplyValueFormat thisformat:=sFrmtScsNt, forvalue:=NtryScsNt(cllLast)
 End Sub
 
-Public Sub EoC(ByVal itm As String, _
+Public Sub EoC(ByVal id As String, _
       Optional ByVal inf As String = vbNullString)
 ' ---------------------------------------------------
 '
@@ -823,13 +812,13 @@ Public Sub EoC(ByVal itm As String, _
     cyTcksOvrhdTrcStrt = SysCrrntTcks
     If StckIsEmpty Then Exit Sub
     If cllTrc Is Nothing Then Exit Sub
-    TrcEnd itm:=itm, dir:=DIR_END_CODE, inf:=inf, cll:=cll
+    TrcEnd id:=id, dir:=DIR_END_CODE, inf:=inf, cll:=cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 
 #End If
 End Sub
 
-Public Sub EoP(ByVal itm As String, _
+Public Sub EoP(ByVal id As String, _
       Optional ByVal inf As String = vbNullString)
 ' ------------------------------------------------
 ' Trace of the End of a Procedure.
@@ -840,7 +829,7 @@ Public Sub EoP(ByVal itm As String, _
     cyTcksOvrhdTrcStrt = SysCrrntTcks
     If StckIsEmpty Then Exit Sub        ' Nothing to trace any longer. Stack has been emptied after an error to finish the trace
     If cllTrc Is Nothing Then Exit Sub  ' No trace or trace has finished
-    TrcEnd itm:=itm, dir:=DIR_END_PROC, inf:=inf, cll:=cll
+    TrcEnd id:=id, dir:=DIR_END_PROC, inf:=inf, cll:=cll
     If StckIsEmpty Then
         Dsply
     End If
@@ -864,20 +853,18 @@ Private Function ErrSrc(ByVal sProc As String) As String
     ErrSrc = "mTrc." & sProc
 End Function
 
-Public Sub Finish( _
-   Optional ByVal inf As String = vbNullString)
-' -------------------------------------------------
-' Finishes an unfinished traced items by means of
-' the stack. All items on the the stack are
-' processed via EoP/EoC.
-' -------------------------------------------------
+Public Sub Finish(Optional ByVal inf As String = vbNullString)
+' ------------------------------------------------------------
+' Finishes an unfinished traced items by means of the stack.
+' All items on the the stack are processed via EoP/EoC.
+' ------------------------------------------------------------
     Dim cll As Collection
     
     While Not StckIsEmpty
         Set cll = StckTop
         If NtryIsCode(cll) _
-        Then mTrc.EoC itm:=NtryItm(cll), inf:=inf _
-        Else mTrc.EoP itm:=NtryItm(cll), inf:=inf
+        Then mTrc.EoC id:=ItmId(cll), inf:=inf _
+        Else mTrc.EoP id:=ItmId(cll), inf:=inf
     Wend
     
 End Sub
@@ -897,10 +884,31 @@ Private Sub Initialize()
     
 End Sub
 
+Private Function Itm( _
+               ByVal drctv As String, _
+               ByVal id As String, _
+               ByVal inf As String, _
+               ByVal lvl As Long, _
+               ByVal tckssys As Currency) As Variant()
+' -------------------------------------------------------
+' Returns an array with the arguments ordered by their
+' position (alias key)
+' -------------------------------------------------------
+    Dim av(1 To 5) As Variant
+    
+    av(POS_ITMDRCTV) = drctv
+    av(POS_ITMID) = id
+    av(POS_ITMINF) = inf
+    av(POS_ITMLVL) = lvl
+    av(POS_ITMTCKSSYS) = tckssys
+    Itm = av
+    
+End Function
+
 Private Function Max(ParamArray va() As Variant) As Variant
-' ------------------------------------------------------
+' ---------------------------------------------------------
 ' Returns the maximum value of all values provided (va).
-' ------------------------------------------------------
+' ---------------------------------------------------------
     Dim v   As Variant
     
     Max = va(LBound(va)): If LBound(va) = UBound(va) Then Exit Function
@@ -910,58 +918,52 @@ Private Function Max(ParamArray va() As Variant) As Variant
     
 End Function
 
-Private Function Ntry( _
-                ByVal tcks As Currency, _
-                ByVal dir As String, _
-                ByVal itm As String, _
-                ByVal lvl As Long, _
-                ByVal err As String) As Collection
-' ------------------------------------------------
-' Return the arguments as items of a collection.
-' This "entry" is used
-' ------------------------------------------------
+Private Function Ntry(ByVal tcks As Currency, _
+                      ByVal dir As String, _
+                      ByVal id As String, _
+                      ByVal lvl As Long, _
+                      ByVal inf As String) As Collection
+' ------------------------------------------------------
+' Return the arguments as elements in an array as an
+' item in a collection.
+' ------------------------------------------------------
       
     Dim cll As New Collection
+    Dim VarItm  As Variant
     
-    NtryTcksSys(cll) = tcks
-    NtryDrctv(cll) = dir
-    NtryItm(cll) = itm
-    NtryCllLvl(cll) = lvl
-    NtryError(cll) = err
+    VarItm = Itm(drctv:=dir, id:=id, inf:=inf, lvl:=lvl, tckssys:=tcks)
+    NtryItm(cll) = VarItm
     Set Ntry = cll
     
 End Function
 
- Private Function NtryIsBegin( _
-                  ByVal v As Collection, _
-         Optional ByRef cll As Collection = Nothing) As Boolean
-' -------------------------------------------------------------
-' Returns TRUE and v as cll when the entry is a begin entry,
-' else FALSE and cll = Nothing
-' ---------------------------------------------------
-    If InStr(NtryDrctv(v), DIR_BEGIN_ID) <> 0 Then
+ Private Function NtryIsBegin(ByVal v As Collection, _
+                     Optional ByRef cll As Collection = Nothing) As Boolean
+' -------------------------------------------------------------------------
+' Returns TRUE and v as cll when the entry is a begin entry, else FALSE and
+' cll = Nothing
+' -------------------------------------------------------------------------
+    If InStr(ItmDrctv(v), DIR_BEGIN_ID) <> 0 Then
         NtryIsBegin = True
         Set cll = v
     End If
 End Function
 
-Private Function NtryIsCode( _
-           ByVal cll As Collection) As Boolean
+Private Function NtryIsCode(ByVal cll As Collection) As Boolean
     
-    Select Case NtryDrctv(cll)
+    Select Case ItmDrctv(cll)
         Case DIR_BEGIN_CODE, DIR_END_CODE: NtryIsCode = True
     End Select
 
 End Function
 
-Private Function NtryIsEnd( _
-                 ByVal v As Collection, _
-                 ByRef cll As Collection) As Boolean
-' --------------------------------------------------
-' Returns TRUE and v as cll when the entry is an end
-' entry, else FALSE and cll = Nothing
-' --------------------------------------------------
-    If InStr(NtryDrctv(v), DIR_END_ID) <> 0 Then
+Private Function NtryIsEnd(ByVal v As Collection, _
+                           ByRef cll As Collection) As Boolean
+' ------------------------------------------------------------
+' Returns TRUE and v as cll when the entry is an end entry,
+' else FALSE and cll = Nothing
+' ------------------------------------------------------------
+    If InStr(ItmDrctv(v), DIR_END_ID) <> 0 Then
         NtryIsEnd = True
         Set cll = v
     End If
@@ -996,15 +998,14 @@ Private Function NtryTcksOvrhdItmMax() As Double
 
 End Function
 
-Private Function Repeat( _
-                 ByVal s As String, _
-                 ByVal r As Long) As String
-' -------------------------------------------
-' Returns the string (s) repeated (r) times.
-' -------------------------------------------
+Private Function Repeat(ByVal s As String, _
+                        ByVal n As Long) As String
+' ------------------------------------------------
+' Returns the string (s) concatenated (n) times.
+' ------------------------------------------------
     Dim i   As Long
     
-    For i = 1 To r
+    For i = 1 To n
         Repeat = Repeat & s
     Next i
     
@@ -1021,26 +1022,26 @@ Private Sub StckPop(ByVal pop As Collection)
 ' ------------------------------------------
     Dim cllTop As Collection: Set cllTop = StckTop
     
-    While NtryItm(pop) <> NtryItm(cllTop) And Not StckIsEmpty
+    While ItmId(pop) <> ItmId(cllTop) And Not StckIsEmpty
         '~~ Finish any unfinished code trace still on the stack which needs to be finished first
         If NtryIsCode(cllTop) Then
-            mTrc.EoC itm:=NtryItm(cllTop), inf:="ended by stack!!"
+            mTrc.EoC id:=ItmId(cllTop), inf:="ended by stack!!"
         Else
-            mTrc.EoP itm:=NtryItm(cllTop), inf:="ended by stack!!"
+            mTrc.EoP id:=ItmId(cllTop), inf:="ended by stack!!"
         End If
         If Not StckIsEmpty Then Set cllTop = StckTop
     Wend
     
     If StckIsEmpty Then GoTo xt
     
-    If NtryItm(pop) = NtryItm(cllTop) Then
+    If ItmId(pop) = ItmId(cllTop) Then
         cllStck.Remove cllStck.Count
         Set cllTop = StckTop
     Else
-        Debug.Print "Stack Pop ='" & NtryItm(pop) _
-                  & "', Stack Top = '" & NtryItm(cllTop) _
-                  & "', Stack Dir = '" & NtryDrctv(cllTop) _
-                  & "', Stack Lvl = '" & NtryCllLvl(cllTop) _
+        Debug.Print "Stack Pop ='" & ItmId(pop) _
+                  & "', Stack Top = '" & ItmId(cllTop) _
+                  & "', Stack Dir = '" & ItmDrctv(cllTop) _
+                  & "', Stack Lvl = '" & ItmLvl(cllTop) _
                   & "', Stack Cnt = '" & cllStck.Count
         Stop
     End If
@@ -1069,14 +1070,16 @@ Public Sub Terminate()
     Set cllStck = Nothing
 End Sub
 
-Private Sub TrcAdd( _
-            ByVal itm As String, _
-            ByVal tcks As Currency, _
-            ByVal dir As String, _
-            ByVal lvl As Long, _
-   Optional ByVal err As String = vbNullString, _
-   Optional ByRef cll As Collection)
-   
+Private Sub TrcAdd(ByVal id As String, _
+                   ByVal tcks As Currency, _
+                   ByVal dir As String, _
+                   ByVal lvl As Long, _
+          Optional ByVal inf As String = vbNullString, _
+          Optional ByRef cll As Collection)
+' ------------------------------------------------------
+' Adds an entry to the trace collection.
+' ------------------------------------------------------
+
     If Not cllNtryLast Is Nothing Then
         '~~ When this is not the first entry added, save the overhead ticks caused by the previous entry
         '~~ Note: Would corrupt the overhead when saved with the entry itself because the overhead is
@@ -1084,13 +1087,13 @@ Private Sub TrcAdd( _
         NtryTcksOvrhdNtry(cllNtryLast) = cyTcksOvrhdTrc
     End If
     
-    If cll Is Nothing Then Set cll = Ntry(tcks:=tcks, dir:=dir, itm:=itm, lvl:=lvl, err:=err)
+    If cll Is Nothing Then Set cll = Ntry(tcks:=tcks, dir:=dir, id:=id, lvl:=lvl, inf:=inf)
     cllTrc.Add cll
     Set cllNtryLast = cll
 
 End Sub
 
-Private Sub TrcBgn(ByVal itm As String, _
+Private Sub TrcBgn(ByVal id As String, _
                    ByVal dir As String, _
           Optional ByRef cll As Collection)
 ' -----------------------------------------
@@ -1102,21 +1105,20 @@ Private Sub TrcBgn(ByVal itm As String, _
     Dim cy  As Currency:    cy = SysCrrntTcks
     
     iTrcLvl = iTrcLvl + 1
-    Set cll = Ntry(tcks:=cy, dir:=dir, itm:=itm, lvl:=iTrcLvl, err:=vbNullString)
-    TrcAdd tcks:=cy, dir:=dir, itm:=itm, lvl:=iTrcLvl, cll:=cll
+    Set cll = Ntry(tcks:=cy, dir:=dir, id:=id, lvl:=iTrcLvl, inf:=vbNullString)
+    TrcAdd id:=id, tcks:=cy, dir:=dir, lvl:=iTrcLvl, inf:=vbNullString, cll:=cll
     StckPush cll
 
 End Sub
 
-Private Sub TrcEnd( _
-            ByVal itm As String, _
-   Optional ByVal dir As String = vbNullString, _
-   Optional ByVal inf As String = vbNullString, _
-   Optional ByRef cll As Collection)
-' ------------------------------------------------
-' Collect an end trace entry with the current
-' ticks count for the procedure or code (item).
-' ------------------------------------------------
+Private Sub TrcEnd(ByVal id As String, _
+          Optional ByVal dir As String = vbNullString, _
+          Optional ByVal inf As String = vbNullString, _
+          Optional ByRef cll As Collection)
+' ------------------------------------------------------
+' Collect an end trace entry with the current ticks
+' count for the procedure or code (item).
+' ------------------------------------------------------
     Const PROC = "TrcEnd"
     
     On Error GoTo eh
@@ -1127,12 +1129,12 @@ Private Sub TrcEnd( _
         inf = COMMENT & inf & COMMENT
     End If
     
-    If NtryItm(top) <> itm And NtryCllLvl(top) = iTrcLvl Then
+    If ItmId(top) <> id And ItmLvl(top) = iTrcLvl Then
         iTrcLvl = iTrcLvl - 1
         StckPop top
     End If
     
-    TrcAdd itm:=itm, tcks:=cy, dir:=Trim(dir), lvl:=iTrcLvl, err:=inf, cll:=cll
+    TrcAdd id:=id, tcks:=cy, dir:=Trim(dir), lvl:=iTrcLvl, inf:=inf, cll:=cll
     StckPop cll
     iTrcLvl = iTrcLvl - 1
 
