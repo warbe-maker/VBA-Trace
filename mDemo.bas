@@ -35,13 +35,11 @@ Public Sub Demo_6_Execution_Trace()
     
     mTrc.BoP ErrSrc(PROC)
     Demo_6_Execution_Trace_DemoProc_6a
-    mTrc.EoP ErrSrc(PROC)
+    
+xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
-#If Debugging Then
-    Stop: Resume
-#End If
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6a()
@@ -51,13 +49,11 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6a()
     
     mTrc.BoP ErrSrc(PROC)
     Demo_6_Execution_Trace_DemoProc_6b
-    mTrc.EoP ErrSrc(PROC)
+
+xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
-#If Debugging Then
-    Stop: Resume
-#End If
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6b()
@@ -70,18 +66,15 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6b()
     Demo_6_Execution_Trace_DemoProc_6c
     
     Dim i As Long: Dim j As Long: j = 10000000
-    mTrc.BoC PROC & " empty loop 1 to " & j
+    mTrc.BoC ErrSrc(PROC) & " empty loop 1 to " & j
     For i = 1 To j
     Next i
-    mTrc.EoC PROC & " empty loop 1 to " & j ' !!! the string must match with the BoC statement !!!
+    mTrc.EoC ErrSrc(PROC) & " empty loop 1 to " & j ' !!! the string must match with the BoC statement !!!
     
-    mTrc.EoP ErrSrc(PROC)
+xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
-#If Debugging Then
-    Stop: Resume
-#End If
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6c()
@@ -94,10 +87,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6c()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
-#If Debugging Then
-    Stop: Resume
-#End If
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 End Sub
 
 Private Function ErrSrc(ByVal s As String) As String
@@ -108,15 +98,58 @@ Private Function ErrSrc(ByVal s As String) As String
     ErrSrc = "mDemo." & s
 End Function
 
-Private Sub ErrMsg(ByVal errno As Long, _
-                   ByVal errsource As String, _
-                   ByVal errdscrptn As String, _
-                   ByVal errline As Long)
+Private Sub ErrMsgMatter(ByVal err_source As String, _
+                         ByVal err_no As Long, _
+                         ByVal err_line As Long, _
+                         ByVal err_dscrptn As String, _
+                Optional ByRef msg_title As String, _
+                Optional ByRef msg_type As String, _
+                Optional ByRef msg_line As String, _
+                Optional ByRef msg_no As Long, _
+                Optional ByRef msg_details As String, _
+                Optional ByRef msg_dscrptn As String, _
+                Optional ByRef msg_info As String)
+' -------------------------------------------------------
+' Returns all the matter to build a proper error message.
+' -------------------------------------------------------
+                
+    If InStr(1, err_source, "DAO") <> 0 _
+    Or InStr(1, err_source, "ODBC Teradata Driver") <> 0 _
+    Or InStr(1, err_source, "ODBC") <> 0 _
+    Or InStr(1, err_source, "Oracle") <> 0 Then
+        msg_type = "Database Error "
+    Else
+      msg_type = IIf(err_no > 0, "VB-Runtime Error ", "Application Error ")
+    End If
+   
+    msg_line = IIf(err_line <> 0, "at line " & err_line, vbNullString)     ' Message error line
+    msg_no = IIf(err_no < 0, err_no - vbObjectError, err_no)                ' Message error number
+    msg_title = msg_type & msg_no & " in " & err_source & " " & msg_line             ' Message title
+    msg_details = IIf(err_line <> 0, msg_type & msg_no & " in " & err_source & " (at line " & err_line & ")", msg_type & msg_no & " in " & err_source)
+    msg_dscrptn = IIf(InStr(err_dscrptn, CONCAT) <> 0, Split(err_dscrptn, CONCAT)(0), err_dscrptn)
+    If InStr(err_dscrptn, CONCAT) <> 0 Then msg_info = Split(err_dscrptn, CONCAT)(1)
+
+End Sub
+
+Private Sub ErrMsg(ByVal err_no As Long, _
+                   ByVal err_source As String, _
+                   ByVal err_dscrptn As String, _
+                   ByVal err_line As Long)
 ' ----------------------------------------------
 '
 ' ----------------------------------------------
-    MsgBox Prompt:="Error description" & vbLf & _
-                    err.Description, _
+    Dim sTitle As String
+    
+    ErrMsgMatter err_source:=err_source, err_no:=err_no, err_line:=err_line, err_dscrptn:=err_dscrptn, msg_title:=sTitle
+    
+    MsgBox Prompt:="Error description:" & vbLf & _
+                    err_dscrptn & vbLf & vbLf & _
+                   "Error source:" & vbLf & _
+                   err_source, _
            buttons:=vbOKOnly, _
-           Title:="VB Runtime error " & errno & " in " & errsource & IIf(errline <> 0, " at line " & errline, "")
+           Title:=sTitle
+    mTrc.Finish sTitle
+    mTrc.Terminate
 End Sub
+
+
