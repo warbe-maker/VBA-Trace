@@ -381,10 +381,15 @@ Private Sub ErrMsgMatter(ByVal err_source As String, _
                 Optional ByRef msg_details As String, _
                 Optional ByRef msg_dscrptn As String, _
                 Optional ByRef msg_info As String)
-' -------------------------------------------------------
-' Returns all the matter to build a proper error message.
-' -------------------------------------------------------
-                
+' ---------------------------------------------------------------------------------
+' Returns all matter to build a proper error message.
+' msg_line:    at line <err_line>
+' msg_no:      1 to n (an Application error translated back into its origin number)
+' msg_title:   <error type> <error number> in:  <error source>
+' msg_details: <error type> <error number> in <error source> [(at line <err_line>)]
+' msg_dscrptn: the error description
+' msg_info:    any text which follows the description concatenated by a ||
+' ---------------------------------------------------------------------------------
     If InStr(1, err_source, "DAO") <> 0 _
     Or InStr(1, err_source, "ODBC Teradata Driver") <> 0 _
     Or InStr(1, err_source, "ODBC") <> 0 _
@@ -394,12 +399,12 @@ Private Sub ErrMsgMatter(ByVal err_source As String, _
       msg_type = IIf(err_no > 0, "VB-Runtime Error ", "Application Error ")
     End If
    
-    msg_line = IIf(err_line <> 0, "at line " & err_line, vbNullString)     ' Message error line
-    msg_no = IIf(err_no < 0, err_no - vbObjectError, err_no)                ' Message error number
-    msg_title = msg_type & msg_no & " in " & err_source & " " & msg_line             ' Message title
-    msg_details = IIf(err_line <> 0, msg_type & msg_no & " in " & err_source & " (at line " & err_line & ")", msg_type & msg_no & " in " & err_source)
+    msg_line = IIf(err_line <> 0, "at line " & err_line, vbNullString)
+    msg_no = IIf(err_no < 0, err_no - vbObjectError, err_no)
+    msg_title = msg_type & msg_no & " in:  " & err_source
+    msg_details = IIf(err_line <> 0, msg_type & msg_no & " in: " & err_source & " (" & msg_line & ")", msg_type & msg_no & " in " & err_source)
     msg_dscrptn = IIf(InStr(err_dscrptn, CONCAT) <> 0, Split(err_dscrptn, CONCAT)(0), err_dscrptn)
-    If InStr(err_dscrptn, CONCAT) <> 0 Then msg_info = Split(err_dscrptn, CONCAT)(1)
+    If InStr(err_dscrptn, CONCAT) <> 0 Then msg_info = Split(err_dscrptn, CONCAT)(1) Else msg_info = vbNullString
 
 End Sub
 
@@ -407,17 +412,22 @@ Private Sub ErrMsg(ByVal err_no As Long, _
                    ByVal err_source As String, _
                    ByVal err_dscrptn As String, _
                    ByVal err_line As Long)
-' ----------------------------------------------
-'
-' ----------------------------------------------
-    Dim sTitle As String
+' --------------------------------------------------
+' Note! Because the mTrc trace module is an optional
+'       module of the mErH error handler module it
+'       cannot use the mErH's ErrMsg procedure and
+'       thus uses its own - with the known
+'       disadvantage that the title maybe truncated.
+' --------------------------------------------------
+    Dim sTitle      As String
+    Dim sDetails    As String
     
-    ErrMsgMatter err_source:=err_source, err_no:=err_no, err_line:=err_line, err_dscrptn:=err_dscrptn, msg_title:=sTitle
+    ErrMsgMatter err_source:=err_source, err_no:=err_no, err_line:=err_line, err_dscrptn:=err_dscrptn, msg_title:=sTitle, msg_details:=sDetails
     
     MsgBox Prompt:="Error description:" & vbLf & _
                     err_dscrptn & vbLf & vbLf & _
-                   "Error source:" & vbLf & _
-                   err_source, _
+                   "Error source/details:" & vbLf & _
+                   sDetails, _
            buttons:=vbOKOnly, _
            Title:=sTitle
     mTrc.Finish sTitle
