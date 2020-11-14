@@ -240,7 +240,7 @@ Public Sub Test_3_Execution_Trace()
     mTrc.DisplayedInfo = Detailed
     
     mTrc.BoP ErrSrc(PROC)
-    Test_3_Execution_Trace_TestProc_6a
+    Test_3_Execution_Trace_TestProc_6a "arg1", "arg2", 15.2
 
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
@@ -248,12 +248,14 @@ xt: mTrc.EoP ErrSrc(PROC)
 eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 End Sub
 
-Private Sub Test_3_Execution_Trace_TestProc_6a()
+Private Sub Test_3_Execution_Trace_TestProc_6a(ByVal arg1 As Variant, _
+                                               ByVal arg2 As Variant, _
+                                               ByVal arg3 As Variant)
 
     On Error GoTo eh
     Const PROC = "Test_3_Execution_Trace_TestProc_6a"
     
-    mTrc.BoP ErrSrc(PROC)
+    mTrc.BoP ErrSrc(PROC), arg1, arg2, arg3
     mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
     Test_3_Execution_Trace_TestProc_6b
     Test_3_Execution_Trace_TestProc_6c
