@@ -50,6 +50,7 @@ Private Const POS_ITMID         As Long = 2
 Private Const POS_ITMINF        As Long = 3
 Private Const POS_ITMLVL        As Long = 4
 Private Const POS_ITMTCKSSYS    As Long = 5
+Private Const POS_ITMARGS       As Long = 6
 
 Private cllStck             As Collection       ' Trace stack
 Private cllNtryLast         As Collection       '
@@ -75,6 +76,8 @@ Private sFrmtTcksOvrhdNtry  As String           ' Ticks
 Private sFrmtTcksOvrhdItm   As String           ' Ticks
 Private sFrmtTcksSys        As String           ' -------------
 Private sFirstTraceItem     As String
+Private cyTcksPauseStart    As Currency         ' Set with procedure Pause
+Private cyTcksPaused        As Currency         ' Accumulated with procedure Continue
 
 Private Property Get DIR_BEGIN_CODE() As String
     DIR_BEGIN_CODE = DIR_BEGIN_ID
@@ -110,6 +113,9 @@ End Property
 
 Private Property Get DsplyLnIndnttn(Optional ByRef entry As Collection) As String
     DsplyLnIndnttn = Repeat("|  ", ItmLvl(entry))
+End Property
+Private Property Get ItmArgs(Optional ByRef entry As Collection) As Variant
+    ItmArgs = entry("I")(POS_ITMARGS)
 End Property
 
 Private Property Get ItmDrctv(Optional ByRef entry As Collection) As String
@@ -247,38 +253,43 @@ Private Property Get SysFrequency() As Currency
     SysFrequency = cySysFrequency
 End Property
 
-Public Sub BoC(ByVal s As String)
-' -------------------------------
-' Begin of Code trace.
-' -------------------------------
+Public Sub BoC(ByVal traced_code As String)
+' ---------------------------------------------
+' Begin of the trace of a number of code lines.
+' Note: When the Conditional Compile Argument
+'       ExecTrace = 0 BoC is inactive.
+' ---------------------------------------------
 #If ExecTrace Then
     Dim cll As Collection
     cyTcksOvrhdTrcStrt = SysCrrntTcks
     
-    TrcBgn id:=s, dir:=DIR_BEGIN_CODE, cll:=cll
+    TrcBgn id:=traced_code, dir:=DIR_BEGIN_CODE, cll:=cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 #End If
 End Sub
 
-Public Sub BoP(ByVal s As String)
-' -------------------------------
+Public Sub BoP(ByVal traced_procedure As String, _
+          ParamArray traced_arguments() As Variant)
+' -------------------------------------------------
 ' Trace Begin of Procedure
-' -------------------------------
+' Note: When the Conditional Compile Argument
+'       ExecTrace = 0 BoP is inactive.
+' -------------------------------------------------
 #If ExecTrace Then
     Dim cll As Collection
     
     cyTcksOvrhdTrcStrt = SysCrrntTcks
     If TrcIsEmpty Then
         Initialize
-        sFirstTraceItem = s
+        sFirstTraceItem = traced_procedure
     Else
-        If s = sFirstTraceItem Then
+        If traced_procedure = sFirstTraceItem Then
             '~~ A previous trace had not come to a regular end and thus will be erased
             Set cllTrc = Nothing
             Initialize
         End If
     End If
-    TrcBgn id:=s, dir:=DIR_BEGIN_PROC, cll:=cll
+    TrcBgn id:=traced_procedure, dir:=DIR_BEGIN_PROC, args:=traced_arguments, cll:=cll
     cyTcksOvrhdTrc = SysCrrntTcks - cyTcksOvrhdTrcStrt ' overhead ticks caused by the collection of the begin trace entry
 #End If
 End Sub
@@ -307,7 +318,7 @@ Private Sub ComputeSecsGrssOvrhdNet()
 
 xt: Exit Sub
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -334,7 +345,7 @@ Private Function ComputeSecsOvrhdTtlEntry() As Double
 
 xt: Exit Function
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -363,7 +374,7 @@ Private Sub ComputeTcksElpsd()
 
 xt: Exit Sub
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -390,7 +401,7 @@ Private Sub ComputeTcksNet()
 
 xt: Exit Sub
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -417,12 +428,20 @@ Private Function ComputeTcksOvrhdItem() As Currency
 
 xt: Exit Function
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
     Set cllTrc = Nothing
 End Function
+
+Public Sub Pause()
+    cyTcksPauseStart = SysCrrntTcks
+End Sub
+
+Public Sub Continue()
+    cyTcksPaused = cyTcksPaused + (SysCrrntTcks - cyTcksPauseStart)
+End Sub
 
 Public Sub Dsply()
     Const PROC = "Dsply"
@@ -452,6 +471,8 @@ Public Sub Dsply()
     For Each v In cllTrc
         Set entry = v
         sTrace = sTrace & vbLf & DsplyLn(entry)
+        If DsplyArgs(entry) <> vbNullString Then
+        End If
     Next v
     sTrace = sTrace & vbLf & DsplyFtr(lLenHeader)
     With fMsg
@@ -466,7 +487,7 @@ Public Sub Dsply()
 xt: mTrc.Terminate
     Exit Sub
     
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -495,8 +516,8 @@ Private Function DsplyAbout() As String
       & "> The displayed execution time varies from execution to execution and can only be estimated " _
       & "as an average of many executions." _
       & vbLf _
-      & "> When an error had been displayed the traced execution time includes the time " _
-      & "of the user reaction and thus does not provide a meaningful result."
+      & "> When an error had been displayed the trace had been paused and continued when the user had pressed a button. " & _
+        "  For a correct trace of an item's execution time any paused times had been subtracted."
 
 End Function
 
@@ -600,7 +621,7 @@ Private Function DsplyHdr(ByRef lLenHeaderData As Long) As String
 
 xt: Exit Function
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -626,12 +647,31 @@ Public Function DsplyHdrCntrAbv(ByVal s1 As String, _
     
 End Function
 
+Private Function DsplyArgs(ByVal entry As Collection) As String
+    Dim va()    As Variant
+    Dim i       As Long
+    
+    On Error Resume Next
+    va = ItmArgs(entry)
+    If err.Number <> 0 Then Exit Function
+    i = LBound(va)
+    If err.Number <> 0 Then Exit Function
+    
+    For i = i To UBound(va)
+        If DsplyArgs <> vbNullString Then DsplyArgs = DsplyArgs & "  "
+        DsplyArgs = DsplyArgs & ">" & CStr(va(i)) & "<"
+    Next i
+    If DsplyArgs <> vbNullString Then DsplyArgs = "|  Argument values: " & DsplyArgs
+End Function
+
 Private Function DsplyLn(ByVal entry As Collection) As String
 ' -------------------------------------------------------------
 ' Returns a trace line for being displayed.
 ' -------------------------------------------------------------
     Const PROC = "DsplyLn"
     On Error GoTo eh
+    Dim lLenData    As Long
+    Dim sArgs       As String
     
     Select Case DisplayedInfo
         Case Compact
@@ -640,8 +680,14 @@ Private Function DsplyLn(ByVal entry As Collection) As String
               & " " & DsplyValue(entry, NtryScsNt(entry), sFrmtScsNt) _
               & " " & DsplyLnIndnttn(entry) _
                     & ItmDrctv(entry) _
-              & " " & ItmId(entry) _
+              & " "
+              
+              lLenData = Len(DsplyLn)
+
+              DsplyLn = DsplyLn _
+                    & ItmId(entry) _
               & " " & ItmInf(entry)
+              
         Case Detailed
             DsplyLn = _
                         DsplyValue(entry, ItmTcksSys(entry), sFrmtTcksSys) _
@@ -655,15 +701,25 @@ Private Function DsplyLn(ByVal entry As Collection) As String
                 & " " & DsplyValue(entry, NtryScsOvrhdNtry(entry), sFrmtScsOvrhdItm) _
                 & " " & DsplyValue(entry, NtryScsOvrhdItm(entry), sFrmtScsOvrhdItm) _
                 & " " & DsplyValue(entry, NtryScsNt(entry), sFrmtScsNt) _
-                & " " & DsplyLnIndnttn(entry) _
+                & " "
+
+                lLenData = Len(DsplyLn)
+                
+                DsplyLn = DsplyLn _
+                      & DsplyLnIndnttn(entry) _
                       & ItmDrctv(entry) _
                 & " " & ItmId(entry) _
                 & " " & ItmInf(entry)
     End Select
 
+    sArgs = DsplyArgs(entry)
+    If sArgs <> vbNullString Then
+        DsplyLn = DsplyLn & vbLf & String(lLenData, " ") & DsplyLnIndnttn(entry) & sArgs
+    End If
+
 xt: Exit Function
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -752,7 +808,7 @@ next_begin_entry:
 
 xt: Exit Function
 
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
@@ -808,9 +864,11 @@ End Sub
 
 Public Sub EoC(ByVal id As String, _
       Optional ByVal inf As String = vbNullString)
-' ---------------------------------------------------
-'
-' ---------------------------------------------------
+' ------------------------------------------------
+' End of the trace of a number of code lines.
+' Note: When the Conditional Compole Argument
+'       ExecTrace = 0 EoC is inactive.
+' ------------------------------------------------
 #If ExecTrace Then
     Dim cll As Collection
     
@@ -827,6 +885,8 @@ Public Sub EoP(ByVal id As String, _
       Optional ByVal inf As String = vbNullString)
 ' ------------------------------------------------
 ' Trace of the End of a Procedure.
+' Note: When the Conditional Compole Argument
+'       ExecTrace = 0 EoC is inactive.
 ' ------------------------------------------------
 #If ExecTrace Then
     Dim cll As Collection
@@ -842,16 +902,68 @@ Public Sub EoP(ByVal id As String, _
 #End If
 End Sub
 
-Private Sub ErrMsg(ByVal errno As Long, _
-                   ByVal errsource As String, _
-                   ByVal errdscrptn As String, _
-                   ByVal errline As Long)
-' ----------------------------------------------
-' Display of a module's error message.
-' ----------------------------------------------
-    MsgBox Prompt:="Error description:" & vbLf & errdscrptn, _
+Private Sub ErrMsg(ByVal err_no As Long, _
+                   ByVal err_source As String, _
+                   ByVal err_dscrptn As String, _
+                   ByVal err_line As Long)
+' --------------------------------------------------
+' Note! Because the mTrc trace module is an optional
+'       module of the mErH error handler module it
+'       cannot use the mErH's ErrMsg procedure and
+'       thus uses its own - with the known
+'       disadvantage that the title maybe truncated.
+' --------------------------------------------------
+    Dim sTitle      As String
+    Dim sDetails    As String
+    
+    ErrMsgMatter err_source:=err_source, err_no:=err_no, err_line:=err_line, err_dscrptn:=err_dscrptn, msg_title:=sTitle, msg_details:=sDetails
+    
+    MsgBox Prompt:="Error description:" & vbLf & _
+                    err_dscrptn & vbLf & vbLf & _
+                   "Error source/details:" & vbLf & _
+                   sDetails, _
            buttons:=vbOKOnly, _
-           Title:="VB Runtime error " & errno & " in " & errsource & IIf(errline <> 0, " at line " & errline, "")
+           Title:=sTitle
+    mTrc.Finish sTitle
+    mTrc.Terminate
+End Sub
+
+Private Sub ErrMsgMatter(ByVal err_source As String, _
+                         ByVal err_no As Long, _
+                         ByVal err_line As Long, _
+                         ByVal err_dscrptn As String, _
+                Optional ByRef msg_title As String, _
+                Optional ByRef msg_type As String, _
+                Optional ByRef msg_line As String, _
+                Optional ByRef msg_no As Long, _
+                Optional ByRef msg_details As String, _
+                Optional ByRef msg_dscrptn As String, _
+                Optional ByRef msg_info As String)
+' -------------------------------------------------------------------------------
+' Returns all matter to build a proper error message.
+' msg_line:    at line <err_line>
+' msg_no:      1 to n
+' msg_title:   <error type> <error number> in <error source> [at line <err_line>]
+' msg_details: (at line <err_line>)
+' msg_dscrptn: the error description
+' msg_info:    any text which follows the description concatenated by a ||
+' -------------------------------------------------------------------------------
+    If InStr(1, err_source, "DAO") <> 0 _
+    Or InStr(1, err_source, "ODBC Teradata Driver") <> 0 _
+    Or InStr(1, err_source, "ODBC") <> 0 _
+    Or InStr(1, err_source, "Oracle") <> 0 Then
+        msg_type = "Database Error "
+    Else
+      msg_type = IIf(err_no > 0, "VB-Runtime Error ", "Application Error ")
+    End If
+   
+    msg_line = IIf(err_line <> 0, "at line " & err_line, vbNullString)     ' Message error line
+    msg_no = IIf(err_no < 0, err_no - vbObjectError, err_no)                ' Message error number
+    msg_title = msg_type & msg_no & " in " & err_source & " " & msg_line             ' Message title
+    msg_details = IIf(err_line <> 0, msg_type & msg_no & " in " & err_source & " (at line " & err_line & ")", msg_type & msg_no & " in " & err_source)
+    msg_dscrptn = IIf(InStr(err_dscrptn, CONCAT) <> 0, Split(err_dscrptn, CONCAT)(0), err_dscrptn)
+    If InStr(err_dscrptn, CONCAT) <> 0 Then msg_info = Split(err_dscrptn, CONCAT)(1)
+
 End Sub
 
 Private Function ErrSrc(ByVal sProc As String) As String
@@ -894,18 +1006,20 @@ Private Function Itm( _
                ByVal id As String, _
                ByVal inf As String, _
                ByVal lvl As Long, _
-               ByVal tckssys As Currency) As Variant()
+               ByVal tckssys As Currency, _
+               ByVal args As Variant) As Variant()
 ' -------------------------------------------------------
 ' Returns an array with the arguments ordered by their
 ' position (alias key)
 ' -------------------------------------------------------
-    Dim av(1 To 5) As Variant
+    Dim av(1 To 6) As Variant
     
     av(POS_ITMDRCTV) = drctv
     av(POS_ITMID) = id
     av(POS_ITMINF) = inf
     av(POS_ITMLVL) = lvl
     av(POS_ITMTCKSSYS) = tckssys
+    av(POS_ITMARGS) = args
     Itm = av
     
 End Function
@@ -927,7 +1041,8 @@ Private Function Ntry(ByVal tcks As Currency, _
                       ByVal dir As String, _
                       ByVal id As String, _
                       ByVal lvl As Long, _
-                      ByVal inf As String) As Collection
+                      ByVal inf As String, _
+                      ByVal args As Variant) As Collection
 ' ------------------------------------------------------
 ' Return the arguments as elements in an array as an
 ' item in a collection.
@@ -936,7 +1051,7 @@ Private Function Ntry(ByVal tcks As Currency, _
     Dim cll As New Collection
     Dim VarItm  As Variant
     
-    VarItm = Itm(drctv:=dir, id:=id, inf:=inf, lvl:=lvl, tckssys:=tcks)
+    VarItm = Itm(drctv:=dir, id:=id, inf:=inf, lvl:=lvl, tckssys:=tcks, args:=args)
     NtryItm(cll) = VarItm
     Set Ntry = cll
     
@@ -1016,6 +1131,25 @@ Private Function Repeat(ByVal s As String, _
     
 End Function
 
+Private Function StckEd(ByVal id As String, _
+                        ByVal lvl As Long) As Boolean
+' ---------------------------------------------------
+' Returns TRUE when an item (id) is on the stack with
+' a level (lvl)
+' ---------------------------------------------------
+    Dim v       As Variant
+    Dim cllNtry As Collection
+    
+    For Each v In cllStck
+        Set cllNtry = v
+        If ItmId(cllNtry) = id And ItmLvl(cllNtry) = lvl Then
+            StckEd = True
+            Exit Function
+        End If
+    Next v
+
+End Function
+
 Private Function StckIsEmpty() As Boolean
     StckIsEmpty = cllStck Is Nothing
     If Not StckIsEmpty Then StckIsEmpty = cllStck.Count = 0
@@ -1073,46 +1207,66 @@ Public Sub Terminate()
 ' -----------------------------------------------------------------
     Set cllTrc = Nothing
     Set cllStck = Nothing
+    cyTcksPaused = 0
 End Sub
+
+Private Function TrcLast() As Collection
+    If cllTrc.Count <> 0 _
+    Then Set TrcLast = cllTrc(cllTrc.Count)
+End Function
 
 Private Sub TrcAdd(ByVal id As String, _
                    ByVal tcks As Currency, _
                    ByVal dir As String, _
                    ByVal lvl As Long, _
+          Optional ByVal args As Variant, _
           Optional ByVal inf As String = vbNullString, _
           Optional ByRef cll As Collection)
 ' ------------------------------------------------------
 ' Adds an entry to the trace collection.
 ' ------------------------------------------------------
-
+    Static sLastDrctv   As String
+    Static sLastId      As String
+    Static lLastLvl     As String
+    
+    Dim bAlreadyAdded   As Boolean
+    
     If Not cllNtryLast Is Nothing Then
         '~~ When this is not the first entry added, save the overhead ticks caused by the previous entry
         '~~ Note: Would corrupt the overhead when saved with the entry itself because the overhead is
         '~~       the ticks caused by the collection of the entry
-        NtryTcksOvrhdNtry(cllNtryLast) = cyTcksOvrhdTrc
+        If sLastId = id And lLastLvl = lvl And sLastDrctv = dir Then bAlreadyAdded = True
+        If Not bAlreadyAdded Then NtryTcksOvrhdNtry(cllNtryLast) = cyTcksOvrhdTrc
     End If
     
-    If cll Is Nothing Then Set cll = Ntry(tcks:=tcks, dir:=dir, id:=id, lvl:=lvl, inf:=inf)
-    cllTrc.Add cll
-'    Debug.Print lvl & " " & dir & " " & id
-    Set cllNtryLast = cll
-
+    If Not bAlreadyAdded Then
+        Set cll = Ntry(tcks:=tcks, dir:=dir, id:=id, lvl:=lvl, inf:=inf, args:=args)
+        cllTrc.Add cll
+'        Debug.Print lvl & " " & dir & " " & id
+        Set cllNtryLast = cll
+        sLastDrctv = dir
+        sLastId = id
+        lLastLvl = lvl
+    Else
+        Debug.Print ItmId(cllNtryLast) & " already added"
+    End If
+    
 End Sub
 
 Private Sub TrcBgn(ByVal id As String, _
                    ByVal dir As String, _
+          Optional ByVal args As Variant, _
           Optional ByRef cll As Collection)
-' -----------------------------------------
-' Collect a trace begin entry with the
-' current ticks count for the procedure or
-' code (item).
-' -----------------------------------------
+' ----------------------------------------------
+' Collect a trace begin entry with the current
+' ticks count for the procedure or code (item).
+' ----------------------------------------------
     
-    Dim cy  As Currency:    cy = SysCrrntTcks
-    
+    Dim cy  As Currency:    cy = SysCrrntTcks - cyTcksPaused
+    Dim i As Long
+           
     iTrcLvl = iTrcLvl + 1
-    Set cll = Ntry(tcks:=cy, dir:=dir, id:=id, lvl:=iTrcLvl, inf:=vbNullString)
-    TrcAdd id:=id, tcks:=cy, dir:=dir, lvl:=iTrcLvl, inf:=vbNullString, cll:=cll
+    TrcAdd id:=id, tcks:=cy, dir:=dir, lvl:=iTrcLvl, inf:=vbNullString, args:=args, cll:=cll
     StckPush cll
 
 End Sub
@@ -1128,7 +1282,7 @@ Private Sub TrcEnd(ByVal id As String, _
     Const PROC = "TrcEnd"
     
     On Error GoTo eh
-    Dim cy  As Currency:    cy = SysCrrntTcks
+    Dim cy  As Currency:    cy = SysCrrntTcks - cyTcksPaused
     Dim top As Collection:  Set top = StckTop
     
     If inf <> vbNullString Then
@@ -1152,31 +1306,11 @@ Private Sub TrcEnd(ByVal id As String, _
 
 xt: Exit Sub
     
-eh: ErrMsg errno:=err.Number, errsource:=ErrSrc(PROC), errdscrptn:=err.Description, errline:=Erl
+eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
 #If Debugging Then
     Stop: Resume
 #End If
 End Sub
-
-Private Function StckEd(ByVal id As String, _
-                        ByVal lvl As Long) As Boolean
-' ---------------------------------------------------
-' Returns TRUE when an item (id) is on the stack with
-' a level (lvl)
-' ---------------------------------------------------
-    Dim v       As Variant
-    Dim cllNtry As Collection
-    
-    For Each v In cllStck
-        Set cllNtry = v
-        If ItmId(cllNtry) = id And ItmLvl(cllNtry) = lvl Then
-            StckEd = True
-            Exit Function
-        End If
-    Next v
-
-End Function
-
 
 Private Function TrcIsEmpty() As Boolean
     TrcIsEmpty = cllTrc Is Nothing
