@@ -61,13 +61,14 @@ Public Sub Regression_Test()
     bRegressionTest = True
     
     mTrc.BoP ErrSrc(PROC)
+    Test_3_Execution_Trace
     Test_3_Execution_Trace_With_Error
 
 xt: mTrc.EoP ErrSrc(PROC)
     bRegressionTest = False
     Exit Sub
     
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Public Sub Test_1_1_BoP_missing()
@@ -83,7 +84,7 @@ Public Sub Test_1_1_BoP_missing()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_1_1_BoP_missing_TestProc_1a()
@@ -98,7 +99,7 @@ Private Sub Test_1_1_BoP_missing_TestProc_1a()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 
@@ -115,7 +116,7 @@ Public Sub Test_1_2_BoP_missing()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_1_2_BoP_missing_TestProc_1a()
@@ -130,7 +131,7 @@ Private Sub Test_1_2_BoP_missing_TestProc_1a()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Public Sub Test_2_BoP_EoP()
@@ -146,7 +147,7 @@ Public Sub Test_2_BoP_EoP()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_2_BoP_EoP_TestProc_1a_missing_BoP()
@@ -164,7 +165,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1a_missing_BoP()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_2_BoP_EoP_TestProc_1b_paired_BoP_EoP()
@@ -177,7 +178,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1b_paired_BoP_EoP()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
     
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_2_BoP_EoP_TestProc_1c_missing_EoC()
@@ -191,7 +192,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1c_missing_EoC()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
     
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_2_BoP_EoP_TestProc_1e_BoC_EoC()
@@ -210,7 +211,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1e_BoC_EoC()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_2_BoP_EoP_TestProc_1d_missing_EoP()
@@ -223,7 +224,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1d_missing_EoP()
     
 xt: Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Public Sub Test_3_Execution_Trace()
@@ -245,7 +246,7 @@ Public Sub Test_3_Execution_Trace()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_3_Execution_Trace_TestProc_6a(ByVal arg1 As Variant, _
@@ -264,7 +265,7 @@ Private Sub Test_3_Execution_Trace_TestProc_6a(ByVal arg1 As Variant, _
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_3_Execution_Trace_TestProc_6b()
@@ -283,7 +284,7 @@ Private Sub Test_3_Execution_Trace_TestProc_6b()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_3_Execution_Trace_TestProc_6c()
@@ -296,7 +297,7 @@ Private Sub Test_3_Execution_Trace_TestProc_6c()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 
@@ -319,7 +320,7 @@ Public Sub Test_3_Execution_Trace_With_Error()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_3_Execution_Trace_With_Error_TestProc_6a()
@@ -355,7 +356,7 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6b()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
 Private Sub Test_3_Execution_Trace_With_Error_TestProc_6c()
@@ -369,7 +370,7 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6c()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_source:=ErrSrc(PROC), err_asserted:=6
 End Sub
 
 Private Sub ErrMsgMatter(ByVal err_source As String, _
@@ -410,10 +411,12 @@ Private Sub ErrMsgMatter(ByVal err_source As String, _
 
 End Sub
 
-Private Sub ErrMsg(ByVal err_no As Long, _
-                   ByVal err_source As String, _
-                   ByVal err_dscrptn As String, _
-                   ByVal err_line As Long)
+Private Sub ErrMsg( _
+             ByVal err_source As String, _
+    Optional ByVal err_no As Long = 0, _
+    Optional ByVal err_dscrptn As String = vbNullString, _
+    Optional ByVal err_line As Long = 0, _
+    Optional ByVal err_asserted = 0)
 ' --------------------------------------------------
 ' Note! Because the mTrc trace module is an optional
 '       module of the mErH error handler module it
@@ -424,14 +427,28 @@ Private Sub ErrMsg(ByVal err_no As Long, _
     Dim sTitle      As String
     Dim sDetails    As String
     
+    If err_no = 0 Then err_no = err.Number
+    If err_dscrptn = vbNullString Then err_dscrptn = err.Description
+    If err_line = 0 Then err_line = Erl
+    
     ErrMsgMatter err_source:=err_source, err_no:=err_no, err_line:=err_line, err_dscrptn:=err_dscrptn, msg_title:=sTitle, msg_details:=sDetails
     
+#If Test Then
+    If err_no <> err_asserted _
+    Then MsgBox Prompt:="Error description:" & vbLf & _
+                        err_dscrptn & vbLf & vbLf & _
+                        "Error source/details:" & vbLf & _
+                        sDetails, _
+                buttons:=vbOKOnly, _
+                Title:=sTitle
+#Else
     MsgBox Prompt:="Error description:" & vbLf & _
                     err_dscrptn & vbLf & vbLf & _
                    "Error source/details:" & vbLf & _
                    sDetails, _
            buttons:=vbOKOnly, _
            Title:=sTitle
+#End If
     mTrc.Finish sTitle
     mTrc.Terminate
 End Sub
