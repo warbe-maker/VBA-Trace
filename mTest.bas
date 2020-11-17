@@ -11,14 +11,14 @@ Public Enum StartupPosition         ' ---------------------------
     WindowsDefault = 3              ' centered on the screen
 End Enum                            ' ---------------------------
 
-Public Type tSection                ' ------------------
-       sLabel As String             ' Structure of the
-       sText As String              ' UserForm's
-       bMonspaced As Boolean        ' message area which
-End Type                            ' consists of
-Public Type tMessage                ' three message
-       section(1 To 3) As tSection  ' sections
-End Type                            ' -------------------
+Public Type tMsgSection                 ' ---------------------
+       sLabel As String                 ' Structure of the
+       sText As String                  ' UserForm's message
+       bMonspaced As Boolean            ' area which consists
+End Type                                ' of 4 message sections
+Public Type tMsg                        ' Attention: 4 is a
+       section(1 To 4) As tMsgSection   ' design constant!
+End Type                                ' ---------------------
 ' ----------------------------------------------------------------------
 
 Private bRegressionTest As Boolean

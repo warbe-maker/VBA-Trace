@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fMsg 
-   ClientHeight    =   9255.001
+   ClientHeight    =   10560
    ClientLeft      =   150
    ClientTop       =   390
    ClientWidth     =   12390
@@ -12,6 +12,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 ' -------------------------------------------------------------------------------
 ' UserForm fMsg
@@ -29,23 +30,24 @@ Option Explicit
 '
 ' lScreenWidth. Rauschenberger Berlin March 2020
 ' --------------------------------------------------------------------------
-Const MIN_BUTTON_WIDTH          As Single = 70      ' Default minimum reply button width
+Const NO_OF_DESIGNED_SECTIONS   As Single = 4       ' Needs to be changed when the design is changed !
+Const MIN_BTTN_WIDTH          As Single = 70      ' Default minimum reply button width
 Const FONT_MONOSPACED_NAME      As String = "Courier New"   ' Default monospaced font
 Const FONT_MONOSPACED_SIZE      As Single = 9       ' Default monospaced font size
-Const FORM_MAX_HEIGHT_POW       As Long = 90        ' Max form height as a percentage of the screen size
+Const FORM_MAX_HEIGHT_POW       As Long = 70        ' Max form height as a percentage of the screen size
 Const FORM_MAX_WIDTH_POW        As Long = 80        ' Max form width as a percentage of the screen size
 Const FORM_MIN_WIDTH            As Single = 300     ' Default minimum message form width
 Const TEST_WITH_FRAME_BORDERS   As Boolean = False  ' For test purpose only! Display frames with visible border
 Const TEST_WITH_FRAME_CAPTIONS  As Boolean = False  ' For test purpose only! Display frames with their test captions (erased by default)
 Const HSPACE_BUTTONS            As Single = 4       ' Horizontal space between reply buttons
-Const HSPACE_BUTTON_AREA        As Single = 10      ' Minimum margin between buttons area and form when centered
+Const HSPACE_BTTN_AREA        As Single = 10      ' Minimum margin between buttons area and form when centered
 Const HSPACE_LEFT               As Single = 0       ' Left margin for labels and text boxes
 Const HSPACE_RIGHT              As Single = 15      ' Horizontal right space for labels and text boxes
 Const HSPACE_SCROLLBAR          As Single = 18      ' Additional horizontal space required for a frame with a vertical scroll bar
 Const NEXT_ROW                  As String = vbLf    ' Reply button row break
 Const VSPACE_AREAS              As Single = 10      ' Vertical space between message area and replies area
 Const VSPACE_BOTTOM             As Single = 50      ' Bottom space after the last displayed reply row
-Const VSPACE_BUTTON_ROWS        As Single = 5       ' Vertical space between button rows
+Const VSPACE_BTTN_ROWS        As Single = 5       ' Vertical space between button rows
 Const VSPACE_LABEL              As Single = 0       ' Vertical space between label and the following text
 Const VSPACE_SCROLLBAR          As Single = 12      ' Additional vertical space required for a frame with a horizontal scroll barr
 Const VSPACE_SECTIONS           As Single = 5       ' Vertical space between displayed message sections
@@ -67,21 +69,19 @@ Private Declare PtrSafe Function GetDC Lib "user32" (ByVal hWnd As Long) As Long
 Private Declare PtrSafe Function GetDeviceCaps Lib "gdi32" (ByVal hDC As Long, ByVal nIndex As Long) As Long
 Private Declare PtrSafe Function ReleaseDC Lib "user32" (ByVal hWnd As Long, ByVal hDC As Long) As Long
 
-Dim siMinButtonWidth            As Single
-Dim bDisplayFramesWithCaptions  As Boolean
 Dim bDoneButtonsArea            As Boolean
 Dim bDoneHeightDecrement        As Boolean
-Dim bHscrollbarButtonsArea      As Boolean
-Dim bVscrollbarButtonsArea      As Boolean
-Dim bVscrollbarMsgArea          As Boolean
 Dim bDoneMonoSpacedSections     As Boolean
 Dim bDoneMsgArea                As Boolean
 Dim bDonePropSpacedSections     As Boolean
 Dim bDoneSetup                  As Boolean
 Dim bDoneTitle                  As Boolean
+Dim bDsplyFrmsWthCptnTestOnly   As Boolean
+Dim bDsplyFrmsWthBrdrsTestOnly  As Boolean
 Dim bFormEvents                 As Boolean
-Dim bTestFrameWithBorders       As Boolean
-Dim bWithFrames                 As Boolean          ' for test purpose only, defaults to False
+Dim bHscrollbarButtonsArea      As Boolean
+Dim bVscrollbarButtonsArea      As Boolean
+Dim bVscrollbarMsgArea          As Boolean
 Dim cllDsgnAreas                As Collection   ' Collection of the two primary/top frames
 Dim cllDsgnButtonRows           As Collection   ' Collection of the designed reply button row frames
 Dim cllDsgnButtons              As Collection   ' Collection of the collection of the designed reply buttons of a certain row
@@ -102,6 +102,8 @@ Dim lMaxFormHeightPoW           As Long             ' % of the screen height
 Dim lMaxFormWidthPoW            As Long             ' % of the screen width
 Dim lMinFormWidthPoW            As Long             ' % of the screen width - calculated when min form width in pt is assigend
 Dim lReplyIndex                 As Long             ' Index of the clicked reply button (a value ranging from 1 to 49)
+Dim lSetupRowButtons            As Long ' number of buttons setup in a row
+Dim lSetupRows                  As Long ' number of setup button rows
 Dim sErrSrc                     As String
 Dim siHmarginButtons            As Single
 Dim siHmarginFrames             As Single           ' Test property, value defaults to 0
@@ -111,6 +113,7 @@ Dim siMaxButtonWidth            As Single
 Dim siMaxFormHeight             As Single           ' above converted to excel userform height
 Dim siMaxFormWidth              As Single           ' above converted to excel userform width
 Dim siMaxSectionWidth           As Single
+Dim siMinButtonWidth            As Single
 Dim siMinFormWidth              As Single
 Dim siMonoSpacedFontSize        As Single
 Dim siVmarginButtons            As Single
@@ -119,21 +122,19 @@ Dim sMonoSpacedFontName         As String
 Dim sTitle                      As String
 Dim sTitleFontName              As String
 Dim sTitleFontSize              As String           ' Ignored when sTitleFontName is not provided
-Dim vButtons                    As Variant
+Dim vbuttons                    As Variant
 Dim vReplyValue                 As Variant
 Dim wVirtualScreenHeight        As Single
 Dim wVirtualScreenLeft          As Single
 Dim wVirtualScreenTop           As Single
 Dim wVirtualScreenWidth         As Single
-Dim lSetupRowButtons            As Long ' number of buttons setup in a row
-Dim lSetupRows                  As Long ' number of setup button rows
 
 Private Sub UserForm_Initialize()
         
     On Error GoTo eh
-    siMinButtonWidth = MIN_BUTTON_WIDTH
+    siMinButtonWidth = MIN_BTTN_WIDTH
     siHmarginButtons = HSPACE_BUTTONS
-    siVmarginButtons = VSPACE_BUTTON_ROWS
+    siVmarginButtons = VSPACE_BTTN_ROWS
     bFormEvents = False
     GetScreenMetrics                                            ' This environment screen's width and height
     Me.MinFormWidth = FORM_MIN_WIDTH                            ' Default UserForm width (als calculated as % of screen size)
@@ -142,10 +143,10 @@ Private Sub UserForm_Initialize()
     sMonoSpacedFontName = FONT_MONOSPACED_NAME                  ' Default monospaced font
     siMonoSpacedFontSize = FONT_MONOSPACED_SIZE                 ' Default monospaced font
     Me.width = siMinFormWidth
-    bDisplayFramesWithCaptions = False
-    bTestFrameWithBorders = False
+    bDsplyFrmsWthCptnTestOnly = False
+    bDsplyFrmsWthBrdrsTestOnly = False
     Me.Height = VSPACE_AREAS * 4
-    bWithFrames = False
+'    bWithFrames = False
     siHmarginFrames = 0     ' Ensures proper command buttons framing, may be used for test purpose
     Me.VmarginFrames = 0    ' Ensures proper command buttons framing and vertical positioning of controls
     bDoneSetup = False
@@ -333,7 +334,7 @@ Private Property Get IsApplied(Optional ByVal v As Variant) As Boolean
     Else IsApplied = dctApplied.Exists(v)
 End Property
 
-Private Property Get MaxButtonsAreaWidth() As Single:                                   MaxButtonsAreaWidth = MaxFormWidthUsable - HSPACE_BUTTON_AREA:              End Property
+Private Property Get MaxButtonsAreaWidth() As Single:                                   MaxButtonsAreaWidth = MaxFormWidthUsable - HSPACE_BTTN_AREA:              End Property
 
 Public Property Get MaxFormHeight() As Single:                                          MaxFormHeight = siMaxFormHeight:                                            End Property
 
@@ -341,7 +342,8 @@ Public Property Get MaxFormHeightPrcntgOfScreenSize() As Long:                  
 
 Public Property Let MaxFormHeightPrcntgOfScreenSize(ByVal l As Long)
     lMaxFormHeightPoW = l
-    siMaxFormHeight = wVirtualScreenHeight * (Min(l, 99) / 100)   ' maximum form height based on screen size
+    ' The maximum form height must not exceed 70 % of the screen size !
+    siMaxFormHeight = wVirtualScreenHeight * (Min(l, 70) / 100)
 End Property
 
 Public Property Get MaxFormWidth() As Single:                                           MaxFormWidth = siMaxFormWidth:                                              End Property
@@ -383,18 +385,20 @@ End Property
 
 Public Property Get MinFormWidthPrcntg() As Long:                                       MinFormWidthPrcntg = lMinFormWidthPoW:                                  End Property
 
-Friend Property Let Msg(ByRef tMsg As tMessage)
+Friend Property Let Msg(ByRef tMsg As tMsg)
+    Dim i As Long
+    
     With tMsg
-        MsgLabel(1) = .section(1).sLabel: MsgText(1) = .section(1).sText:   MsgMonoSpaced(1) = .section(1).bMonspaced
-        MsgLabel(2) = .section(2).sLabel: MsgText(2) = .section(2).sText:   MsgMonoSpaced(2) = .section(2).bMonspaced
-        MsgLabel(3) = .section(3).sLabel: MsgText(3) = .section(3).sText:   MsgMonoSpaced(3) = .section(3).bMonspaced
+        For i = 1 To NO_OF_DESIGNED_SECTIONS
+            MsgLabel(i) = .section(i).sLabel: MsgText(i) = .section(i).sText:   MsgMonoSpaced(i) = .section(i).bMonspaced
+        Next i
     End With
 End Property
 
 Public Property Let MsgButtons(ByVal v As Variant)
     Select Case TypeName(v)
-        Case "Long", "String":  vButtons = v
-        Case Else:              Set vButtons = v
+        Case "Long", "String":  vbuttons = v
+        Case Else:              Set vbuttons = v
     End Select
 End Property
 
@@ -443,7 +447,7 @@ Public Property Let MsgText(Optional ByVal section As Long, ByVal s As String)
     dctSectionsText(section) = s
 End Property
 
-Public Property Let msgtitle(ByVal s As String):                                        sTitle = s: SetupTitle:                                                     End Property
+Public Property Let MsgTitle(ByVal s As String):                                        sTitle = s: SetupTitle:                                                     End Property
 
 Private Property Get PrcntgHeightButtonsArea() As Single
     PrcntgHeightButtonsArea = Round(DsgnButtonsArea.Height / (DsgnMsgArea.Height + DsgnButtonsArea.Height), 2)
@@ -457,7 +461,7 @@ Public Property Get ReplyIndex() As Long:       ReplyIndex = lReplyIndex:   Unlo
 
 Public Property Get ReplyValue() As Variant:    ReplyValue = vReplyValue:   Unload Me:  End Property
 
-Public Property Let TestFrameWithBorders(ByVal b As Boolean)
+Public Property Let DsplyFrmsWthBrdrsTestOnly(ByVal b As Boolean)
     
     Dim ctl As MSForms.Control
        
@@ -472,7 +476,7 @@ Public Property Let TestFrameWithBorders(ByVal b As Boolean)
     
 End Property
 
-Public Property Let TestFrameWithCaptions(ByVal b As Boolean):                          bDisplayFramesWithCaptions = b:                                             End Property
+Public Property Let DsplyFrmsWthCptnTestOnly(ByVal b As Boolean):                       bDsplyFrmsWthCptnTestOnly = b:                                             End Property
 
 Public Property Get VmarginButtons() As Single:                                         VmarginButtons = siVmarginButtons:                                          End Property
 
@@ -493,13 +497,13 @@ Public Sub AdjustStartupPosition(ByRef pUserForm As Object, _
             If Not pOwner Is Nothing Then Set pOwner = Application
             With pUserForm
                 .StartupPosition = 0
-                .Left = pOwner.Left + ((pOwner.width - .width) / 2)
+                .left = pOwner.left + ((pOwner.width - .width) / 2)
                 .top = pOwner.top + ((pOwner.Height - .Height) / 2)
             End With
         Case CenterScreen           ' Assign the Left and Top properties after switching to Manual positioning.
             With pUserForm
                 .StartupPosition = Manual
-                .Left = (wVirtualScreenWidth - .width) / 2
+                .left = (wVirtualScreenWidth - .width) / 2
                 .top = (wVirtualScreenHeight - .Height) / 2
             End With
     End Select
@@ -507,9 +511,9 @@ Public Sub AdjustStartupPosition(ByRef pUserForm As Object, _
     '~~ is not the left-most screen (which causes "pOwner.Left" to be negative). First make sure the bottom
     '~~ right fits, then check if the top-left is still on the screen (which gets priority).
     With pUserForm
-        If ((.Left + .width) > (wVirtualScreenLeft + wVirtualScreenWidth)) Then .Left = ((wVirtualScreenLeft + wVirtualScreenWidth) - .width)
+        If ((.left + .width) > (wVirtualScreenLeft + wVirtualScreenWidth)) Then .left = ((wVirtualScreenLeft + wVirtualScreenWidth) - .width)
         If ((.top + .Height) > (wVirtualScreenTop + wVirtualScreenHeight)) Then .top = ((wVirtualScreenTop + wVirtualScreenHeight) - .Height)
-        If (.Left < wVirtualScreenLeft) Then .Left = wVirtualScreenLeft
+        If (.left < wVirtualScreenLeft) Then .left = wVirtualScreenLeft
         If (.top < wVirtualScreenTop) Then .top = wVirtualScreenTop
     End With
     
@@ -604,8 +608,8 @@ Private Sub CenterHorizontal(ByVal centerfr As MSForms.Frame, _
           Optional ByVal infr As MSForms.Frame = Nothing)
     
     If infr Is Nothing _
-    Then centerfr.Left = (Me.InsideWidth - centerfr.width) / 2 _
-    Else centerfr.Left = (infr.width - centerfr.width) / 2
+    Then centerfr.left = (Me.InsideWidth - centerfr.width) / 2 _
+    Else centerfr.left = (infr.width - centerfr.width) / 2
     
 End Sub
 
@@ -814,10 +818,12 @@ Private Sub Debug_Sizes(ByVal stage As String, Optional ByVal frSectionMonoSpace
 '    End With
 End Sub
 
-' When False (the default) captions are removed from all frames
-' Else they remain visible for testing purpose
-' -------------------------------------------------------------
-Private Sub DisplayFramesWithCaptions(Optional ByVal b As Boolean = True)
+Private Sub DisplayFramesWithCaptions( _
+                        Optional ByVal b As Boolean = True)
+' ---------------------------------------------------------
+' When False (the default) captions are removed from all
+' frames Else they remain visible for testing purpose
+' ---------------------------------------------------------
             
     Dim ctl As MSForms.Control
        
@@ -831,16 +837,18 @@ Private Sub DisplayFramesWithCaptions(Optional ByVal b As Boolean = True)
 
 End Sub
 
+Private Function DsgnRowButtons(ByVal buttonrow As Long) As Collection
+' --------------------------------------------------------------------
 ' Return a collection of applied/use/visible buttons in row buttonrow.
 ' --------------------------------------------------------------------
-Private Function DsgnRowButtons(ByVal buttonrow As Long) As Collection
     Set DsgnRowButtons = cllDsgnButtons(buttonrow)
 End Function
 
-' Get coordinates of top-left corner and size of entire screen (stretched over
-' all monitors) and convert to Points.
-' ----------------------------------------------------------------------------
 Private Sub GetScreenMetrics()
+' ------------------------------------------------------------
+' Get coordinates of top-left corner and size of entire screen
+' (stretched over all monitors) and convert to Points.
+' ------------------------------------------------------------
     
     wVirtualScreenLeft = GetSystemMetrics32(SM_XVIRTUALSCREEN)
     wVirtualScreenTop = GetSystemMetrics32(SM_YVIRTUALSCREEN)
@@ -853,9 +861,9 @@ Private Sub GetScreenMetrics()
 End Sub
 
 Private Function Max(ParamArray va() As Variant) As Variant
-' ------------------------------------------------------
+' ---------------------------------------------------------
 ' Returns the maximum value of all values provided (va).
-' ------------------------------------------------------
+' ---------------------------------------------------------
     Dim v   As Variant
     
     Max = va(LBound(va)): If LBound(va) = UBound(va) Then Exit Function
@@ -878,12 +886,13 @@ Private Function Min(ParamArray va() As Variant) As Variant
     
 End Function
 
+Private Sub ReduceAreasHeight(ByVal totalexceedingheight As Single)
+' --------------------------------------------------------------------------
 ' Reduce the final form height to the maximum height specified by reducing
 ' one of the two areas by the total exceeding height applying a vertcal
 ' scroll bar or reducing the height of both areas proportionally and applying
 ' a vertical scroll bar for both.
 ' --------------------------------------------------------------------------
-Private Sub ReduceAreasHeight(ByVal totalexceedingheight As Single)
     
     Dim frMsgArea               As MSForms.Frame:   Set frMsgArea = DsgnMsgArea
     Dim frButtonsArea           As MSForms.Frame:   Set frButtonsArea = DsgnButtonsArea
@@ -921,11 +930,12 @@ Private Sub ReduceAreasHeight(ByVal totalexceedingheight As Single)
     
 End Sub
 
+Private Sub ResizeAndReposition()
+' -----------------------------------------------------------------------------------
 ' Reposition all applied/setup control. Executed optionally whenever a control's
 ' setup had been done (i.e. when a designed control has become an applied/used one),
 ' obligatory before any height decrement may be due and after any height decrement.
 ' -----------------------------------------------------------------------------------
-Private Sub ResizeAndReposition()
     On Error GoTo eh
     
     If IsApplied(DsgnMsgArea) Then
@@ -1041,11 +1051,11 @@ Private Sub ResizeAndRepositionButtons()
                 If IsApplied(vButton) Then
                     With vButton
                         .Visible = True
-                        .Left = siLeft
+                        .left = siLeft
                         .width = siMaxButtonWidth
                         .Height = siMaxButtonHeight
                         .top = siVmarginFrames
-                        siLeft = .Left + .width + siHmarginButtons
+                        siLeft = .left + .width + siHmarginButtons
                     End With
                 End If
             Next vButton
@@ -1074,10 +1084,10 @@ Private Sub ResizeAndRepositionButtonsArea()
                 Case fmScrollBarsBoth
                     .Height = frButtons.Height + siVmarginFrames + VSPACE_SCROLLBAR
                     .width = frButtons.width + (siHmarginFrames * 2) + HSPACE_SCROLLBAR ' space reserved or used
-                    frButtons.Left = 0
+                    frButtons.left = 0
                 Case fmScrollBarsHorizontal
                     .Height = frButtons.Height + (siVmarginFrames + 2) + VSPACE_SCROLLBAR
-                    frButtons.Left = 0
+                    frButtons.left = 0
                 Case fmScrollBarsNone
                     .Height = frButtons.Height + (siVmarginFrames * 2)
                     .width = frButtons.width + (siHmarginFrames * 2)
@@ -1086,7 +1096,7 @@ Private Sub ResizeAndRepositionButtonsArea()
             End Select
             
             FormWidth = (.width + siHmarginFrames * 2)
-            .Left = siHmarginFrames
+            .left = siHmarginFrames
         End With
         If frArea.ScrollBars = fmScrollBarsNone _
         Then CenterHorizontal frButtons, frArea
@@ -1112,8 +1122,8 @@ Private Sub ResizeAndRepositionButtonsFrame()
             .width = ButtonsFrameWidth
             .Height = ButtonsFrameHeight
             If bVscrollbarButtonsArea _
-            Then .Left = siHmarginFrames _
-            Else .Left = siHmarginFrames + (HSPACE_SCROLLBAR / 2)
+            Then .left = siHmarginFrames _
+            Else .left = siHmarginFrames + (HSPACE_SCROLLBAR / 2)
         End With
     End If
     '~~ Center all button rows
@@ -1208,8 +1218,8 @@ Private Sub ResizeAndRepositionMsgSections()
             End If
                 
             Select Case DsgnMsgArea.ScrollBars
-                Case fmScrollBarsBoth, fmScrollBarsVertical:    frSection.Left = siHmarginFrames
-                Case fmScrollBarsHorizontal, fmScrollBarsNone:  frSection.Left = siHmarginFrames + (VSPACE_SCROLLBAR / 2)
+                Case fmScrollBarsBoth, fmScrollBarsVertical:    frSection.left = siHmarginFrames
+                Case fmScrollBarsHorizontal, fmScrollBarsNone:  frSection.left = siHmarginFrames + (VSPACE_SCROLLBAR / 2)
             End Select
         End If
     Next i
@@ -1227,14 +1237,13 @@ Public Sub Setup()
         
     CollectDesignControls
        
-    DisplayFramesWithCaptions bDisplayFramesWithCaptions ' may be True for test purpose
+    DisplayFramesWithCaptions bDsplyFrmsWthCptnTestOnly ' may be True for test purpose
     
     '~~ ----------------------------------------------------------------------------------------
     '~~ The  p r i m a r y  setup of the title, the message sections and the reply buttons
     '~~ returns their individual widths which determines the minimum required message form width
     '~~ This setup ends width the final message form width and all elements adjusted to it.
     '~~ ----------------------------------------------------------------------------------------
-    Me.width = siMinFormWidth ' Setup starts with the minimum message form width
     Me.StartupPosition = 2
     '~~ Setup of those elements which determine the final form width
     If Not bDoneTitle Then SetupTitle
@@ -1245,7 +1254,7 @@ Public Sub Setup()
     Debug_Sizes "Monospaced sections setup and resized:"
     
     '~~ Setup the reply buttons
-    SetupButtons vButtons
+    SetupButtons vbuttons
     ResizeAndReposition
     Debug_Sizes "Monospaced sections and buttons setup:"
         
@@ -1315,7 +1324,7 @@ xt: Exit Sub
 eh: Debug.Print err.Description: Stop: Resume
 End Sub
 
-Private Sub SetupButtons(ByVal vButtons As Variant)
+Private Sub SetupButtons(ByVal vbuttons As Variant)
 ' --------------------------------------------------------------------------------------
 ' Setup and position the applied reply buttons and calculate the max reply button width.
 ' Note: When the provided vButtons argument is a string it wil be converted into a
@@ -1332,11 +1341,11 @@ Private Sub SetupButtons(ByVal vButtons As Variant)
     lSetupRows = 1
     
     '~~ Setup all reply button by calculatig their maximum width and height
-    Select Case TypeName(vButtons)
-        Case "Long":        SetupButtonsFromValue vButtons ' buttons are specified by an MsgBox buttons value only
-        Case "String":      SetupButtonsFromString vButtons
-        Case "Collection":  SetupButtonsFromCollection vButtons
-        Case "Dictionary":  SetupButtonsFromCollection vButtons
+    Select Case TypeName(vbuttons)
+        Case "Long":        SetupButtonsFromValue vbuttons ' buttons are specified by an MsgBox buttons value only
+        Case "String":      SetupButtonsFromString vbuttons
+        Case "Collection":  SetupButtonsFromCollection vbuttons
+        Case "Dictionary":  SetupButtonsFromCollection vbuttons
         Case Else
 '            MsgBox "The format of the provided ""buttons"" argument is not supported!" & vbLf & _
 '                   "The message will be setup with an Ok only button", vbExclamation
@@ -1422,7 +1431,7 @@ Private Sub SetupButtonsFromString(ByVal sButtons As String)
     Dim cll As New Collection
     Dim v   As Variant
     
-    For Each v In Split(vButtons, ",")
+    For Each v In Split(vbuttons, ",")
         cll.Add v
     Next v
     SetupButtons cll
@@ -1572,16 +1581,16 @@ Private Sub SetupMsgSectionMonoSpaced(ByVal section As Long, _
         .value = text
         .AutoSize = False
         .SelStart = 0
-        .Left = siHmarginFrames
+        .left = siHmarginFrames
         .Height = .Height + 2 ' ensure text is not squeeced
         frText.width = .width + (siHmarginFrames * 2)
-        frText.Left = siHmarginFrames
+        frText.left = siHmarginFrames
                    
         frSection.width = frText.width + (siHmarginFrames * 2)
         
         '~~ The area width considers that there might be a need to apply a vertival scroll bar
         '~~ When the space finally isn't required, the sections are centered within the area
-        frArea.width = Max(frArea.width, frSection.Left + frSection.width + siHmarginFrames + HSPACE_SCROLLBAR)
+        frArea.width = Max(frArea.width, frSection.left + frSection.width + siHmarginFrames + HSPACE_SCROLLBAR)
         FormWidth = frArea.width + siHmarginFrames + 7
         
         If .width > MaxTextBoxWidth Then
@@ -1629,12 +1638,12 @@ Private Sub SetupMsgSectionPropSpaced(ByVal section As Long, _
     '~~ For proportional spaced message sections the width is determined by the area width
     With frSection
         .width = frArea.width - siHmarginFrames - HSPACE_SCROLLBAR
-        .Left = HSPACE_LEFT
+        .left = HSPACE_LEFT
         siMaxSectionWidth = Max(siMaxSectionWidth, .width)
     End With
     With frText
         .width = frSection.width - siHmarginFrames
-        .Left = HSPACE_LEFT
+        .left = HSPACE_LEFT
     End With
     
     With tbText
@@ -1645,8 +1654,8 @@ Private Sub SetupMsgSectionPropSpaced(ByVal section As Long, _
         .width = frText.width - siHmarginFrames
         .value = text
         .SelStart = 0
-        .Left = HSPACE_LEFT
-        frText.width = .Left + .width + siHmarginFrames
+        .left = HSPACE_LEFT
+        frText.width = .left + .width + siHmarginFrames
     End With
     
     '~~ Keep record of which controls had been applied
@@ -1658,11 +1667,13 @@ Private Sub SetupMsgSectionPropSpaced(ByVal section As Long, _
 End Sub
 
 Private Sub SetupMsgSectionsMonoSpaced()
+    
     On Error GoTo eh
-                             
-    If MsgText(1) <> vbNullString And MsgMonoSpaced(1) = True Then SetupMsgSection section:=1
-    If MsgText(2) <> vbNullString And MsgMonoSpaced(2) = True Then SetupMsgSection section:=2
-    If MsgText(3) <> vbNullString And MsgMonoSpaced(3) = True Then SetupMsgSection section:=3
+    Dim i As Long
+    
+    For i = 1 To NO_OF_DESIGNED_SECTIONS
+        If MsgText(i) <> vbNullString And MsgMonoSpaced(i) = True Then SetupMsgSection section:=i
+    Next i
     bDoneMonoSpacedSections = True
     
 xt: Exit Sub
@@ -1672,10 +1683,11 @@ End Sub
 
 Private Sub SetupMsgSectionsPropSpaced()
     On Error GoTo eh
+    Dim i As Long
     
-    If MsgText(1) <> vbNullString And MsgMonoSpaced(1) = False Then SetupMsgSection section:=1
-    If MsgText(2) <> vbNullString And MsgMonoSpaced(2) = False Then SetupMsgSection section:=2
-    If MsgText(3) <> vbNullString And MsgMonoSpaced(3) = False Then SetupMsgSection section:=3
+    For i = 1 To NO_OF_DESIGNED_SECTIONS
+        If MsgText(i) <> vbNullString And MsgMonoSpaced(i) = False Then SetupMsgSection section:=i
+    Next i
     bDonePropSpacedSections = True
     bDoneMsgArea = True
     
@@ -1694,6 +1706,7 @@ Private Sub SetupTitle()
     
     siTop = 0
     With Me
+        .width = siMinFormWidth ' Setup starts with the minimum message form width
         '~~ When a font name other then the standard UserForm font name is
         '~~ provided the extra hidden title label which mimics the title bar
         '~~ width is displayed. Otherwise it remains hidden.

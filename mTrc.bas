@@ -477,7 +477,7 @@ Public Sub Dsply()
     sTrace = sTrace & vbLf & DsplyFtr(lLenHeader)
     With fMsg
         .MaxFormWidthPrcntgOfScreenSize = 95
-        .msgtitle = "Execution Trace, displayed because the Conditional Compile Argument ""ExecTrace = 1""!"
+        .MsgTitle = "Execution Trace, displayed because the Conditional Compile Argument ""ExecTrace = 1""!"
         .MsgText(1) = sTrace:   .MsgMonoSpaced(1) = True
         .MsgLabel(2) = "About overhead, precision, etc.:": .MsgText(2) = DsplyAbout
         .Setup
@@ -796,7 +796,7 @@ next_begin_entry:
             sTrace = sTrace & dct(v) & v & vbLf
         Next v
         With fMsg
-            .msgtitle = "Inconsistent begin/end trace code lines!"
+            .MsgTitle = "Inconsistent begin/end trace code lines!"
             .MsgLabel(1) = "The following incosistencies made a trace result display useless/impossible:"
             .MsgText(1) = sTrace:   .MsgMonoSpaced(1) = True
             .Setup
