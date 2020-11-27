@@ -61,7 +61,7 @@ Public Function Dsply(ByVal dsply_title As String, _
         '|| Setup prior showing the form improves the performance significantly  ||
         '|| and avoids any flickering message window with its setup.             ||
         '|| For testing purpose it may be appropriate to out-comment the Setup.  ||
-        .Setup '                                                                 ||
+'        .Setup '                                                                 ||
         '+------------------------------------------------------------------------+
         .show
     End With
@@ -75,3 +75,5 @@ Public Function Dsply(ByVal dsply_title As String, _
     If dsply_returnindex Then Dsply = fMsg.ReplyIndex Else Dsply = fMsg.ReplyValue
 
 End Function
+
+

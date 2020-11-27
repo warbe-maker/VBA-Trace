@@ -24,7 +24,7 @@ Option Explicit
 '
 ' W. Rauschenberger, Berlin, June 2020
 ' ------------------------------------------------------------------------------
-Const HOSTED_COMMON_COMPS = "mErrHndlr, clsCallStack, clsCallStackItem"
+Const HOSTED_COMMON_COMPS = "mTrc"
 
 Private Sub Workbook_Open()
 #If CompMan Then
@@ -34,6 +34,6 @@ End Sub
 
 Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
 #If CompMan Then
-    mCompMan.ExportChangedComponents wb:=ThisWorkbook, sHosted:=HOSTED_COMMON_COMPS
+'    mCompMan.ExportChangedComponents wb:=ThisWorkbook, sHosted:=HOSTED_COMMON_COMPS
 #End If
 End Sub
