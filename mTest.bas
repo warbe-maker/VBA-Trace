@@ -423,14 +423,14 @@ Private Sub ErrMsg( _
                         err_dscrptn & vbLf & vbLf & _
                         "Error source/details:" & vbLf & _
                         sDetails, _
-                buttons:=vbOKOnly, _
+                Buttons:=vbOKOnly, _
                 Title:=sTitle
 #Else
     MsgBox Prompt:="Error description:" & vbLf & _
                     err_dscrptn & vbLf & vbLf & _
                    "Error source/details:" & vbLf & _
                    sDetails, _
-           buttons:=vbOKOnly, _
+           Buttons:=vbOKOnly, _
            Title:=sTitle
 #End If
     mTrc.Finish sTitle

@@ -13,7 +13,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
 Option Explicit
 ' -------------------------------------------------------------------------------
 ' UserForm fMsg
@@ -277,9 +276,9 @@ Private Property Let AppliedButtonRetVal(Optional ByVal Button As MSForms.Comman
 End Property
 
 Private Property Get AppliedButtonRowHeight() As Single:                                        AppliedButtonRowHeight = siMaxButtonHeight + (siVmarginFrames * 2) + 2:       End Property
-Private Property Get AppliedButtonRowWidth(Optional ByVal buttons As Long) As Single
+Private Property Get AppliedButtonRowWidth(Optional ByVal Buttons As Long) As Single
     '~~ Extra space required for the button's design
-    AppliedButtonRowWidth = CInt((siMaxButtonWidth * buttons) + (siHmarginButtons * (buttons - 1)) + (siHmarginFrames * 2)) + 5
+    AppliedButtonRowWidth = CInt((siMaxButtonWidth * Buttons) + (siHmarginButtons * (Buttons - 1)) + (siHmarginFrames * 2)) + 5
 End Property
 
 Private Property Let AppliedControl(ByVal v As Variant)
@@ -814,26 +813,26 @@ Private Sub Debug_Sizes(ByVal stage As String, Optional ByVal frSectionMonoSpace
         Debug.Print "                  (pt)   (%)  (pt)  (pt)   (%) (pt)"
         Debug.Print "--------------- ------- ---- ----- ------ ---- ----"
         Debug.Print "Screen          " & _
-                                     Format(wVirtualScreenWidth, "  0000") & "   " & _
-                                               Format(Me.MaxFormWidthPrcntgOfScreenSize, "00") & "   " & _
-                                                      Format(Me.MaxFormWidth, "0000") & "  " & _
-                                                              Format(wVirtualScreenHeight, "0000") & "   " & _
-                                                                         Format(Me.MaxFormHeightPrcntgOfScreenSize, "00") & "  " & _
-                                                                                 Format(Me.MaxFormHeight, "0000")
+                                     Format$(wVirtualScreenWidth, "  0000") & "   " & _
+                                               Format$(Me.MaxFormWidthPrcntgOfScreenSize, "00") & "   " & _
+                                                      Format$(Me.MaxFormWidth, "0000") & "  " & _
+                                                              Format$(wVirtualScreenHeight, "0000") & "   " & _
+                                                                         Format$(Me.MaxFormHeightPrcntgOfScreenSize, "00") & "  " & _
+                                                                                 Format$(Me.MaxFormHeight, "0000")
 
         Debug.Print "Form (inside)   " & _
-                                     Format(.InsideWidth, "  0000") & "        " & Format(.InsideHeight, "0000")
+                                     Format$(.InsideWidth, "  0000") & "        " & Format$(.InsideHeight, "0000")
         If IsApplied(DsgnMsgArea) Then _
         Debug.Print "Message Area    " & _
-                                     Format(DsgnMsgArea.width, "  0000") & "        " & Format(DsgnMsgArea.Height, "0000") & "         " & PrcntgHeightMsgArea * 100
+                                     Format$(DsgnMsgArea.width, "  0000") & "        " & Format$(DsgnMsgArea.Height, "0000") & "         " & PrcntgHeightMsgArea * 100
         If Not frSectionMonoSpaced Is Nothing Then _
         Debug.Print "Monosp. sect.   " & _
-                                     Format(frSectionMonoSpaced.width, "  0000")
+                                     Format$(frSectionMonoSpaced.width, "  0000")
         If IsApplied(DsgnButtonsArea) Then
         Debug.Print "Buttons Frame   " & _
-                                     Format(DsgnButtonsFrame.width, "  0000") & "        " & Format(DsgnButtonsFrame.Height, "0000")
+                                     Format$(DsgnButtonsFrame.width, "  0000") & "        " & Format$(DsgnButtonsFrame.Height, "0000")
         Debug.Print "Buttons Area    " & _
-                                     Format(DsgnButtonsArea.width, "  0000") & "        " & Format(DsgnButtonsArea.Height, "0000") & "         " & PrcntgHeightButtonsArea * 100
+                                     Format$(DsgnButtonsArea.width, "  0000") & "        " & Format$(DsgnButtonsArea.Height, "0000") & "         " & PrcntgHeightButtonsArea * 100
         End If
         Debug.Print "---------------------------------------------------"
         Debug.Print "(triggered by Cond. Comp. Argument 'Debugging = 1')"

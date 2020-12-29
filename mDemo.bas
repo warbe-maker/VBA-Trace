@@ -146,7 +146,7 @@ Private Sub ErrMsg(ByVal err_no As Long, _
                     err_dscrptn & vbLf & vbLf & _
                    "Error source:" & vbLf & _
                    err_source, _
-           buttons:=vbOKOnly, _
+           Buttons:=vbOKOnly, _
            Title:=sTitle
     mTrc.Finish sTitle
     mTrc.Terminate
