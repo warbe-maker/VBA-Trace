@@ -84,7 +84,7 @@ Private Property Get DIR_BEGIN_CODE() As String
 End Property
 
 Private Property Get DIR_BEGIN_PROC() As String
-    DIR_BEGIN_PROC = Repeat(DIR_BEGIN_ID, 2)
+    DIR_BEGIN_PROC = repeat(DIR_BEGIN_ID, 2)
 End Property
 
 Private Property Get DIR_END_CODE() As String
@@ -92,7 +92,7 @@ Private Property Get DIR_END_CODE() As String
 End Property
 
 Private Property Get DIR_END_PROC() As String
-    DIR_END_PROC = Repeat(DIR_END_ID, 2)
+    DIR_END_PROC = repeat(DIR_END_ID, 2)
 End Property
 
 Private Property Get DisplayedInfo() As enDisplayedInfo
@@ -112,7 +112,7 @@ Public Property Let DisplayedSecsPrecision(ByVal l As Long)
 End Property
 
 Private Property Get DsplyLnIndnttn(Optional ByRef entry As Collection) As String
-    DsplyLnIndnttn = Repeat("|  ", ItmLvl(entry))
+    DsplyLnIndnttn = repeat("|  ", ItmLvl(entry))
 End Property
 Private Property Get ItmArgs(Optional ByRef entry As Collection) As Variant
     ItmArgs = entry("I")(POS_ITMARGS)
@@ -595,8 +595,8 @@ Private Function DsplyHdr(ByRef lLenHeaderData As Long) As String
             lLenHeaderData = Len(sHeader2)
             
             sHeader3 = _
-                    Repeat$("-", Len(sFrmtScsElpsd)) _
-            & " " & Repeat$("-", Len(sFrmtScsNt)) _
+                    repeat$("-", Len(sFrmtScsElpsd)) _
+            & " " & repeat$("-", Len(sFrmtScsNt)) _
             & " " & sHeaderTrace
               
             sHeader1 = DsplyHdrCntrAbv(" Seconds ", sHeader2Secs, , , "-")
@@ -626,17 +626,17 @@ Private Function DsplyHdr(ByRef lLenHeaderData As Long) As String
             lLenHeaderData = Len(sHeader2)
             
             sHeader3 = _
-                    Repeat$("-", Len(sFrmtTcksSys)) _
-            & " " & Repeat$("-", Len(sFrmtTcksElpsd)) _
-            & " " & Repeat$("-", Len(sFrmtTcksGrss)) _
-            & " " & Repeat$("-", Len(sFrmtTcksOvrhdItm)) _
-            & " " & Repeat$("-", Len(sFrmtTcksOvrhdItm)) _
-            & " " & Repeat$("-", Len(sFrmtTcksNt)) _
-            & " " & Repeat$("-", Len(sFrmtScsElpsd)) _
-            & " " & Repeat$("-", Len(sFrmtScsGrss)) _
-            & " " & Repeat$("-", Len(sFrmtScsOvrhdItm)) _
-            & " " & Repeat$("-", Len(sFrmtScsOvrhdItm)) _
-            & " " & Repeat$("-", Len(sFrmtScsNt)) _
+                    repeat$("-", Len(sFrmtTcksSys)) _
+            & " " & repeat$("-", Len(sFrmtTcksElpsd)) _
+            & " " & repeat$("-", Len(sFrmtTcksGrss)) _
+            & " " & repeat$("-", Len(sFrmtTcksOvrhdItm)) _
+            & " " & repeat$("-", Len(sFrmtTcksOvrhdItm)) _
+            & " " & repeat$("-", Len(sFrmtTcksNt)) _
+            & " " & repeat$("-", Len(sFrmtScsElpsd)) _
+            & " " & repeat$("-", Len(sFrmtScsGrss)) _
+            & " " & repeat$("-", Len(sFrmtScsOvrhdItm)) _
+            & " " & repeat$("-", Len(sFrmtScsOvrhdItm)) _
+            & " " & repeat$("-", Len(sFrmtScsNt)) _
             & " " & sHeaderTrace
               
             sHeader1 = _
@@ -1196,7 +1196,7 @@ Private Function NtryTcksOvrhdItmMax() As Double
 
 End Function
 
-Private Function Repeat(ByVal s As String, _
+Private Function repeat(ByVal s As String, _
                         ByVal n As Long) As String
 ' ------------------------------------------------
 ' Returns the string (s) concatenated (n) times.
@@ -1204,7 +1204,7 @@ Private Function Repeat(ByVal s As String, _
     Dim i   As Long
     
     For i = 1 To n
-        Repeat = Repeat & s
+        repeat = repeat & s
     Next i
     
 End Function
