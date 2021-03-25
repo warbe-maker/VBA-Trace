@@ -8,32 +8,20 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Option Explicit
-' ------------------------------------------------------------------------------
-' Workbook ErrMsg.xlsm
+' -----------------------------------------------------------------------
+' Workbook Trc.xlsm
+'          Development and test Workbook for the Common Component 'mTrc'.
 '
-'          This is the development and test Workbook for the Common Component
-'          "mErrHndlr" with its sub-components clsCallStack and clsCallStackItem.
-'          Its Hosted Components are registered by means of the CompMan Addin
-'          feature ExportChangedComponents when the Workbook is closed.
-'          Any used Common Components (hosted in other Workbooks) are updated
-'          (when their code had changed) by means of the CompMan Addin feature
-'          UpdateUsedCommCompsTheOriginHasChanged when the Workbook is opened.
-'
-'          See the comments in module mErrHndlr for details about this common
-'          component
+' See https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service
 '
 ' W. Rauschenberger, Berlin, June 2020
-' ------------------------------------------------------------------------------
-Const HOSTED_COMMON_COMPS = "mTrc"
+' -----------------------------------------------------------------------
+Private Const HOSTED_RAWS = "mTrc"
 
 Private Sub Workbook_Open()
-#If CompMan Then
-    mCompMan.UpdateRawClones uc_wb:=ThisWorkbook, uc_hosted:=HOSTED_COMMON_COMPS
-#End If
+    mCompManClient.CompManService "UpdateRawClones", HOSTED_RAWS
 End Sub
 
 Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
-#If CompMan Then
-    mCompMan.ExportChangedComponents ec_wb:=ThisWorkbook, ec_hosted:=HOSTED_COMMON_COMPS
-#End If
+    mCompManClient.CompManService "ExportChangedComponents", HOSTED_RAWS
 End Sub
