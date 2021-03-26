@@ -2,9 +2,9 @@
 
 ## Service
 Displays a compact
-![image](ExecutionTrace.png)
+![image](/assets/ExecutionTrace.png)
 or a very detailed
-![image](ExecutionTraceDetailed.png)
+![image](/assets/ExecutionTraceDetailed.png)
 execution trace which includes all executed procedures which have BoP/EoP statements in an executed procedure or BoC/EoC statements in an executed part of code.
 
 ## Installation
