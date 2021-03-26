@@ -70,4 +70,4 @@ This execution trace module an the error handler module have three main things i
 [3]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mMsg.bas
 [4]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mTrc.bas
 [5]:https://warbe-maker.github.io/warbe-maker.github.io/vba/common/2020/11/17/Common-VBA-Message-Services.html
-[6]:
+[6]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Error-Services/master/source/mErH.bas
