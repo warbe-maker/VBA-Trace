@@ -8,11 +8,12 @@ or a very detailed
 execution trace which includes all executed procedures which have BoP/EoP statements in an executed procedure or BoC/EoC statements in an executed part of code.
 
 ## Installation
-This module is also an optional component of the _Common VBA Error Handler_ (see the corresponding [blog post](#https://warbe-maker.github.io/vba/common/2020/10/02/Comprehensive-Common-VBA-Error-Handler.html)). When used alone some more steps are required to install it.
+This module is an optional component of the _Common VBA Error Handler_ (see the corresponding post [Common-VBA-Message-Services][5]. When used alone some more steps are required to install it.
 
-- Download (not required when the mErH module is installed)  [fMsg.frm][1] and [fMsg.frx][2] and import _fMsg.frm_
-- Download  [mTrc.frm](https://gitcdn.link/repo/warbe-maker/Trc/master/mTrc.bas) and import it
-- Copy the following to any module with to-be-traced procedures:<br>
+- Download [fMsg.frm][1] and [fMsg.frx][2] and import _fMsg.frm_ (not required when the [mErH.bas][6] had already been installed)  
+- Download [mMsg.bas][3] and import it (not required when the [mErH.bas][6] module had already been installed)  
+- Download  [mTrc.frm][4] and import it
+- Copy the following to any module with to-be-traced procedures:(not required when the [mErH.bas][6] module had already been installed)<br>
 ```vbs
 Private Function ErrSrc(ByVal s As String) As String
    ErrSrc = "module-name." & s
@@ -64,7 +65,9 @@ This execution trace module an the error handler module have three main things i
 2. Both require for each concerned module a function which uniquely identifies a procedure
 3. Both use BoP (Begin of Procedure) and EoP (End of Procedure) statements. The execution trace to trace the procedures start/end when executed and the error handler to maintain a _path to the error_
 
-[1]:https://gitcdn.link/repo/warbe-maker/VBA-MsgBox-alternative/master/source/fMsg.frm
-[2]:https://gitcdn.link/repo/warbe-maker/VBA-MsgBox-alternative/master/source/fMsg.frx
-[3]:https://gitcdn.link/repo/warbe-maker/VBA-MsgBox-alternative/master/source/mMsg.bas
-[4]:https://gitcdn.link/repo/warbe-maker/VBA-MsgBox-alternative/master/source/mTrc.bas
+[1]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/fMsg.frm
+[2]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/fMsg.frx
+[3]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mMsg.bas
+[4]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mTrc.bas
+[5]:https://warbe-maker.github.io/warbe-maker.github.io/vba/common/2020/11/17/Common-VBA-Message-Services.html
+[6]:
