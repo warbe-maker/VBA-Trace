@@ -39,7 +39,7 @@ Public Sub Demo_6_Execution_Trace()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_no:=Err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=Err.Description, err_line:=Erl
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6a()
@@ -53,7 +53,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6a()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_no:=Err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=Err.Description, err_line:=Erl
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6b()
@@ -74,7 +74,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6b()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_no:=Err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=Err.Description, err_line:=Erl
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6c()
@@ -87,7 +87,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6c()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=err.Description, err_line:=Erl
+eh: ErrMsg err_no:=Err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=Err.Description, err_line:=Erl
 End Sub
 
 Private Function ErrSrc(ByVal s As String) As String

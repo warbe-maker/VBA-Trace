@@ -17,7 +17,7 @@ Private Function RegressionTestInfo() As String
 ' ----------------------------------------------------
 ' Adds s to the Err.Description as an additional info.
 ' ----------------------------------------------------
-    RegressionTestInfo = err.Description
+    RegressionTestInfo = Err.Description
     If Not bRegressionTest Then Exit Function
     
     If InStr(RegressionTestInfo, CONCAT) <> 0 _
@@ -321,7 +321,7 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6a()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err.Number, ErrSrc(PROC), err.Description, Erl
+eh: ErrMsg Err.Number, ErrSrc(PROC), Err.Description, Erl
 End Sub
 
 Private Sub Test_3_Execution_Trace_With_Error_TestProc_6b()
@@ -411,8 +411,8 @@ Private Sub ErrMsg( _
     Dim sTitle      As String
     Dim sDetails    As String
     
-    If err_no = 0 Then err_no = err.Number
-    If err_dscrptn = vbNullString Then err_dscrptn = err.Description
+    If err_no = 0 Then err_no = Err.Number
+    If err_dscrptn = vbNullString Then err_dscrptn = Err.Description
     If err_line = 0 Then err_line = Erl
     
     ErrMsgMatter err_source:=err_source, err_no:=err_no, err_line:=err_line, err_dscrptn:=err_dscrptn, msg_title:=sTitle, msg_details:=sDetails
