@@ -41,9 +41,9 @@ Public Sub Regression_Test()
 '    button displayed with the error message and processed when clicked as
 '    "Stop: Resume" when the button is clicked.
 ' ------------------------------------------------------------------------------
+    Const PROC = "Regression_Test"
     
     On Error GoTo eh
-    Const PROC = "Regression_Test"
     bRegressionTest = True
     
     mTrc.DisplayedInfo = Compact
@@ -60,8 +60,9 @@ End Sub
 
 Public Sub Test_1_1_BoP_missing()
 ' ---------------------------------------------------
-' White-box- and regression-test procedure obligatory
-' to be performed after any code modification.
+' About this test:
+' Because BoP/EoP is inconsistent, the EoP is ignored and the called procedure
+' which has consistent BoP/EoP statements is execution traced
 ' ---------------------------------------------------
     Const PROC = "Test_1_1_BoP_missing"
     
@@ -88,7 +89,6 @@ xt: mTrc.EoP ErrSrc(PROC)
 
 eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
-
 
 Public Sub Test_1_2_BoP_missing()
 ' ---------------------------------------------------
@@ -160,7 +160,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1b_paired_BoP_EoP()
     On Error GoTo eh
     
     mTrc.BoP ErrSrc(PROC)
-    Test_2_BoP_EoP_TestProc_1c_missing_EoC
+    Test_2_BoP_EoP_TestProc_1c_paired_BoP_EoP
     
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
@@ -168,13 +168,13 @@ xt: mTrc.EoP ErrSrc(PROC)
 eh: ErrMsg err_source:=ErrSrc(PROC)
 End Sub
 
-Private Sub Test_2_BoP_EoP_TestProc_1c_missing_EoC()
-    Const PROC = "Test_2_BoP_EoP_TestProc_1c_missing_EoC"
+Private Sub Test_2_BoP_EoP_TestProc_1c_paired_BoP_EoP()
+    Const PROC = "Test_2_BoP_EoP_TestProc_1c_paired_BoP_EoP"
     
     On Error GoTo eh
     
     mTrc.BoP ErrSrc(PROC)
-    BoC ErrSrc(PROC) & " trace of some code lines" ' missing EoC statement
+    BoC ErrSrc(PROC) & " trace of some code lines (EoC statement missing!)"
 
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
