@@ -225,7 +225,6 @@ Public Sub Test_3_Execution_Trace()
     Const PROC = "Test_3_Execution_Trace"
     On Error GoTo eh
     
-    mTrc.DisplayedInfo = Detailed
     mTrc.BoP ErrSrc(PROC)
     Test_3_Execution_Trace_TestProc_6a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
 
