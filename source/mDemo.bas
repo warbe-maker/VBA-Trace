@@ -50,7 +50,11 @@ Public Sub Demo_6_Execution_Trace()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=Err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=Err.Description, err_line:=Erl
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbYes: Stop: Resume
+        Case vbNo:  Stop: Resume Next
+        Case Else:  GoTo xt
+    End Select
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6a()
@@ -64,7 +68,11 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6a()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=Err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=Err.Description, err_line:=Erl
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbYes: Stop: Resume
+        Case vbNo:  Stop: Resume Next
+        Case Else:  GoTo xt
+    End Select
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6b()
@@ -85,7 +93,11 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6b()
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
 
-eh: ErrMsg err_no:=Err.Number, err_source:=ErrSrc(PROC), err_dscrptn:=Err.Description, err_line:=Erl
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbYes: Stop: Resume
+        Case vbNo:  Stop: Resume Next
+        Case Else:  GoTo xt
+    End Select
 End Sub
 
 Private Sub Demo_6_Execution_Trace_DemoProc_6c()
