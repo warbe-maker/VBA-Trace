@@ -1,4 +1,4 @@
-Attribute VB_Name = "mTest"
+Attribute VB_Name = "mTrcTest"
 Option Explicit
 ' -----------------------------------------------------------------------
 ' Standar module mTest: Provides all test obligatory being executed when
@@ -548,7 +548,8 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6c()
     On Error GoTo eh
 
     mTrc.BoP ErrSrc(PROC)
-    Dim i As Long: i = i / 0 ' Error !!!!
+    Dim i As Long
+    i = i / 0 ' Error !!!!
 
 xt: mTrc.EoP ErrSrc(PROC)
     Exit Sub
