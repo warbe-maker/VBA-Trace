@@ -65,9 +65,9 @@ This execution trace module an the error handler module have three main things i
 2. Both require for each concerned module a function which uniquely identifies a procedure
 3. Both use BoP (Begin of Procedure) and EoP (End of Procedure) statements. The execution trace to trace the procedures start/end when executed and the error handler to maintain a _path to the error_
 
-[1]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/fMsg.frm
-[2]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/fMsg.frx
-[3]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mMsg.bas
-[4]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mTrc.bas
+[1]:https://gitcdn.link/cdn/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/fMsg.frm
+[2]:https://gitcdn.link/cdn/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/fMsg.frx
+[3]:https://gitcdn.link/cdn/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mMsg.bas
+[4]:https://gitcdn.link/cdn/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mTrc.bas
 [5]:https://warbe-maker.github.io/warbe-maker.github.io/vba/common/2020/11/17/Common-VBA-Message-Services.html
 [6]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Error-Services/master/source/mErH.bas
