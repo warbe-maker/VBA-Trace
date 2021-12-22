@@ -1,5 +1,6 @@
 Attribute VB_Name = "mDemo"
 Option Explicit
+Private Const CONCAT = "||"
 
 Private Function AppErr(ByVal app_err_no As Long) As Long
 ' ------------------------------------------------------------------------------
@@ -44,10 +45,10 @@ Public Sub Demo_6_Execution_Trace()
     Const PROC = "Demo_6_Execution_Trace"
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Demo_6_Execution_Trace_DemoProc_6a
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -61,10 +62,10 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6a()
     Const PROC = "Demo_6_Execution_Trace_DemoProc_6a"
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Demo_6_Execution_Trace_DemoProc_6b
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -78,7 +79,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6b()
     Const PROC = "Demo_6_Execution_Trace_DemoProc_6b"
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     
     Demo_6_Execution_Trace_DemoProc_6c
     
@@ -88,7 +89,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6b()
     Next i
     mTrc.EoC ErrSrc(PROC) & " empty loop 1 to " & j ' !!! the string must match with the BoC statement !!!
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -102,9 +103,9 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6c()
     Const PROC = "Demo_6_Execution_Trace_DemoProc_6c"
     On Error GoTo eh
 
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))

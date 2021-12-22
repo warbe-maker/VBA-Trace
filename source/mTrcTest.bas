@@ -7,8 +7,6 @@ Option Explicit
 ' -----------------------------------------------------------------------
 Public Const CONCAT = "||"
 
-Private bRegressionTest As Boolean
-
 Private Function AppErr(ByVal app_err_no As Long) As Long
 ' ------------------------------------------------------------------------------
 ' Ensures that a programmed (i.e. an application) error numbers never conflicts
@@ -170,7 +168,7 @@ Private Function RegressionTestInfo() As String
 ' Adds s to the Err.Description as an additional info.
 ' ----------------------------------------------------
     RegressionTestInfo = Err.Description
-    If Not bRegressionTest Then Exit Function
+    If Not mErH.Regression Then Exit Function
     
     If InStr(RegressionTestInfo, CONCAT) <> 0 _
     Then RegressionTestInfo = RegressionTestInfo & vbLf & vbLf & "Please notice that  this is a  r e g r e s s i o n  t e s t ! Click any but the ""Terminate"" button to continue with the test in case another one follows." _
@@ -196,15 +194,15 @@ Public Sub Regression_Test()
     Const PROC = "Regression_Test"
     
     On Error GoTo eh
-    bRegressionTest = True
+    mErH.Regression = True
     
     mTrc.DisplayedInfo = Compact
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Test_3_Execution_Trace
     Test_3_Execution_Trace_With_Error
 
-xt: mTrc.EoP ErrSrc(PROC)
-    bRegressionTest = False
+xt: mBasic.EoP ErrSrc(PROC)
+    mErH.Regression = False
     Exit Sub
     
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -221,10 +219,10 @@ Public Sub Test_1_1_BoP_missing()
 ' ---------------------------------------------------
     Const PROC = "Test_1_1_BoP_missing"
     
-'    mTrc.BoP ErrSrc(PROC) this procedure will not be recognized as "Entry Procedure" ...
+'    mBasic.BoP ErrSrc(PROC) this procedure will not be recognized as "Entry Procedure" ...
     Test_1_1_BoP_missing_TestProc_1a ' ... but this one will be instead
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -241,8 +239,8 @@ Private Sub Test_1_1_BoP_missing_TestProc_1a()
 ' -----------------------------------------------------------
     Const PROC = "Test_1_1_BoP_missing_TestProc_1a"
     
-    mTrc.BoP ErrSrc(PROC)
-xt: mTrc.EoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -258,10 +256,10 @@ Public Sub Test_1_2_BoP_missing()
 ' ---------------------------------------------------
     Const PROC = "Test_1_2_BoP_missing"
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Test_1_2_BoP_missing_TestProc_1a ' ... but this one will be instead
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -278,8 +276,8 @@ Private Sub Test_1_2_BoP_missing_TestProc_1a()
 ' -----------------------------------------------------------
     Const PROC = "Test_1_2_BoP_missing_TestProc_1a"
     
-'    mTrc.BoP ErrSrc(PROC)
-xt: mTrc.EoP ErrSrc(PROC)
+'    mBasic.BoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -295,10 +293,10 @@ Public Sub Test_2_BoP_EoP()
 ' ---------------------------------------------------
     Const PROC = "Test_2_BoP_EoP"
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Test_2_BoP_EoP_TestProc_1a_missing_BoP
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -315,11 +313,11 @@ Private Sub Test_2_BoP_EoP_TestProc_1a_missing_BoP()
 ' -----------------------------------------------------------
     Const PROC = "Test_2_BoP_EoP_TestProc_1a_missing_BoP"
     
-'    mTrc.BoP ErrSrc(PROC)
+'    mBasic.BoP ErrSrc(PROC)
     Test_2_BoP_EoP_TestProc_1b_paired_BoP_EoP
     Test_2_BoP_EoP_TestProc_1d_missing_EoP
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -332,10 +330,10 @@ Private Sub Test_2_BoP_EoP_TestProc_1b_paired_BoP_EoP()
     Const PROC = "Test_2_BoP_EoP_TestProc_1b_paired_BoP_EoP"
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Test_2_BoP_EoP_TestProc_1c_paired_BoP_EoP
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
     
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -349,10 +347,10 @@ Private Sub Test_2_BoP_EoP_TestProc_1c_paired_BoP_EoP()
     
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     BoC ErrSrc(PROC) & " trace of some code lines (EoC statement missing!)"
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
     
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -366,7 +364,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1e_BoC_EoC()
     
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
         
     Dim i As Long: Dim j As Long: j = 10000000
     BoC PROC & " code trace empty loop 1 to " & j
@@ -374,7 +372,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1e_BoC_EoC()
     Next i
     EoC PROC & " code trace empty loop 1 to " & j ' !!! the string must match with the BoC statement !!!
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -388,7 +386,7 @@ Private Sub Test_2_BoP_EoP_TestProc_1d_missing_EoP()
     
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Test_2_BoP_EoP_TestProc_1e_BoC_EoC
     
 xt: Exit Sub
@@ -410,10 +408,10 @@ Public Sub Test_3_Execution_Trace()
     Const PROC = "Test_3_Execution_Trace"
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Test_3_Execution_Trace_TestProc_6a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -429,13 +427,13 @@ Private Sub Test_3_Execution_Trace_TestProc_6a(ByVal arg1 As Variant, _
     On Error GoTo eh
     Const PROC = "Test_3_Execution_Trace_TestProc_6a"
     
-    mTrc.BoP ErrSrc(PROC), arg1, "arg2=", arg2, arg3
+    mBasic.BoP ErrSrc(PROC), arg1, "arg2=", arg2, arg3
     mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
     Test_3_Execution_Trace_TestProc_6b
     Test_3_Execution_Trace_TestProc_6c
     mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -449,7 +447,7 @@ Private Sub Test_3_Execution_Trace_TestProc_6b()
     Const PROC = "Test_3_Execution_Trace_TestProc_6b"
     On Error GoTo eh
 
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     
     Dim i As Long
     Dim s As String
@@ -457,7 +455,7 @@ Private Sub Test_3_Execution_Trace_TestProc_6b()
         s = Application.Path ' to produce some execution time
     Next i
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -471,9 +469,9 @@ Private Sub Test_3_Execution_Trace_TestProc_6c()
     Const PROC = "Test_3_Execution_Trace_TestProc_6c"
     On Error GoTo eh
 
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -494,10 +492,10 @@ Public Sub Test_3_Execution_Trace_With_Error()
     Const PROC = "Test_3_Execution_Trace_With_Error"
     On Error GoTo eh
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     Test_3_Execution_Trace_With_Error_TestProc_6a
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -511,13 +509,13 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6a()
     On Error GoTo eh
     Const PROC = "Test_3_Execution_Trace_With_Error_TestProc_6a"
     
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
     Test_3_Execution_Trace_With_Error_TestProc_6b
     Test_3_Execution_Trace_With_Error_TestProc_6c
     mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -531,7 +529,7 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6b()
     Const PROC = "Test_3_Execution_Trace_With_Error_TestProc_6b"
     On Error GoTo eh
 
-    mTrc.BoP ErrSrc(PROC)
+    mBasic.BoP ErrSrc(PROC)
     
     Dim i As Long
     Dim s As String
@@ -539,7 +537,7 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6b()
         s = Application.Path ' to produce some execution time
     Next i
     
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -553,11 +551,14 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6c()
     Const PROC = "Test_3_Execution_Trace_With_Error_TestProc_6c"
     On Error GoTo eh
 
-    mTrc.BoP ErrSrc(PROC)
+    '~~ The VB Runtime error 6 is anticipated thus regarded asserted
+    '~~ when mErH.Regression = True for this test (set with the
+    '~~ calling procedure) the display of the error is suspended
+    mErH.BoTP ErrSrc(PROC), 6
     Dim i As Long
     i = i / 0 ' Error !!!!
 
-xt: mTrc.EoP ErrSrc(PROC)
+xt: mBasic.EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
