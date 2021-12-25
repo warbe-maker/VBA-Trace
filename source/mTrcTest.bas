@@ -159,6 +159,7 @@ Private Function ErrMsg(ByVal err_source As String, _
 xt: Exit Function
 
 End Function
+
 Private Function ErrSrc(ByVal s As String) As String
     ErrSrc = "mTest." & s
 End Function
@@ -567,4 +568,18 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
+Private Sub Test_4_Trace_with_log_to_file()
+    Const PROC = "Test_4_Trace_with_log_to_file"
+    
+    On Error GoTo eh
+    mTrc.TraceLogFile = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "Trace.log")
+    mBasic.BoP ErrSrc(PROC)
+    
+xt: mBasic.EoP ErrSrc(PROC)
+    Exit Sub
 
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Sub
