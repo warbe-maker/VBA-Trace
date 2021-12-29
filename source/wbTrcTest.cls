@@ -25,3 +25,4 @@ End Sub
 Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
     mCompManClient.CompManService "ExportChangedComponents", HOSTED_RAWS
 End Sub
+

@@ -220,6 +220,7 @@ Public Sub Test_1_1_BoP_missing()
 ' ---------------------------------------------------
     Const PROC = "Test_1_1_BoP_missing"
     
+    mTrc.TraceLogFile = vbNullString
 '    mBasic.BoP ErrSrc(PROC) this procedure will not be recognized as "Entry Procedure" ...
     Test_1_1_BoP_missing_TestProc_1a ' ... but this one will be instead
     
@@ -294,6 +295,7 @@ Public Sub Test_2_BoP_EoP()
 ' ---------------------------------------------------
     Const PROC = "Test_2_BoP_EoP"
     
+    mTrc.TraceLogFile = vbNullString
     mBasic.BoP ErrSrc(PROC)
     Test_2_BoP_EoP_TestProc_1a_missing_BoP
     
@@ -409,6 +411,7 @@ Public Sub Test_3_Execution_Trace()
     Const PROC = "Test_3_Execution_Trace"
     On Error GoTo eh
     
+    mTrc.TraceLogFile = vbNullString
     mBasic.BoP ErrSrc(PROC)
     Test_3_Execution_Trace_TestProc_6a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
 
@@ -572,10 +575,16 @@ Private Sub Test_4_Trace_with_log_to_file()
     Const PROC = "Test_4_Trace_with_log_to_file"
     
     On Error GoTo eh
-    mTrc.TraceLogFile = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "Trace.log")
+    Dim TraceLog As String
+    
+    TraceLog = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "Trace.log")
+    mTrc.TraceLogFile = TraceLog
     mBasic.BoP ErrSrc(PROC)
     
 xt: mBasic.EoP ErrSrc(PROC)
+    mMsg.Box box_title:="Trasce result" _
+           , box_msg:=mFile.Txt(TraceLog) _
+           , box_monospaced:=True
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
