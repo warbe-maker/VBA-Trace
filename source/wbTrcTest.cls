@@ -19,7 +19,7 @@ Option Explicit
 Private Const HOSTED_RAWS = "mTrc"
 
 Private Sub Workbook_Open()
-    mCompManClient.CompManService "UpdateRawClones", HOSTED_RAWS
+    mCompManClient.CompManService "UpdateOutdatedCommonComponents", HOSTED_RAWS
 End Sub
 
 Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
