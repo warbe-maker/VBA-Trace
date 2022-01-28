@@ -104,7 +104,7 @@ Private Function ErrMsg(ByVal err_source As String, _
     '~~ Obtain error information from the Err object for any argument not provided
     If err_no = 0 Then err_no = Err.Number
     If err_line = 0 Then ErrLine = Erl
-    If err_source = vbNullString Then err_source = Err.source
+    If err_source = vbNullString Then err_source = Err.Source
     If err_dscrptn = vbNullString Then err_dscrptn = Err.Description
     If err_dscrptn = vbNullString Then err_dscrptn = "--- No error description available ---"
     
@@ -575,7 +575,8 @@ Private Sub Test_4_Trace_with_log_to_file()
     Const PROC = "Test_4_Trace_with_log_to_file"
     
     On Error GoTo eh
-    Dim TraceLog As String
+    Dim TraceLog    As String
+    Dim fso         As New FileSystemObject
     
     TraceLog = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "Trace.log")
     mTrc.TraceLogFile = TraceLog
@@ -585,6 +586,8 @@ xt: mBasic.EoP ErrSrc(PROC)
     mMsg.Box box_title:="Trasce result" _
            , box_msg:=mFile.Txt(TraceLog) _
            , box_monospaced:=True
+    fso.DeleteFile TraceLog
+    Set fso = Nothing
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))

@@ -90,12 +90,10 @@ End Function
 
 Public Sub BoP(ByVal bop_id As String, _
           ParamArray bop_arguments() As Variant)
-' -------------------------------------------------
-' Trace and stack Begin of Procedure.
-' The traced_arguments argument is passed on to the
-' mTrc.BoP and displayed with the error message in
-' case.
-' -------------------------------------------------
+' ------------------------------------------------------------------------------
+' Trace and stack Begin of Procedure. The traced_arguments argument is passed on
+' to the mTrc.BoP and displayed with the error message in case.
+' ------------------------------------------------------------------------------
     Const PROC = "BoP"
     
     On Error GoTo eh
