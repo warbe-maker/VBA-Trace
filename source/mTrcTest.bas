@@ -178,31 +178,35 @@ Private Function RegressionTestInfo() As String
 End Function
 
 Public Sub Regression_Test()
-' -----------------------------------------------------------------------------
-' 1. This regression test requires the Conditional Compile Argument "Test = 1"
-'    which provides additional buttons to continue with the next test after a
-'    procedure which tests an error condition
-' 2. The BoP/EoP statements in this regression test procedure produce one
-'    execution trace at the end of this regression test provided the
-'    Conditional Compile Argument "ExecTrace = 1". Attention must be paid on
-'    the execution time however because it will include the time used by the
-'    user action when an error message is displayed!
-' 3. The Conditional Compile Argument "Debugging = 1" allows to identify the
-'    code line which causes the error through an extra "Resume error code line"
-'    button displayed with the error message and processed when clicked as
-'    "Stop: Resume" when the button is clicked.
+' ----------------------------------------------------------------------------
+' Attention! mTrc testing require the Conditional Compile Argument
+'            "ExecTrace = 1" (as with any VB-Project using the mTrc module to
+'            activate execution tracing).
+' The execution trace writes a log file which defaults to ExecTrace.log in the
+' ThisWorkbook's parent folder. With this regression test the log file's
+' content is displayed by the mMsg.Dsply service. In VB-Projects using the
+' mTrc module the log file will be displayed by any file display tool.
 ' ------------------------------------------------------------------------------
-    Const PROC = "Regression_Test"
+    Const PROC      As String = "Regression_Test"
     
     On Error GoTo eh
-    mErH.Regression = True
+    Dim BttnTraceToFile As String
+    Dim Bttn
     
-    mTrc.DisplayedInfo = Compact
+    mTrc.LogTitle = "Regression Test of/for the mTrc module"
+    mErH.Regression = True
+        
     BoP ErrSrc(PROC)
     Test_3_Execution_Trace
+    mTrc.LogInfo = "Test Log-Info explicitely provided"
     Test_3_Execution_Trace_With_Error
 
 xt: EoP ErrSrc(PROC)
+    mMsg.Box box_title:="Trasce result of the Regression test for the mTrc module" _
+           , box_msg:=mFile.Txt(mTrc.LogFile) _
+           , box_monospaced:=True
+    '~~ This test deletes the trace log file after this display
+    Kill mTrc.LogFile
     mErH.Regression = False
     Exit Sub
     
@@ -220,7 +224,6 @@ Public Sub Test_1_1_BoP_missing()
 ' ---------------------------------------------------
     Const PROC = "Test_1_1_BoP_missing"
     
-    mTrc.TraceLogFile = vbNullString
 '    BoP ErrSrc(PROC) this procedure will not be recognized as "Entry Procedure" ...
     Test_1_1_BoP_missing_TestProc_1a ' ... but this one will be instead
     
@@ -295,7 +298,6 @@ Public Sub Test_2_BoP_EoP()
 ' ---------------------------------------------------
     Const PROC = "Test_2_BoP_EoP"
     
-    mTrc.TraceLogFile = vbNullString
     BoP ErrSrc(PROC)
     Test_2_BoP_EoP_TestProc_1a_missing_BoP
     
@@ -411,7 +413,6 @@ Public Sub Test_3_Execution_Trace()
     Const PROC = "Test_3_Execution_Trace"
     On Error GoTo eh
     
-    mTrc.TraceLogFile = vbNullString
     BoP ErrSrc(PROC)
     Test_3_Execution_Trace_TestProc_6a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
 
@@ -559,35 +560,11 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6c()
     '~~ when mErH.Regression = True for this test (set with the
     '~~ calling procedure) the display of the error is suspended
     mErH.BoTP ErrSrc(PROC), 6
+    mTrc.LogInfo = "This is just an info"
     Dim i As Long
     i = i / 0 ' Error !!!!
 
 xt: EoP ErrSrc(PROC)
-    Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Private Sub Test_4_Trace_with_log_to_file()
-    Const PROC = "Test_4_Trace_with_log_to_file"
-    
-    On Error GoTo eh
-    Dim TraceLog    As String
-    Dim fso         As New FileSystemObject
-    
-    TraceLog = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "Trace.log")
-    mTrc.TraceLogFile = TraceLog
-    BoP ErrSrc(PROC)
-    
-xt: EoP ErrSrc(PROC)
-    mMsg.Box box_title:="Trasce result" _
-           , box_msg:=mFile.Txt(TraceLog) _
-           , box_monospaced:=True
-    fso.DeleteFile TraceLog
-    Set fso = Nothing
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
