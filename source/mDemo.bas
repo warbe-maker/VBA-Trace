@@ -13,26 +13,27 @@ Private Function AppErr(ByVal app_err_no As Long) As Long
     If app_err_no >= 0 Then AppErr = app_err_no + vbObjectError Else AppErr = Abs(app_err_no - vbObjectError)
 End Function
 
-Public Sub ErrorHandling_None_Demo()
-    Dim l As Long
-    l = ErrorHandling_None(10, 0)
+Private Sub BoP(ByVal b_proc As String, _
+                ParamArray b_arguments() As Variant)
+' ------------------------------------------------------------------------------
+' Common 'Begin of Procedure' service. When neither the Common Execution Trace
+' Component (mTrc) nor the Common Error Handling Component (mErH) is installed
+' (indicated by the Conditional Compile Arguments 'ExecTrace = 1' and/or the
+' Conditional Compile Argument 'ErHComp = 1') this procedure does nothing.
+' Else the service is handed over to the corresponding procedures.
+' May be copied as Private Sub into any module or directly used when mBasic is
+' installed.
+' ------------------------------------------------------------------------------
+    Dim s As String
+    If UBound(b_arguments) >= 0 Then s = Join(b_arguments, ",")
+#If ErHComp = 1 Then
+    '~~ The error handling also hands over to the mTrc component when 'ExecTrace = 1'
+    '~~ so the Else is only for the case only the mTrc is installed but not the merH.
+    mErH.BoP b_proc, s
+#ElseIf ExecTrace = 1 Then
+    mTrc.BoP b_proc, s
+#End If
 End Sub
-
-Private Function ErrorHandling_None(ByVal op1 As Variant, _
-                                    ByVal op2 As Variant) As Variant
-' ------------------------------------------------------------------
-' - Error message:              Mere VBA only
-'   - Error source:             No
-'   - Application error number: Not supported
-'   - Error line:               No, even when one is provided/available
-'   - Info about error:         Not supported
-'   - Path to the error:        No, because a call stack is not maintained
-' - Variant value assertion:    No
-' - Execution Trace:            No
-' - Debugging/Test choice:      No
-' ------------------------------------------------------------------
-    ErrorHandling_None = op1 / op2
-End Function
 
 Public Sub Demo_6_Execution_Trace()
 ' ------------------------------------------------------
@@ -45,10 +46,10 @@ Public Sub Demo_6_Execution_Trace()
     Const PROC = "Demo_6_Execution_Trace"
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
     Demo_6_Execution_Trace_DemoProc_6a
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -62,10 +63,10 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6a()
     Const PROC = "Demo_6_Execution_Trace_DemoProc_6a"
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
     Demo_6_Execution_Trace_DemoProc_6b
 
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -79,7 +80,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6b()
     Const PROC = "Demo_6_Execution_Trace_DemoProc_6b"
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
     
     Demo_6_Execution_Trace_DemoProc_6c
     
@@ -89,7 +90,7 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6b()
     Next i
     mTrc.EoC ErrSrc(PROC) & " empty loop 1 to " & j ' !!! the string must match with the BoC statement !!!
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -103,9 +104,9 @@ Private Sub Demo_6_Execution_Trace_DemoProc_6c()
     Const PROC = "Demo_6_Execution_Trace_DemoProc_6c"
     On Error GoTo eh
 
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
 
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -114,45 +115,24 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Private Function ErrSrc(ByVal s As String) As String
-' ---------------------------------------------------
-' Prefix procedure name (s) by this module's name.
-' Attention: The characters > and < must not be used!
-' ---------------------------------------------------
-    ErrSrc = "mDemo." & s
-End Function
-
-Private Sub ErrMsgMatter(ByVal err_source As String, _
-                         ByVal err_no As Long, _
-                         ByVal err_line As Long, _
-                         ByVal err_dscrptn As String, _
-                Optional ByRef msg_title As String, _
-                Optional ByRef msg_type As String, _
-                Optional ByRef msg_line As String, _
-                Optional ByRef msg_no As Long, _
-                Optional ByRef msg_details As String, _
-                Optional ByRef msg_dscrptn As String, _
-                Optional ByRef msg_info As String)
-' -------------------------------------------------------
-' Returns all the matter to build a proper error message.
-' -------------------------------------------------------
-                
-    If InStr(1, err_source, "DAO") <> 0 _
-    Or InStr(1, err_source, "ODBC Teradata Driver") <> 0 _
-    Or InStr(1, err_source, "ODBC") <> 0 _
-    Or InStr(1, err_source, "Oracle") <> 0 Then
-        msg_type = "Database Error "
-    Else
-      msg_type = IIf(err_no > 0, "VB-Runtime Error ", "Application Error ")
-    End If
-   
-    msg_line = IIf(err_line <> 0, "at line " & err_line, vbNullString)     ' Message error line
-    msg_no = IIf(err_no < 0, err_no - vbObjectError, err_no)                ' Message error number
-    msg_title = msg_type & msg_no & " in " & err_source & " " & msg_line             ' Message title
-    msg_details = IIf(err_line <> 0, msg_type & msg_no & " in " & err_source & " (at line " & err_line & ")", msg_type & msg_no & " in " & err_source)
-    msg_dscrptn = IIf(InStr(err_dscrptn, CONCAT) <> 0, Split(err_dscrptn, CONCAT)(0), err_dscrptn)
-    If InStr(err_dscrptn, CONCAT) <> 0 Then msg_info = Split(err_dscrptn, CONCAT)(1)
-
+Private Sub EoP(ByVal e_proc As String, _
+       Optional ByVal e_inf As String = vbNullString)
+' ------------------------------------------------------------------------------
+' Common 'End of Procedure' service. When neither the Common Execution Trace
+' Component (mTrc) nor the Common Error Handling Component (mErH) is installed
+' (indicated by the Conditional Compile Arguments 'ExecTrace = 1' and/or the
+' Conditional Compile Argument 'ErHComp = 1') this procedure does nothing.
+' Else the service is handed over to the corresponding procedures.
+' May be copied as Private Sub into any module or directly used when mBasic is
+' installed.
+' ------------------------------------------------------------------------------
+#If ErHComp = 1 Then
+    '~~ The error handling also hands over to the mTrc component when 'ExecTrace = 1'
+    '~~ so the Else is only for the case the mTrc is installed but the merH is not.
+    mErH.EoP e_proc
+#ElseIf ExecTrace = 1 Then
+    mTrc.EoP e_proc, e_inf
+#End If
 End Sub
 
 Private Function ErrMsg(ByVal err_source As String, _
@@ -296,5 +276,67 @@ Private Function ErrMsg(ByVal err_source As String, _
                   , Buttons:=ErrBttns)
 xt: Exit Function
 
+End Function
+
+Private Sub ErrMsgMatter(ByVal err_source As String, _
+                         ByVal err_no As Long, _
+                         ByVal err_line As Long, _
+                         ByVal err_dscrptn As String, _
+                Optional ByRef msg_title As String, _
+                Optional ByRef msg_type As String, _
+                Optional ByRef msg_line As String, _
+                Optional ByRef msg_no As Long, _
+                Optional ByRef msg_details As String, _
+                Optional ByRef msg_dscrptn As String, _
+                Optional ByRef msg_info As String)
+' -------------------------------------------------------
+' Returns all the matter to build a proper error message.
+' -------------------------------------------------------
+                
+    If InStr(1, err_source, "DAO") <> 0 _
+    Or InStr(1, err_source, "ODBC Teradata Driver") <> 0 _
+    Or InStr(1, err_source, "ODBC") <> 0 _
+    Or InStr(1, err_source, "Oracle") <> 0 Then
+        msg_type = "Database Error "
+    Else
+      msg_type = IIf(err_no > 0, "VB-Runtime Error ", "Application Error ")
+    End If
+   
+    msg_line = IIf(err_line <> 0, "at line " & err_line, vbNullString)     ' Message error line
+    msg_no = IIf(err_no < 0, err_no - vbObjectError, err_no)                ' Message error number
+    msg_title = msg_type & msg_no & " in " & err_source & " " & msg_line             ' Message title
+    msg_details = IIf(err_line <> 0, msg_type & msg_no & " in " & err_source & " (at line " & err_line & ")", msg_type & msg_no & " in " & err_source)
+    msg_dscrptn = IIf(InStr(err_dscrptn, CONCAT) <> 0, Split(err_dscrptn, CONCAT)(0), err_dscrptn)
+    If InStr(err_dscrptn, CONCAT) <> 0 Then msg_info = Split(err_dscrptn, CONCAT)(1)
+
+End Sub
+
+Private Function ErrorHandling_None(ByVal op1 As Variant, _
+                                    ByVal op2 As Variant) As Variant
+' ------------------------------------------------------------------
+' - Error message:              Mere VBA only
+'   - Error source:             No
+'   - Application error number: Not supported
+'   - Error line:               No, even when one is provided/available
+'   - Info about error:         Not supported
+'   - Path to the error:        No, because a call stack is not maintained
+' - Variant value assertion:    No
+' - Execution Trace:            No
+' - Debugging/Test choice:      No
+' ------------------------------------------------------------------
+    ErrorHandling_None = op1 / op2
+End Function
+
+Public Sub ErrorHandling_None_Demo()
+    Dim l As Long
+    l = ErrorHandling_None(10, 0)
+End Sub
+
+Private Function ErrSrc(ByVal s As String) As String
+' ---------------------------------------------------
+' Prefix procedure name (s) by this module's name.
+' Attention: The characters > and < must not be used!
+' ---------------------------------------------------
+    ErrSrc = "mDemo." & s
 End Function
 
