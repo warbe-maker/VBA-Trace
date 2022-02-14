@@ -1,0 +1,66 @@
+22-02-14 09:39:22                 >> Export Changed (by Addin) for Trc.xlsm: 
+22-02-14 09:39:22 00,0000         |  >> mCompMan.ExportChangedComponents
+22-02-14 09:39:22 00,0476         |  |  >> mService.ExportChangedComponents
+22-02-14 09:39:22 00,0956         |  |  |  >> mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 09:39:22 00,1593 00,0637 |  |  |  << mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 09:39:22 00,1607         |  |  |  >> mExport.ChangedComponents
+22-02-14 09:39:23 01,2508 01,0901 |  |  |  << mExport.ChangedComponents
+22-02-14 09:39:23 01,2517 01,2041 |  |  << mService.ExportChangedComponents
+22-02-14 09:39:23 01,2523 01,2523 |  << mCompMan.ExportChangedComponents
+22-02-14 09:39:23 01,2523 01,2523 << Export Changed (by Addin) for Trc.xlsm: . Impact on performance (caused by the trace) was 00,0005  seconds !
+
+22-02-14 09:43:17                 >> Export Changed (by Addin) for Trc.xlsm: 
+22-02-14 09:43:17 00,0000         |  >> mCompMan.ExportChangedComponents
+22-02-14 09:43:17 00,0471         |  |  >> mService.ExportChangedComponents
+22-02-14 09:43:17 00,0942         |  |  |  >> mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 09:43:17 00,1107 00,0165 |  |  |  << mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 09:43:17 00,1112         |  |  |  >> mExport.ChangedComponents
+22-02-14 09:43:18 00,9896 00,8784 |  |  |  << mExport.ChangedComponents
+22-02-14 09:43:18 00,9905 00,9434 |  |  << mService.ExportChangedComponents
+22-02-14 09:43:18 00,9911 00,9911 |  << mCompMan.ExportChangedComponents
+22-02-14 09:43:18 00,9911 00,9911 << Export Changed (by Addin) for Trc.xlsm: . Impact on performance (caused by the trace) was 00,0006  seconds !
+
+22-02-14 10:54:10                 >> Export Changed (by Addin) for Trc.xlsm: 
+22-02-14 10:54:10 00,0000         |  >> mCompMan.ExportChangedComponents
+22-02-14 10:54:10 00,0471         |  |  >> mService.ExportChangedComponents
+22-02-14 10:54:10 00,0935         |  |  |  >> mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 10:54:10 00,1095 00,0160 |  |  |  << mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 10:54:10 00,1101         |  |  |  >> mExport.ChangedComponents
+22-02-14 10:54:11 00,9318 00,8218 |  |  |  << mExport.ChangedComponents
+22-02-14 10:54:11 00,9327 00,8857 |  |  << mService.ExportChangedComponents
+22-02-14 10:54:11 00,9333 00,9333 |  << mCompMan.ExportChangedComponents
+22-02-14 10:54:11 00,9333 00,9333 << Export Changed (by Addin) for Trc.xlsm: . Impact on performance (caused by the trace) was 00,0005  seconds !
+
+22-02-14 11:11:25                 >> Update Outdated (by Addin) for Trc.xlsm: 
+22-02-14 11:11:25 00,0000         |  >> mCompMan.UpdateOutdatedCommonComponents
+22-02-14 11:11:25 00,0466         |  |  >> mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 11:11:25 00,0611 00,0145 |  |  << mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 11:11:25 00,0617         |  |  >> mUpdate.Outdated
+22-02-14 11:11:25 00,3808         |  |  |  >> mUpdate.UpdateConfirmed
+22-02-14 11:11:27 01,9199 01,5391 |  |  |  << mUpdate.UpdateConfirmed
+22-02-14 11:11:27 01,9213         |  |  |  >> mRenew.ByImport
+22-02-14 11:11:27 01,9218         |  |  |  |  >> mRenew.SaveWbk
+22-02-14 11:11:27 02,2748 00,3530 |  |  |  |  << mRenew.SaveWbk
+22-02-14 11:11:27 02,2757         |  |  |  |  > Rename the to-be-re-imported component
+22-02-14 11:11:27 02,2799 00,0042 |  |  |  |  < Rename the to-be-re-imported component
+22-02-14 11:11:27 02,2803         |  |  |  |  > Import the Raw Common Component
+22-02-14 11:11:27 02,2884 00,0081 |  |  |  |  < Import the Raw Common Component
+22-02-14 11:11:27 02,2891         |  |  |  |  > Export the Used Common Component
+22-02-14 11:11:27 02,2979 00,0088 |  |  |  |  < Export the Used Common Component
+22-02-14 11:11:27 02,2984         |  |  |  |  >> mRenew.SaveWbk
+22-02-14 11:11:28 02,8396 00,5412 |  |  |  |  << mRenew.SaveWbk
+22-02-14 11:11:28 02,8401 00,9187 |  |  |  << mRenew.ByImport
+22-02-14 11:11:28 02,9308 02,8690 |  |  << mUpdate.Outdated
+22-02-14 11:11:28 02,9316 02,9316 |  << mCompMan.UpdateOutdatedCommonComponents
+22-02-14 11:11:28 02,9316 02,9316 << Update Outdated (by Addin) for Trc.xlsm: . Impact on performance (caused by the trace) was 00,0007  seconds !
+
+22-02-14 11:11:30                 >> Export Changed (by Addin) for Trc.xlsm: 
+22-02-14 11:11:30 00,0000         |  >> mCompMan.ExportChangedComponents
+22-02-14 11:11:30 00,0455         |  |  >> mService.ExportChangedComponents
+22-02-14 11:11:30 00,0924         |  |  |  >> mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 11:11:30 00,1072 00,0148 |  |  |  << mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-02-14 11:11:30 00,1079         |  |  |  >> mExport.ChangedComponents
+22-02-14 11:11:31 01,0333 00,9254 |  |  |  << mExport.ChangedComponents
+22-02-14 11:11:31 01,0343 00,9887 |  |  << mService.ExportChangedComponents
+22-02-14 11:11:31 01,0351 01,0351 |  << mCompMan.ExportChangedComponents
+22-02-14 11:11:31 01,0351 01,0351 << Export Changed (by Addin) for Trc.xlsm: . Impact on performance (caused by the trace) was 00,0008  seconds !

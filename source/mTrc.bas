@@ -15,31 +15,32 @@ Option Explicit
 '       very little.
 '
 ' Public services:
-' - BoC                 Indicate the Begin of the execution trace of a Code
-'                       snippet
-' - BoP                 Indicate the Begin of the execution trace of a
-'                       Procedure
-' - BoP_ErH             Exclusively used by the mErH module
-' - Continue            Continues counting the execution time when it had
-'                       been paused. Paused and Continue is used by the mErH
-'                       module by example to avoid useless execution time
-'                       count.
-' - EoC                 Indicate the End of the execution trace of a Code
-'                       snippet
-' - EoP                 Indicate the End of the execution trace of a Procedure.
-' - Pause               Stops counting the execution time, e.g. which an error
-'                       message is displayed.
-' - LogFile        Property to provide the full name of a file to which
-'                       execution trace log is written. When no LogFile is
-'                       provided, it defaults "ExecTrace.log" in ThisWorkbook's
-'                       parent folder.
-' - LogInfo        Explicitely writes an entry to the trace lof file by
-'                       considering the nesting level (i.e. the indentation).
+' - BoC             Indicate the Begin of the execution trace of a Code
+'                   snippet
+' - BoP             Indicate the Begin of the execution trace of a
+'                   Procedure
+' - BoP_ErH         Exclusively used by the mErH module
+' - Continue        Continues counting the execution time when it had
+'                   been paused. Paused and Continue is used by the mErH
+'                   module by example to avoid useless execution time
+'                   count.
+' - Dsply           Displays the content of the trace log file
+' - EoC             Indicate the End of the execution trace of a Code
+'                   snippet
+' - EoP             Indicate the End of the execution trace of a Procedure.
+' - Pause           Stops counting the execution time, e.g. which an error
+'                   message is displayed.
+' - LogFile         Property to provide the full name of a file to which
+'                   execution trace log is written. When no LogFile is
+'                   provided, it defaults "ExecTrace.log" in ThisWorkbook's
+'                   parent folder.
+' - LogInfo         Explicitely writes an entry to the trace lof file by
+'                   considering the nesting level (i.e. the indentation).
 '
-' Uses: mMsg, fMsg      To display the trace result. The trace result may be
-'                       to long for the VBA.MsgBox and the display needs to
-'                       be displayed with in monospaced for a proper text
-'                       indentation and alignment.
+' Uses: mMsg, fMsg  To display the trace result. The trace result may be
+'                   to long for the VBA.MsgBox and the display needs to
+'                   be displayed with in monospaced for a proper text
+'                   indentation and alignment.
 '
 ' See: https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service
 '
@@ -134,6 +135,11 @@ Private Property Let NtryTcksOvrhdNtry(Optional ByRef trc_entry As Collection, B
     trc_entry.Add cy, "TON"
 End Property
 
+Public Sub Dsply()
+    mMsg.Box box_title:="Trasce result of the Regression test for the mTrc module" _
+           , box_msg:=LogTxt(mTrc.LogFile) _
+           , box_monospaced:=True
+End Sub
 Private Property Get SplitStr(ByRef s As String)
 ' ----------------------------------------------------------------------------
 ' Returns the split string in string (s) used by VBA.Split() to turn the
@@ -784,7 +790,9 @@ Private Sub StckPop(ByRef stck As Collection, _
                     ByVal stck_item As Variant, _
            Optional ByRef stck_ppd As Collection)
 ' ----------------------------------------------------------------------------
-'
+' Pops the item (stck_item) from the stack (stck) when it is the top item.
+' When the top item is not identical with the provided item (stck_item) the
+' pop is skipped.
 ' ----------------------------------------------------------------------------
     Const PROC = "StckPop"
     
@@ -809,6 +817,7 @@ Private Sub StckPop(ByRef stck As Collection, _
         TraceStack.Remove TraceStack.Count
         Set cllTop = StckTop(TraceStack)
     Else
+        '~~ There is nothing to pop because the top item is not the one requested to pop
         Debug.Print "Stack Pop ='" & ItmId(cll) _
                   & "', Stack Top = '" & ItmId(cllTop) _
                   & "', Stack Dir = '" & ItmDir(cllTop) _
@@ -836,7 +845,7 @@ Private Function StckTop(ByVal stck As Collection) As Collection
     Then Set StckTop = stck(stck.Count)
 End Function
 
-Private Sub Terminate()
+Public Sub Terminate()
 ' ----------------------------------------------------------------------------
 ' Should be called by any error handling when a new execution trace is about
 ' to begin with the very first procedure's execution.

@@ -1,11 +1,11 @@
 Attribute VB_Name = "mTrcTest"
 Option Explicit
 ' -----------------------------------------------------------------------
-' Standar module mTest: Provides all test obligatory being executed when
-'                       code in mTrc is modified.
+' Standard module mTrcTest
+'   Provides all test obligatory being executed when the mTrc code is
+'   modified.
 '
 ' -----------------------------------------------------------------------
-Public Const CONCAT = "||"
 
 Private Function AppErr(ByVal app_err_no As Long) As Long
 ' ------------------------------------------------------------------------------
@@ -17,6 +17,47 @@ Private Function AppErr(ByVal app_err_no As Long) As Long
 ' ------------------------------------------------------------------------------
     If app_err_no >= 0 Then AppErr = app_err_no + vbObjectError Else AppErr = Abs(app_err_no - vbObjectError)
 End Function
+
+Private Sub BoP(ByVal b_proc As String, _
+                ParamArray b_arguments() As Variant)
+' ------------------------------------------------------------------------------
+' Common 'Begin of Procedure' service.
+' Has no effect unless the Conditional Compile Argument 'ExecTrace = 1' (when
+' the Common Execution Trace Component (mTrc) is installed. Serves for the
+' Common Error Handling Component (mErH) when installed and the Conditional
+' Compile Arguments 'ExecTrace = 1'.
+' ------------------------------------------------------------------------------
+    Dim s As String:    If UBound(b_arguments) >= 0 Then s = Join(b_arguments, ",")
+
+#If ErHComp = 1 Then
+    '~~ The error handling also hands over to the mTrc component when 'ExecTrace = 1'
+    '~~ so the Else is only for the case only the mTrc is installed but not the merH.
+    mErH.BoP b_proc, s
+#ElseIf ExecTrace = 1 Then
+    mTrc.BoP b_proc, s
+#End If
+
+End Sub
+
+Private Sub EoP(ByVal e_proc As String, _
+       Optional ByVal e_inf As String = vbNullString)
+' ------------------------------------------------------------------------------
+' Common 'End of Procedure' service. When neither the Common Execution Trace
+' Component (mTrc) nor the Common Error Handling Component (mErH) is installed
+' (indicated by the Conditional Compile Arguments 'ExecTrace = 1' and/or the
+' Conditional Compile Argument 'ErHComp = 1') this procedure does nothing.
+' Else the service is handed over to the corresponding procedures.
+' May be copied as Private Sub into any module or directly used when mBasic is
+' installed.
+' ------------------------------------------------------------------------------
+#If ErHComp = 1 Then
+    '~~ The error handling also hands over to the mTrc component when 'ExecTrace = 1'
+    '~~ so the Else is only for the case the mTrc is installed but the merH is not.
+    mErH.EoP e_proc
+#ElseIf ExecTrace = 1 Then
+    mTrc.EoP e_proc, e_inf
+#End If
+End Sub
 
 Private Function ErrMsg(ByVal err_source As String, _
                Optional ByVal err_no As Long = 0, _
@@ -164,20 +205,7 @@ Private Function ErrSrc(ByVal s As String) As String
     ErrSrc = "mTrcTest." & s
 End Function
 
-Private Function RegressionTestInfo() As String
-' ----------------------------------------------------
-' Adds s to the Err.Description as an additional info.
-' ----------------------------------------------------
-    RegressionTestInfo = Err.Description
-    If Not mErH.Regression Then Exit Function
-    
-    If InStr(RegressionTestInfo, CONCAT) <> 0 _
-    Then RegressionTestInfo = RegressionTestInfo & vbLf & vbLf & "Please notice that  this is a  r e g r e s s i o n  t e s t ! Click any but the ""Terminate"" button to continue with the test in case another one follows." _
-    Else RegressionTestInfo = RegressionTestInfo & CONCAT & "Please notice that  this is a  r e g r e s s i o n  t e s t !  Click any but the ""Terminate"" button to continue with the test in case another one follows."
-
-End Function
-
-Public Sub Regression_Test()
+Public Sub Test_0_Regression_Test()
 ' ----------------------------------------------------------------------------
 ' Attention! mTrc testing require the Conditional Compile Argument
 '            "ExecTrace = 1" (as with any VB-Project using the mTrc module to
@@ -187,7 +215,7 @@ Public Sub Regression_Test()
 ' content is displayed by the mMsg.Dsply service. In VB-Projects using the
 ' mTrc module the log file will be displayed by any file display tool.
 ' ------------------------------------------------------------------------------
-    Const PROC      As String = "Regression_Test"
+    Const PROC = "Test_0_Regression_Test"
     
     On Error GoTo eh
     Dim BttnTraceToFile As String
@@ -202,9 +230,7 @@ Public Sub Regression_Test()
     Test_3_Execution_Trace_With_Error
 
 xt: EoP ErrSrc(PROC)
-    mMsg.Box box_title:="Trasce result of the Regression test for the mTrc module" _
-           , box_msg:=mFile.Txt(mTrc.LogFile) _
-           , box_monospaced:=True
+    mTrc.Dsply
     '~~ This test deletes the trace log file after this display
     Kill mTrc.LogFile
     mErH.Regression = False
@@ -364,6 +390,22 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
+Private Sub Test_2_BoP_EoP_TestProc_1d_missing_EoP()
+    Const PROC = "Test_2_BoP_EoP_TestProc_1d_missing_EoP"
+    
+    On Error GoTo eh
+    
+    BoP ErrSrc(PROC)
+    Test_2_BoP_EoP_TestProc_1e_BoC_EoC
+    
+xt: Exit Sub
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Sub
+
 Private Sub Test_2_BoP_EoP_TestProc_1e_BoC_EoC()
     Const PROC = "Test_2_BoP_EoP_TestProc_1e_BoC_EoC"
     
@@ -379,22 +421,6 @@ Private Sub Test_2_BoP_EoP_TestProc_1e_BoC_EoC()
     
 xt: EoP ErrSrc(PROC)
     Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Private Sub Test_2_BoP_EoP_TestProc_1d_missing_EoP()
-    Const PROC = "Test_2_BoP_EoP_TestProc_1d_missing_EoP"
-    
-    On Error GoTo eh
-    
-    BoP ErrSrc(PROC)
-    Test_2_BoP_EoP_TestProc_1e_BoC_EoC
-    
-xt: Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
@@ -485,7 +511,6 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-
 Public Sub Test_3_Execution_Trace_With_Error()
 ' ------------------------------------------------------
 ' White-box- and regression-test procedure obligatory
@@ -571,47 +596,5 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
-End Sub
-
-Private Sub BoP(ByVal b_proc As String, _
-                ParamArray b_arguments() As Variant)
-' ------------------------------------------------------------------------------
-' Common 'Begin of Procedure' service. When neither the Common Execution Trace
-' Component (mTrc) nor the Common Error Handling Component (mErH) is installed
-' (indicated by the Conditional Compile Arguments 'ExecTrace = 1' and/or the
-' Conditional Compile Argument 'ErHComp = 1') this procedure does nothing.
-' Else the service is handed over to the corresponding procedures.
-' May be copied as Private Sub into any module or directly used when mBasic is
-' installed.
-' ------------------------------------------------------------------------------
-    Dim s As String
-    If UBound(b_arguments) >= 0 Then s = Join(b_arguments, ",")
-#If ErHComp = 1 Then
-    '~~ The error handling also hands over to the mTrc component when 'ExecTrace = 1'
-    '~~ so the Else is only for the case only the mTrc is installed but not the merH.
-    mErH.BoP b_proc, s
-#ElseIf ExecTrace = 1 Then
-    mTrc.BoP b_proc, s
-#End If
-End Sub
-
-Private Sub EoP(ByVal e_proc As String, _
-       Optional ByVal e_inf As String = vbNullString)
-' ------------------------------------------------------------------------------
-' Common 'End of Procedure' service. When neither the Common Execution Trace
-' Component (mTrc) nor the Common Error Handling Component (mErH) is installed
-' (indicated by the Conditional Compile Arguments 'ExecTrace = 1' and/or the
-' Conditional Compile Argument 'ErHComp = 1') this procedure does nothing.
-' Else the service is handed over to the corresponding procedures.
-' May be copied as Private Sub into any module or directly used when mBasic is
-' installed.
-' ------------------------------------------------------------------------------
-#If ErHComp = 1 Then
-    '~~ The error handling also hands over to the mTrc component when 'ExecTrace = 1'
-    '~~ so the Else is only for the case the mTrc is installed but the merH is not.
-    mErH.EoP e_proc
-#ElseIf ExecTrace = 1 Then
-    mTrc.EoP e_proc, e_inf
-#End If
 End Sub
 
