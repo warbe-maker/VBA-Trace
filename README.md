@@ -93,15 +93,25 @@ End Sub
 > ***Hint 1:*** Avoid using **`Exit ...`** to terminate a procedure's execution but use ***`Goto xt`*** instead to ensure the EoP (end of procedure) statement is not bypassed.<br>
 ***Hint 2:*** An error handling should preferably end with a ***`Goto xt`*** in order to provide a 'clean exit'.
 
+### Personal and public use of (my) _Common Components_
+I do not like the idea maintaining different code versions of _Common Components_, one which I use in my VB-Projects and another 'public' version. On the other hand I do not want to urge users of my _Common Components_ to also use the other _Common Components_ which have become a de facto standard for me.
 
-### Execution Trace (mTrc) and Error Services (mErH)
+#### Managing the splits
+The primary goal is to provide _Common Components_ which are as autonomous as possible by allowing to optionally use them in a more sophisticated environment. This is achieved by a couple of procedures which only optionally use other _Common Components_ when also installed which is indicated by the use of a couple of _Conditional Compile Arguments_:
+
+| Conditional<br>Compile&nbsp;Argument | Purpose |
+| ------------------------------------ | ------- |
+| _Debugging_                          | Indicates that error messages should be displayed with a debugging option allowing to resume the error line |
+| _ExecTrace_                          | Indicates that the _[mTrc][4]_ module is installed
+| _MsgComp_                            | indicates that the _[mMsg][3]_, _[fMsg.frm][1]_, and _[fMsg.frx][2]_ are installed |
+| _ErHComp_                            | Indicates that the _[mErH][6]_ is installed |
+
+By these means other users are no bothered by my personal preferences - or are only as little as possible :-).
+
+#### Execution Trace _(mTrc)_ and Error Services _(mErH)_
 This _Common VBA Execution Trace Component (mTrc)_ and the _Common VBA Error Services Component (mErH)_ have the following in common:
 1. Both use in each component/module the `ErrSrc` function to uniquely identify a procedure's name (i.e. prefix it with the component's name)
-3. Both use BoP/EoP statements to indicate the <u>B</u>egin and <u>E</u>nd <u>o</u>f a <u>P</u>rocedure.<br>The execution trace uses the statements to begin/end the trace of a procedure<br>the error uses the statements to indicate an 'entry procedure' to which the error is passed on for being displayed (which allows gathering the 'path to the error'.
-
-### Me and the public
-I do not like the idea to maintain different versions of a component, one for being used in my own VB-Projects an another 'public' version. To achieve this at first I try to keep components as autonomous as possible and second I keep those components which are obligatory for me personal, optional for others. This is achieved by a couple of procedures I add to any component and by the use of the _Conditional Compile Arguments_ 'Debugging, ExecTrace, MsgComp, and ErHComp. By these means other users are bothered by my personal preferences as little as possible.
-
+3. Both use _BoP/EoP_ statements to indicate the <u>B</u>egin and <u>E</u>nd <u>o</u>f a <u>P</u>rocedure.<br>The execution trace uses the statements to begin/end the trace of a procedure<br>the error uses the statements to indicate an 'entry procedure' to which the error is passed on for being displayed (which allows gathering the 'path to the error'.
 ### Contribution
 Contribution of any kind in any form is welcome - preferably by raising an issue.
 

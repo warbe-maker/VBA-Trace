@@ -212,8 +212,9 @@ Public Sub Test_0_Regression_Test()
 '            activate execution tracing).
 ' The execution trace writes a log file which defaults to ExecTrace.log in the
 ' ThisWorkbook's parent folder. With this regression test the log file's
-' content is displayed by the mMsg.Dsply service. In VB-Projects using the
-' mTrc module the log file will be displayed by any file display tool.
+' content is displayed by the mTrc.Dsply service which is available when the
+' mMsg module is installed. In VB-Projects using the mTrc module autonmously
+' the log file will need to be displayed by any file display tool.
 ' ------------------------------------------------------------------------------
     Const PROC = "Test_0_Regression_Test"
     
@@ -584,7 +585,7 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6c()
     '~~ The VB Runtime error 6 is anticipated thus regarded asserted
     '~~ when mErH.Regression = True for this test (set with the
     '~~ calling procedure) the display of the error is suspended
-    mErH.BoTP ErrSrc(PROC), 6
+    mErH.Asserted 6
     mTrc.LogInfo = "This is just an info"
     Dim i As Long
     i = i / 0 ' Error !!!!
