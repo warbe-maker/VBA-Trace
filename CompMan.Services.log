@@ -1,0 +1,49 @@
+22-02-15 22:44:19 Update Outdated (by Addin) for Trc.xlsm: 
+22-02-15 22:44:19 -----------------------------------------
+22-02-15 22:44:19 UserForm           fMsg .........: Used Common Component up-to-date
+22-02-15 22:44:19 Standard-Module    mCompManClient: Used Common Component up-to-date
+22-02-15 22:44:19 Standard-Module    mDct .........: Used Common Component up-to-date
+22-02-15 22:44:19 Standard-Module    mErH .........: Outdated Used Common Component! (Export-Files 'E:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mErH.bas' differs from 'E:\Ablage\Excel VBA\DevAndTest\Common-Components\mErH.bas')
+22-02-15 22:44:22                                    DoEvents delayed continuation for 00017 msec)
+22-02-15 22:44:23                                    Workbook saved (DoEvents delayed continuation for 00019 msec)
+22-02-15 22:44:23                                    'mErH' renamed to 'mErH_RenamedByCompMan'
+22-02-15 22:44:23                                    'mErH_RenamedByCompMan' removed (removal is postponed by Excel until process has finished)
+22-02-15 22:44:23                                    'mErH' (re-)imported from 'E:\Ablage\Excel VBA\DevAndTest\Common-Components\mErH.bas'
+22-02-15 22:44:23                                    'mErH' exported to 'E:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mErH.bas'
+22-02-15 22:44:23                                    DoEvents delayed continuation for 00007 msec)
+22-02-15 22:44:23                                    Workbook saved (DoEvents delayed continuation for 00007 msec)
+22-02-15 22:44:23                                    Used Common Component renewed/updated by (re-)import of the Raw's Export File (E:\Ablage\Excel VBA\DevAndTest\Common-Components\mErH.bas)
+22-02-15 22:44:23 Standard-Module    mFile ........: Used Common Component up-to-date
+22-02-15 22:44:23 Standard-Module    mMsg .........: Used Common Component up-to-date
+22-02-15 22:44:54 ========================================
+22-02-15 22:44:54 Export Changed (by Addin) for Trc.xlsm: 
+22-02-15 22:44:54 ----------------------------------------
+22-02-15 22:44:55 UserForm           fMsg .........: Used Common Component code unchanged
+22-02-15 22:44:55 Standard-Module    mCompManClient: Used Common Component code unchanged
+22-02-15 22:44:55 Standard-Module    mDct .........: Used Common Component code unchanged
+22-02-15 22:44:55 Standard-Module    mDemo ........: Other component unchanged
+22-02-15 22:44:55 Standard-Module    mErH .........: Used Common Component code unchanged
+22-02-15 22:44:55 Standard-Module    mFile ........: Used Common Component code unchanged
+22-02-15 22:44:55 Standard-Module    mMsg .........: Used Common Component code unchanged
+22-02-15 22:44:55 Standard-Module    mTrc .........: Hosted Raw Common Component code modified
+22-02-15 22:44:55                                    Hosted Raw Common Component code modified
+22-02-15 22:44:55                                    Exported, Revision Number increased, Export File copied to 'Common Components Folder'
+22-02-15 22:44:55 Standard-Module    mTrcTest .....: Other component unchanged
+22-02-15 22:44:55 Workbook           wbTrcTest ....: Other component unchanged
+22-02-15 22:44:55 Worksheet CodeName wsAbout ......: Other component unchanged
+22-02-15 22:44:55 Worksheet CodeName wsTest .......: Other component unchanged
+22-02-15 23:20:41 ========================================
+22-02-15 23:20:41 Export Changed (by Addin) for Trc.xlsm: 
+22-02-15 23:20:41 ----------------------------------------
+22-02-15 23:20:42 UserForm           fMsg .........: Used Common Component code unchanged
+22-02-15 23:20:42 Standard-Module    mCompManClient: Used Common Component code unchanged
+22-02-15 23:20:42 Standard-Module    mDct .........: Used Common Component code unchanged
+22-02-15 23:20:42 Standard-Module    mDemo ........: Other component unchanged
+22-02-15 23:20:42 Standard-Module    mErH .........: Used Common Component code unchanged
+22-02-15 23:20:42 Standard-Module    mFile ........: Used Common Component code unchanged
+22-02-15 23:20:42 Standard-Module    mMsg .........: Used Common Component code unchanged
+22-02-15 23:20:42 Standard-Module    mTrcTest .....: Other component code modification exported
+22-02-15 23:20:42                                    Modification exported
+22-02-15 23:20:42 Workbook           wbTrcTest ....: Other component unchanged
+22-02-15 23:20:42 Worksheet CodeName wsAbout ......: Other component unchanged
+22-02-15 23:20:42 Worksheet CodeName wsTest .......: Other component unchanged
