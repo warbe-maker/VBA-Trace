@@ -1,27 +1,41 @@
-# Common VBA Execution Trace
+## Common VBA Execution Trace Services
 
-## Service
-Logs execution trace entries in a file which defaults to _ExecTrace.log_ in _ThisWorkbook's_ parent folder. The log file content:
+Writes records of traced executions of procedures and code snippets to a file which defaults to _ExecTrace.log_ in _ThisWorkbook's_ parent folder. Example of a log file's content:
 ![](assets/ExecutionTrace.png)
 
 For details about the individual services of the component see the inline documentation.
 
+## Services
+| Service    | Purpose |
+| ---------- | ------- |
+|            |         |
+| _BoC_      | Indicates the (B)egin (o)f the execution trace of a (C)ode snippet. |
+| _BoP_      | Indicates the (B)egin (o)f the execution trace of a (P)rocedure. |
+| _BoP\_ErH_ | Exclusively used by the mErH module.
+| _Continue_ | Commands the execution trace to continue taking the execution time when it had been paused. Pause and Continue is used by the mErH module for example to avoid useless execution time taking while waiting for the users reply.|
+| _Dsply_     | Displays the content of the trace log file. Available only when the mMsg/fMsg modules are installed and this is indicated by the Conditional Compile Argument 'MsgComp = 1'. Without mMsg/fMsg the trace result log will be viewed with any appropriate text file viewer. |
+| _EoC_       | Indicates the (E)nd (o)f the execution trace of a (C)ode snippet. |
+| _EoP_       | Indicates the (E)nd (o)f the execution trace of a (P)rocedure. |
+| _Pause_     | Stops the execution traces time taking, e.g. while an error message is displayed. |
+| _LogFile _  | Get/Let property for the full name of a desired trace log file which defaults to "ExecTrace.log" in ThisWorkbook's parent folder.
+| _LogInfo_   | Adds an entry to the trace log file by considering the current nesting level (i.e. the indentation). |
+
 ## Installation
-1. Download [mTrc.frm][4] and import it to your VB-Project
-2. **Optionally** download [mMsg.bas][3], [fMsg.frm][1], and [fMsg.frx][2] and import mMsg.bas and fMsg.frm. To activate these components usage set the _Conditional Compile Argument_ `MsgComp = 1 ` This will enable the mTrc.Dsply service to display the trace log result. When these means are not provided with the VB-Project the trace log file will need to be displayed by any tool of the users choice.
+Download [mTrc.frm][4] and import it to your VB-Project.
 
 ## Usage
-Copy the following code into any module in which there will be a ['to-be-traced' procedure](#to-be-traced-procedure) to ensure a unique identification of any procedure by prefixxing it with the module's name:
-```vbs
-Private Function ErrSrc(ByVal sProc As String) As String
-    ErrSrc = "<module-name>." & sProc
+Copy the following code into any ['to-be-traced' procedure](#to-be-traced-procedure).
+
+| Procedure | Purpose |
+| --------- | ------- |
+| _ErrSrc_  | Ensures a a unique identification of any procedure by prefixing it with the adjusted! module's name (will also be used for the [Common VBA Error Services][7] when installed) |
+| _BoP\/EoP_ | Keeps the availability of the _mTrc_ module optional. Will also serve for the (will also be used for the [Common VBA Error Services][7] when installed) when installed. |
+
+```vb
+Private Function ErrSrc(ByVal proc_name As String) As String
+    ErrSrc = "<module-name>." & proc_name
 End Function
-```
-and adjust the <module-name>!
 
-The following procedures not only will keep the use of the _mTrc_ component **optional** but also the _mErH_ and the _mMsg_ component.
-
-```vbs
 Private Sub BoP(ByVal b_proc As String, ParamArray b_arguments() As Variant)
 ' ------------------------------------------------------------------------------
 ' Common 'Begin of Procedure' indication.
@@ -78,6 +92,7 @@ The following code lines will trace a procedures execution provided the _Conditi
 ```vbs
 Private Sub Any()
     Const PROC = "Any"
+    On Error Goto eh
     '...
     
     BoP ErrSrc(PROC)
@@ -86,25 +101,27 @@ Private Sub Any()
 xt: EoP ErrSrc(PROC)
     Exit Sub
     
-eh: ' any error handling
+eh: .... ' any error handling
+    Goto xt ' clean exit
 End Sub
 ```
 
-> ***Hint 1:*** Avoid using **`Exit ...`** to terminate a procedure's execution but use ***`Goto xt`*** instead to ensure the EoP (end of procedure) statement is not bypassed.<br>
-***Hint 2:*** An error handling should preferably end with a ***`Goto xt`*** in order to provide a 'clean exit'.
+> Avoid using **`Exit ...`** to terminate a procedure's execution but use ***`Goto xt`*** instead to ensure the EoP (end of procedure) statement is not bypassed.<br>
+
+> An error handling should preferably end with a ***`Goto xt`*** in order to provide a 'clean exit'.
 
 ### Personal and public use of (my) _Common Components_
 I do not like the idea maintaining different code versions of _Common Components_, one which I use in my VB-Projects and another 'public' version. On the other hand I do not want to urge users of my _Common Components_ to also use the other _Common Components_ which have become a de facto standard for me.
 
 #### Managing the splits
-The primary goal is to provide _Common Components_ which are as autonomous as possible by allowing to optionally use them in a more sophisticated environment. This is achieved by a couple of procedures which only optionally use other _Common Components_ when also installed which is indicated by the use of a couple of _Conditional Compile Arguments_:
+My primary goal is to provide _Common Components_ which function as autonomous as possible - and also to optionally use them together with the/my [Common VBA Message Services][5] and the [Common VBA Error Services][7]. This 'optionally installed' is primarily achieved by the use of a couple of _Conditional Compile Arguments_ and procedures also by a couple of procedures which only optionally use other _Common Components_ only when installed.
 
-| Conditional<br>Compile&nbsp;Argument | Purpose |
-| ------------------------------------ | ------- |
-| _Debugging_                          | Indicates that error messages should be displayed with a debugging option allowing to resume the error line |
-| _ExecTrace_                          | Indicates that the _[mTrc][4]_ module is installed
-| _MsgComp_                            | indicates that the _[mMsg][3]_, _[fMsg.frm][1]_, and _[fMsg.frx][2]_ are installed |
-| _ErHComp_                            | Indicates that the _[mErH][6]_ is installed |
+| Conditional Compile Argument | Purpose |
+| ---------------------------- | ------- |
+| _Debugging_                  | Indicates that error messages should be displayed with a debugging option allowing to resume the error line |
+| _ExecTrace_                  | Indicates that the _[mTrc][4]_ module is installed
+| _MsgComp_                    | indicates that the _[mMsg][3]_, _[fMsg.frm][1]_, and _[fMsg.frx][2]_ are installed |
+| _ErHComp_                    | Indicates that the _[mErH][6]_ is installed |
 
 By these means other users are no bothered by my personal preferences - or are only as little as possible :-).
 
@@ -122,3 +139,4 @@ Contribution of any kind in any form is welcome - preferably by raising an issue
 [4]:https://gitcdn.link/cdn/warbe-maker/Common-VBA-Execution-Trace-Service/master/source/mTrc.bas
 [5]:https://warbe-maker.github.io/warbe-maker.github.io/vba/common/2020/11/17/Common-VBA-Message-Services.html
 [6]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Error-Services/master/source/mErH.bas
+[7]:https://github.com/warbe-maker/Common-VBA-Error-Services
