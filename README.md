@@ -110,25 +110,8 @@ End Sub
 
 > An error handling should preferably end with a ***`Goto xt`*** in order to provide a 'clean exit'.
 
-### Personal and public use of (my) _Common Components_
-I do not like the idea maintaining different code versions of _Common Components_, one which I use in my VB-Projects and another 'public' version. On the other hand I do not want to urge users of my _Common Components_ to also use the other _Common Components_ which have become a de facto standard for me.
+See also: [Conflicts with personal and public _Common Components_][8]
 
-#### Managing the splits
-My primary goal is to provide _Common Components_ which function as autonomous as possible - and also to optionally use them together with the/my [Common VBA Message Services][5] and the [Common VBA Error Services][7]. This 'optionally installed' is primarily achieved by the use of a couple of _Conditional Compile Arguments_ and procedures also by a couple of procedures which only optionally use other _Common Components_ only when installed.
-
-| Conditional Compile Argument | Purpose |
-| ---------------------------- | ------- |
-| _Debugging_                  | Indicates that error messages should be displayed with a debugging option allowing to resume the error line |
-| _ExecTrace_                  | Indicates that the _[mTrc][4]_ module is installed
-| _MsgComp_                    | indicates that the _[mMsg][3]_, _[fMsg.frm][1]_, and _[fMsg.frx][2]_ are installed |
-| _ErHComp_                    | Indicates that the _[mErH][6]_ is installed |
-
-By these means other users are no bothered by my personal preferences - or are only as little as possible :-).
-
-#### Execution Trace _(mTrc)_ and Error Services _(mErH)_
-This _Common VBA Execution Trace Component (mTrc)_ and the _Common VBA Error Services Component (mErH)_ have the following in common:
-1. Both use in each component/module the `ErrSrc` function to uniquely identify a procedure's name (i.e. prefix it with the component's name)
-3. Both use _BoP/EoP_ statements to indicate the <u>B</u>egin and <u>E</u>nd <u>o</u>f a <u>P</u>rocedure.<br>The execution trace uses the statements to begin/end the trace of a procedure<br>the error uses the statements to indicate an 'entry procedure' to which the error is passed on for being displayed (which allows gathering the 'path to the error'.
 ### Contribution
 Contribution of any kind in any form is welcome - preferably by raising an issue.
 
@@ -140,3 +123,4 @@ Contribution of any kind in any form is welcome - preferably by raising an issue
 [5]:https://warbe-maker.github.io/warbe-maker.github.io/vba/common/2020/11/17/Common-VBA-Message-Services.html
 [6]:https://gitcdn.link/repo/warbe-maker/Common-VBA-Error-Services/master/source/mErH.bas
 [7]:https://github.com/warbe-maker/Common-VBA-Error-Services
+[8]:https://warbe-maker.github.io/vba/common/2022/02/15/Personal-and-public-Common-Components.html
