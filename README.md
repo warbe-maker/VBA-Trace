@@ -22,10 +22,10 @@ For details about the individual services of the component see the inline docume
 | _LogTitle_  | Property, string expression, Let only, specifies the begin and end trace title, defaults to "Begin execution trace", "End execution trace" |
 
 ## Installation
-Download [mTrc.frm][4] and import it to your VB-Project.
+Download [mTrc.bas][4] and import it to your VB-Project.
 
 ## Usage
-> This _Common Component_ is prepared to function completely autonomously ( download, import, use) but at the same time to integrate with my personal 'standard' VB-Project design. See [Conflicts with personal and public _Common Components_][8] for more details.
+> This _Common Component_ is designed to function completely autonomously ( download, import, use). However, the design also integrates to my own VB-Project. See [Conflicts with personal and public _Common Components_][8] for more details.
 
 ### Module/component preparation
 Copy the following code into any module/component a procedure may possibly be traced:
