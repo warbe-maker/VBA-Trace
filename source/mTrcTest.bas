@@ -205,25 +205,6 @@ Private Function ErrSrc(ByVal s As String) As String
     ErrSrc = "mTrcTest." & s
 End Function
 
-Private Sub RegressionKeepLog()
-    Dim sFile As String
-
-#If ExecTrace = 1 Then
-#If MsgComp = 1 Or ErHComp = 1 Then
-    '~~ avoid the error message when the Conditional Compile Argument 'MsgComp = 0'!
-    mTrc.Dsply
-#End If
-    '~~ Keep the regression test result
-    With New FileSystemObject
-        sFile = .GetParentFolderName(mTrc.LogFile) & "\RegressionTest.log"
-        If .FileExists(sFile) Then .DeleteFile (sFile)
-        .GetFile(mTrc.LogFile).Name = "RegressionTest.log"
-    End With
-    mTrc.Terminate
-#End If
-
-End Sub
-
 Public Sub Test_0_Regression_Test()
 ' ----------------------------------------------------------------------------
 ' Attention! mTrc testing require the Conditional Compile Argument
@@ -238,10 +219,12 @@ Public Sub Test_0_Regression_Test()
     Const PROC = "Test_0_Regression_Test"
     
     On Error GoTo eh
-    Dim BttnTraceToFile As String
-    Dim Bttn
     
-    mTrc.LogTitle = "Regression Test of/for the mTrc module"
+    '~~ Initialization of a new Trace Log File for this Regression test
+    '~~ ! must be done prior the first BoP !
+    mTrc.LogFile = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "Regression Test.log")
+    mTrc.LogTitle = "Regression Test module mTrc"
+        
     mErH.Regression = True
         
     BoP ErrSrc(PROC)
@@ -251,7 +234,7 @@ Public Sub Test_0_Regression_Test()
 
 xt: EoP ErrSrc(PROC)
     mErH.Regression = False
-    RegressionKeepLog
+    mTrc.Dsply
     Exit Sub
     
 eh: Select Case ErrMsg(ErrSrc(PROC))
