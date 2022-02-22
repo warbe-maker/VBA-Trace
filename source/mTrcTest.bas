@@ -554,11 +554,12 @@ Private Sub Test_3_Execution_Trace_With_Error_TestProc_6c()
     
     Const PROC = "Test_3_Execution_Trace_With_Error_TestProc_6c"
     On Error GoTo eh
-
+    
+    BoP ErrSrc(PROC)
     '~~ The VB Runtime error 6 is anticipated thus regarded asserted
     '~~ when mErH.Regression = True for this test (set with the
     '~~ calling procedure) the display of the error is suspended
-    mErH.BoTP ErrSrc(PROC), 6
+    mErH.Asserted 6
     Dim i As Long
     i = i / 0 ' Error !!!!
 
@@ -583,8 +584,8 @@ Private Sub Test_4_Trace_with_log_to_file()
     BoP ErrSrc(PROC)
     
 xt: EoP ErrSrc(PROC)
-    mMsg.Box box_title:="Trasce result" _
-           , box_msg:=mFile.Txt(TraceLog) _
+    mMsg.Box Title:="Trasce result" _
+           , Prompt:=mFile.Txt(TraceLog) _
            , box_monospaced:=True
     fso.DeleteFile TraceLog
     Set fso = Nothing

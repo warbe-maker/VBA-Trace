@@ -5,7 +5,6 @@ Option Explicit
 '               Message display services using the fMsg form.
 '
 ' Public services:
-' ------------------------------------------------------------------------------
 ' - Box         In analogy to the MsgBox, provides a simple message but with all
 '               the fexibility for the display of up to 49 reply buttons.
 ' - Buttons     Supports the specification of the design buttons displayed in 7
@@ -15,10 +14,13 @@ Option Explicit
 ' - Monitor     Uses modeless instances of the fMsg form - any instance is
 '               identified by the window title - to display the progress of a
 '               process or monitor intermediate results.
+' - MsgInstance Treturns a fMsg object identified by the Title
 '
-' See details at:
-' https://warbe-maker.github.io/warbe-maker.github.io/vba/common/2020/11/17/Common-VBA-Message-Services.html
-' https://github.com/warbe-maker/Common-VBA-Message-Service
+' Uses:         fMsg
+'
+' Reqires:      Reference to "Microsoft Scripting Runtime"
+'
+' See: https://github.com/warbe-maker/Common-VBA-Message-Service
 '
 ' W. Rauschenberger, Berlin Jan 2021 (last revision)
 ' ------------------------------------------------------------------------------
@@ -148,40 +150,36 @@ Public Sub AssertWidthAndHeight(ByRef width_min As Long, _
     
 End Sub
 
-Public Function Box(ByVal box_title As String, _
-           Optional ByVal box_msg As String = vbNullString, _
+Public Function Box(ByVal Prompt As String, _
+           Optional ByVal Buttons As Variant = vbOKOnly, _
+           Optional ByVal Title As String = vbNullString, _
            Optional ByVal box_monospaced As Boolean = False, _
-           Optional ByVal box_buttons As Variant = vbOKOnly, _
-           Optional ByVal box_buttons_width_min = 70, _
            Optional ByVal box_button_default = 1, _
+           Optional ByVal box_button_width_min = 70, _
            Optional ByVal box_returnindex As Boolean = False, _
            Optional ByVal box_width_min As Long = 300, _
            Optional ByVal box_width_max As Long = 85, _
            Optional ByVal box_height_min As Long = 20, _
            Optional ByVal box_height_max As Long = 85) As Variant
 ' -------------------------------------------------------------------------------------
-' Common VBA Message Display: A service using the Common VBA Message Form as an
-' alternative MsgBox.
-' Please Note: This Box service is a kind of backward compatibility with the VBA.MsgBox
-'              with equivalent arguments:      VBA.MsgBox | mMsg.Box
-'                                              ---------- + ------------------------
-'                                              Title      | box_title
-'                                              Prompt     | box_msg
-'                                              Buttons    | box_buttons
-'              and explicit                               | box_button_default
-'              and some additional arguments concerning the message size.
+' Display of a message string analogous to the VBA.Msgbox (why the first three
+' arguments are identical.
+' box_button_default
 '
-' See: https://warbe-maker.github.io/vba/common/2020/11/17/Common-VBA-Message-Form.html
+' See: https://github.com/warbe-maker/Common-VBA-Message-Service
 '
-' W. Rauschenberger, Berlin, Nov 2020
+' W. Rauschenberger, Berlin, Feb 2022
 ' -------------------------------------------------------------------------------------
-    Const PROC = "Box§"
+    Const PROC = "Box"
     
     On Error GoTo eh
     Dim Message As TypeMsgText
     Dim MsgForm As fMsg
 
-    Message.Text = box_msg
+    '~~ Defaults
+    If Title = vbNullString Then Title = Application.Name
+    
+    Message.Text = Prompt
     Message.MonoSpaced = box_monospaced
 
     AssertWidthAndHeight box_width_min _
@@ -189,18 +187,19 @@ Public Function Box(ByVal box_title As String, _
                        , box_height_min _
                        , box_height_max
     
+    
     '~~ In order to avoid any interferance with modeless displayed fMsg form
     '~~ all services create and use their own instance identified by the message title.
-    Set MsgForm = MsgInstance(box_title)
+    Set MsgForm = MsgInstance(Title)
     With MsgForm
-        .MsgTitle = box_title
+        .MsgTitle = Title
         .MsgText(1) = Message
-        .MsgButtons = box_buttons
+        .MsgButtons = Buttons
         .MsgHeightMax = box_height_max    ' percentage of screen height
         .MsgHeightMin = box_height_min    ' percentage of screen height
         .MsgWidthMax = box_width_max      ' percentage of screen width
         .MsgWidthMin = box_width_min        ' defaults to 400 pt. the absolute minimum is 200 pt
-        .MinButtonWidth = box_buttons_width_min
+        .MinButtonWidth = box_button_width_min
         .MsgButtonDefault = box_button_default
         '+------------------------------------------------------------------------+
         '|| Setup prior showing the form improves the performance significantly  ||
@@ -538,7 +537,7 @@ Public Function ErrMsg(ByVal err_source As String, _
     '~~ Obtain error information from the Err object for any argument not provided
     If err_number = 0 Then err_number = Err.Number
     If err_line = 0 Then err_line = Erl
-    If err_source = vbNullString Then err_source = Err.Source
+    If err_source = vbNullString Then err_source = Err.source
     If err_dscrptn = vbNullString Then err_dscrptn = Err.Description
     If err_dscrptn = vbNullString Then err_dscrptn = "--- No error description available ---"
         
@@ -676,7 +675,7 @@ Public Function Monitor( _
     Const PROC = "Monitor"
    
     On Error GoTo eh
-    Dim msg     As TypeMsg
+    Dim Msg     As TypeMsg
     Dim MsgForm As fMsg
 
     AssertWidthAndHeight mntr_width_min _
@@ -684,25 +683,25 @@ Public Function Monitor( _
                        , mntr_height_min _
                        , mntr_height_max
     
-    Set MsgForm = MsgInstance(mntr_title)
-    msg.Section(1).Label.Text = mntr_header
-    msg.Section(1).Label.MonoSpaced = mntr_msg_monospaced
-    msg.Section(1).Label.FontBold = True
-    msg.Section(1).Text.Text = mntr_msg
-    msg.Section(1).Text.MonoSpaced = mntr_msg_monospaced
+    Set MsgForm = mMsg.MsgInstance(mntr_title)
+    Msg.Section(1).Label.Text = mntr_header
+    Msg.Section(1).Label.MonoSpaced = mntr_msg_monospaced
+    Msg.Section(1).Label.FontBold = True
+    Msg.Section(1).Text.Text = mntr_msg
+    Msg.Section(1).Text.MonoSpaced = mntr_msg_monospaced
     
-    msg.Section(2).Text.Text = mntr_footer
-    msg.Section(2).Text.FontColor = rgbBlue
-    msg.Section(2).Text.FontSize = 8
-    msg.Section(2).Text.FontBold = True
+    Msg.Section(2).Text.Text = mntr_footer
+    Msg.Section(2).Text.FontColor = rgbBlue
+    Msg.Section(2).Text.FontSize = 8
+    Msg.Section(2).Text.FontBold = True
     
     If Trim(MsgForm.MsgTitle) <> Trim(mntr_title) Then
         With MsgForm
             '~~ A new title starts a new progress message
             .MsgTitle = mntr_title
-            .MsgLabel(1) = msg.Section(1).Label
-            .MsgText(1) = msg.Section(1).Text
-            .MsgText(2) = msg.Section(2).Text
+            .MsgLabel(1) = Msg.Section(1).Label
+            .MsgText(1) = Msg.Section(1).Text
+            .MsgText(2) = Msg.Section(2).Text
             .MsgButtons = mntr_buttons
             .MsgWidthMin = mntr_width_min   ' pt min width
             .MsgWidthMax = mntr_width_max   ' pt max width
@@ -725,7 +724,7 @@ Public Function Monitor( _
         Application.ScreenUpdating = False
         MsgForm.Monitor mntr_text:=mntr_msg _
                       , mntr_append:=mntr_msg_append _
-                      , mntr_footer:=msg.Section(2).Text.Text
+                      , mntr_footer:=Msg.Section(2).Text.Text
     End If
       
 xt: Exit Function
