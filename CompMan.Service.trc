@@ -1,11 +1,13 @@
-
-        >> 22-02-23 17:11:09 'ExportChangedComponents(CompMan.xlam)' for 'Trc.xlsm': 
-        |  >> mCompMan.ExportChangedComponents
-        |  |  >> mService.ExportChangedComponents
-        |  |  |  >> mCompMan.MaintainPropertiesOfHostedRawCommonComponents
- 00,032 |  |  |  << mCompMan.MaintainPropertiesOfHostedRawCommonComponents
-        |  |  |  >> mExport.ChangedComponents
- 01,531 |  |  |  << mExport.ChangedComponents
- 01,655 |  |  << mService.ExportChangedComponents
- 01,740 |  << mCompMan.ExportChangedComponents
-        << 22-02-23 17:11:11 'ExportChangedComponents(CompMan.xlam)' for 'Trc.xlsm': 
+22-03-10 11:25:00 Execution trace by 'Common VBA Execution Trace Service' (https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service)
+22-03-10 11:25:00                 >> Export Changed (by Addin) for Trc.xlsm: 
+22-03-10 11:25:00 00,0000         |  >> mCompMan.ExportChangedComponents
+22-03-10 11:25:00 00,0382         |  |  >> mService.ExportChangedComponents
+22-03-10 11:25:00 00,0697         |  |  |  >> mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-03-10 11:25:00 00,0854 00,0157 |  |  |  << mCompMan.MaintainPropertiesOfHostedRawCommonComponents
+22-03-10 11:25:00 00,0921         |  |  |  >> mExport.ChangedComponents
+22-03-10 11:25:01 00,9535 00,8613 |  |  |  << mExport.ChangedComponents
+22-03-10 11:25:01 00,9585 00,9202 |  |  << mService.ExportChangedComponents
+22-03-10 11:25:01 00,9647 00,9647 |  << mCompMan.ExportChangedComponents
+22-03-10 11:25:01 00,9647 00,9647 << Export Changed (by Addin) for Trc.xlsm: 
+22-03-10 11:25:01                 Impact on the overall performance (caused by the trace itself): 00,0062 seconds!
+22-03-10 11:25:01 Execution trace by 'Common VBA Execution Trace Service' (https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service)
