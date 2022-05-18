@@ -1,10 +1,10 @@
-22-05-02 21:02:07 Update Outdated (by CompMan.xlsb) for Trc.xlsm: 
-22-05-02 21:02:07 ------------------------------------------------
-22-05-02 21:02:07 Standard-Module    mCompManClient: 21:02:07:660 DoEvents paused the execution for 00010 msecs in 'mService.SaveWbk'
-22-05-02 21:02:08                                    21:02:08:230 DoEvents paused the execution for 00004 msecs in 'mService.SaveWbk'
-22-05-02 21:02:08 UserForm           fMsg .........: Used Common Component up-to-date
-22-05-02 21:02:08 Standard-Module    mCompManClient: Used Common Component up-to-date
-22-05-02 21:02:08 Standard-Module    mDct .........: Used Common Component up-to-date
-22-05-02 21:02:08 Standard-Module    mErH .........: Used Common Component up-to-date
-22-05-02 21:02:08 Standard-Module    mFile ........: Used Common Component up-to-date
-22-05-02 21:02:08 Standard-Module    mMsg .........: Used Common Component up-to-date
+22-05-18 11:03:32 Update Outdated (by Addin) for Trc.xlsm: 
+22-05-18 11:03:32 -----------------------------------------
+22-05-18 11:03:32 Standard-Module    mFile ........: 11:03:32:000 DoEvents paused the execution for 00009 msecs in 'mService.SaveWbk'
+22-05-18 11:03:33                                    11:03:33:690 DoEvents paused the execution for 00008 msecs in 'mService.SaveWbk'
+22-05-18 11:03:33 UserForm           fMsg .........: Used Common Component up-to-date
+22-05-18 11:03:33 Standard-Module    mCompManClient: Used Common Component up-to-date
+22-05-18 11:03:33 Standard-Module    mDct .........: Used Common Component up-to-date
+22-05-18 11:03:33 Standard-Module    mErH .........: Used Common Component up-to-date
+22-05-18 11:03:33 Standard-Module    mFile ........: Used Common Component up-to-date
+22-05-18 11:03:33 Standard-Module    mMsg .........: Used Common Component up-to-date

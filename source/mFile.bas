@@ -60,9 +60,9 @@ Option Private Module
 '
 ' Requires:         Reference to "Microsoft Scripting Runtine"
 '
-' See:              https://github.com/warbe-maker/Common-VBA-File-Services.
+' W. Rauschenberger, Berlin May 2022
 '
-' W. Rauschenberger, Berlin Feb 2022
+' See also https://github.com/warbe-maker/Common-VBA-File-Services.
 ' ----------------------------------------------------------------------------
 #If Not MsgComp = 1 Then
     ' ------------------------------------------------------------------------
