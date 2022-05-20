@@ -1,4 +1,4 @@
-22-05-20 19:31:13 Update Outdated (by Addin) for Trc.xlsm: 
-22-05-20 19:31:13 -----------------------------------------
-22-05-20 19:31:13 Standard-Module    mCompManClient: 19:31:13:410 DoEvents paused the execution for 00008 msecs in 'mService.SaveWbk'
-22-05-20 19:31:14                                    19:31:14:030 DoEvents paused the execution for 00005 msecs in 'mService.SaveWbk'
+22-05-20 20:04:07 Update Outdated (by Addin) for Trc.xlsm: 
+22-05-20 20:04:07 -----------------------------------------
+22-05-20 20:04:07 Standard-Module    mCompManClient: 20:04:07:280 DoEvents paused the execution for 00060 msecs in 'mService.SaveWbk'
+22-05-20 20:04:07                                    20:04:07:740 DoEvents paused the execution for 00004 msecs in 'mService.SaveWbk'
