@@ -145,7 +145,7 @@ Private Function ErrMsg(ByVal err_source As String, _
     '~~ Obtain error information from the Err object for any argument not provided
     If err_no = 0 Then err_no = Err.Number
     If err_line = 0 Then ErrLine = Erl
-    If err_source = vbNullString Then err_source = Err.source
+    If err_source = vbNullString Then err_source = Err.Source
     If err_dscrptn = vbNullString Then err_dscrptn = Err.Description
     If err_dscrptn = vbNullString Then err_dscrptn = "--- No error description available ---"
     
@@ -222,7 +222,9 @@ Public Sub Test_0_Regression_Test()
     
     '~~ Initialization of a new Trace Log File for this Regression test
     '~~ ! must be done prior the first BoP !
-    mTrc.LogFile = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "Regression Test.log")
+    mTrc.LogClear
+'    mTrc.LogFile(False) = vbNullString
+    mTrc.LogFile(False) = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "RegressionTest.trc")
     mTrc.LogTitle = "Regression Test module mTrc"
         
     mErH.Regression = True
@@ -599,3 +601,37 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
+Private Sub Test_99_DefaultVersusSpecifiedLogFile()
+
+    Dim fso As New FileSystemObject
+    Dim s   As String
+    
+    With fso
+        
+        s = Replace(ThisWorkbook.FullName, ThisWorkbook.Name, "RegressionTest.trc")
+        If .FileExists(s) Then .DeleteFile s
+        
+        '~~ 1. Clear test
+        mTrc.LogClear
+        Debug.Assert Not .FileExists(s)
+        Debug.Assert Not .FileExists(mTrc.DefaultLogSpec)
+
+        '~~ 2. Go with default
+        Debug.Assert mTrc.LogFile = mTrc.DefaultLogSpec
+        Debug.Assert .FileExists(mTrc.DefaultLogSpec)
+        
+        '~~ 3. Go with user-spec log-file (existing default is deleted)
+        mTrc.LogFile(False) = s
+        Debug.Assert .FileExists(s)
+        Debug.Assert Not fso.FileExists(mTrc.DefaultLogSpec)
+        
+        ' Cleanup (use mTrc.LogClear)
+        mTrc.LogClear
+        Debug.Assert Not .FileExists(s)
+        Debug.Assert Not .FileExists(mTrc.DefaultLogSpec)
+    
+    End With
+
+    Set fso = Nothing
+    
+End Sub

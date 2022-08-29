@@ -19,10 +19,10 @@ Option Explicit
 Private Const HOSTED_RAWS = "mTrc"
 
 Private Sub Workbook_Open()
-    mCompManClient.CompManService "UpdateOutdatedCommonComponents", HOSTED_RAWS
+    mCompManClient.CompManService mCompManClient.SRVC_UPDATE_OUTDATED, HOSTED_RAWS
 End Sub
 
 Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
-    mCompManClient.CompManService "ExportChangedComponents", HOSTED_RAWS
+    mCompManClient.CompManService mCompManClient.SRVC_EXPORT_CHANGED, HOSTED_RAWS
 End Sub
 
