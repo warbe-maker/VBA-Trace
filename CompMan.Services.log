@@ -20,3 +20,21 @@
 22-07-24 20:01:17 Workbook        wbTrcTest ....: Unchanged component
 22-07-24 20:01:17 Worksheet       wsAbout ......: Unchanged component
 22-07-24 20:01:17 Worksheet       wsTest .......: Unchanged component
+22-11-25 19:03:22 ========================================================
+22-11-25 19:03:22 ExportChangedComponents (by CompMan.xlsb) for Trc.xlsm: 
+22-11-25 19:03:22 --------------------------------------------------------
+22-11-25 19:03:22 Raw Common Component 'mTrc' hosted changed properties updated
+22-11-25 19:03:22 ========================================================
+22-11-25 19:03:22 ExportChangedComponents (by CompMan.xlsb) for Trc.xlsm: 
+22-11-25 19:03:22 --------------------------------------------------------
+22-11-25 19:03:22 UserForm        fMsg .........: Unchanged Used Common Component
+22-11-25 19:03:23 Standard-Module mCompManClient: Unchanged Used Common Component
+22-11-25 19:03:23 Standard-Module mDct .........: Unchanged Used Common Component
+22-11-25 19:03:23 Standard-Module mDemo ........: Unchanged component
+22-11-25 19:03:23 Standard-Module mErH .........: Unchanged Used Common Component
+22-11-25 19:03:23 Standard-Module mFile ........: Unchanged Used Common Component
+22-11-25 19:03:23 Standard-Module mMsg .........: Unchanged Used Common Component
+22-11-25 19:03:23 Standard-Module mTrcTest .....: Unchanged component
+22-11-25 19:03:23 Workbook        wbTrcTest ....: Unchanged component
+22-11-25 19:03:23 Worksheet       wsAbout ......: Unchanged component
+22-11-25 19:03:23 Worksheet       wsTest .......: Unchanged component
