@@ -1,40 +1,13 @@
-22-07-24 20:00:11 UpdateOutdatedCommonComponents (by CompMan.xlsb) for Trc.xlsm: 
-22-07-24 20:00:11 ---------------------------------------------------------------
-22-07-24 20:01:12 ========================================================
-22-07-24 20:01:12 ExportChangedComponents (by CompMan.xlsb) for Trc.xlsm: 
-22-07-24 20:01:12 --------------------------------------------------------
-22-07-24 20:01:16 ========================================================
-22-07-24 20:01:16 ExportChangedComponents (by CompMan.xlsb) for Trc.xlsm: 
-22-07-24 20:01:16 --------------------------------------------------------
-22-07-24 20:01:17 UserForm        fMsg .........: Unchanged Used Common Component
-22-07-24 20:01:17 Standard-Module mCompManClient: Unchanged Used Common Component
-22-07-24 20:01:17 Standard-Module mDct .........: Unchanged Used Common Component
-22-07-24 20:01:17 Standard-Module mDemo ........: Unchanged component
-22-07-24 20:01:17 Standard-Module mErH .........: Unchanged Used Common Component
-22-07-24 20:01:17 Standard-Module mFile ........: Unchanged Used Common Component
-22-07-24 20:01:17 Standard-Module mMsg .........: Unchanged Used Common Component
-22-07-24 20:01:17 Standard-Module mTrc .........: Hosted Raw Common Component code modified
-22-07-24 20:01:17                                 Code modified of Hosted Raw Common Component
-22-07-24 20:01:17                                 Exported, Revision Number increased, Export File copied to 'Common Components Folder'
-22-07-24 20:01:17 Standard-Module mTrcTest .....: Unchanged component
-22-07-24 20:01:17 Workbook        wbTrcTest ....: Unchanged component
-22-07-24 20:01:17 Worksheet       wsAbout ......: Unchanged component
-22-07-24 20:01:17 Worksheet       wsTest .......: Unchanged component
-22-11-25 19:03:22 ========================================================
-22-11-25 19:03:22 ExportChangedComponents (by CompMan.xlsb) for Trc.xlsm: 
-22-11-25 19:03:22 --------------------------------------------------------
-22-11-25 19:03:22 Raw Common Component 'mTrc' hosted changed properties updated
-22-11-25 19:03:22 ========================================================
-22-11-25 19:03:22 ExportChangedComponents (by CompMan.xlsb) for Trc.xlsm: 
-22-11-25 19:03:22 --------------------------------------------------------
-22-11-25 19:03:22 UserForm        fMsg .........: Unchanged Used Common Component
-22-11-25 19:03:23 Standard-Module mCompManClient: Unchanged Used Common Component
-22-11-25 19:03:23 Standard-Module mDct .........: Unchanged Used Common Component
-22-11-25 19:03:23 Standard-Module mDemo ........: Unchanged component
-22-11-25 19:03:23 Standard-Module mErH .........: Unchanged Used Common Component
-22-11-25 19:03:23 Standard-Module mFile ........: Unchanged Used Common Component
-22-11-25 19:03:23 Standard-Module mMsg .........: Unchanged Used Common Component
-22-11-25 19:03:23 Standard-Module mTrcTest .....: Unchanged component
-22-11-25 19:03:23 Workbook        wbTrcTest ....: Unchanged component
-22-11-25 19:03:23 Worksheet       wsAbout ......: Unchanged component
-22-11-25 19:03:23 Worksheet       wsTest .......: Unchanged component
+23-01-24 13:34:45 Export Changed Components (by Add-in) for Trc.xlsm: 
+23-01-24 13:34:45 ----------------------------------------------------
+23-01-24 13:34:45 UserForm        fMsg .........: Unchanged Used Common Component
+23-01-24 13:34:45 Standard-Module mCompManClient: Unchanged Used Common Component
+23-01-24 13:34:45 Standard-Module mDct .........: Unchanged Used Common Component
+23-01-24 13:34:45 Standard-Module mDemo ........: Unchanged component
+23-01-24 13:34:45 Standard-Module mErH .........: Unchanged Used Common Component
+23-01-24 13:34:45 Standard-Module mFile ........: Unchanged Used Common Component
+23-01-24 13:34:45 Standard-Module mMsg .........: Unchanged Used Common Component
+23-01-24 13:34:45 Standard-Module mTrcTest .....: Unchanged component
+23-01-24 13:34:45 Workbook        wbTrcTest ....: Unchanged component
+23-01-24 13:34:45 Worksheet       wsAbout ......: Unchanged component
+23-01-24 13:34:45 Worksheet       wsTest .......: Unchanged component

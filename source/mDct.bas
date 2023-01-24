@@ -82,6 +82,8 @@ Public Sub DctAdd(ByRef add_dct As Dictionary, _
 ' W. Rauschenberger, Berlin Oct 2020
 ' ------------------------------------------------------------------------------------
     Const PROC = "DctAdd"
+    
+    On Error GoTo eh
     Dim bDone           As Boolean
     Dim dctTemp         As Dictionary
     Dim vItem           As Variant
@@ -90,8 +92,6 @@ Public Sub DctAdd(ByRef add_dct As Dictionary, _
     Dim vValueExisting  As Variant ' the entry's add_key/add_item value for the comparison with the vValueNew
     Dim vValueNew       As Variant ' the argument add_key's/add_item's value
     Dim vValueTarget    As Variant ' the add before/after add_key/add_item's value
-    
-    On Error GoTo eh
     
     If add_dct Is Nothing Then Set add_dct = New Dictionary
     
@@ -144,11 +144,15 @@ Public Sub DctAdd(ByRef add_dct As Dictionary, _
             GoTo xt
         End If
         
-        '~~ When the add_order is by add_key and not stay with first entry added
-        '~~ and the add_key already exists the add_item is updated
+        '~~ When the order is by key and not stay-with-first-entry-added
+        '~~ and the key already exists the item is updated
         If bOrderByKey And Not add_staywithfirst Then
             If .Exists(add_key) Then
-                If VarType(add_item) = vbObject Then Set .Item(add_key) = add_item Else .Item(add_key) = add_item
+                If IsObject(add_item) Then
+                    Set .Item(add_key) = add_item
+                Else
+                    .Item(add_key) = add_item
+                End If
                 GoTo xt
             End If
         End If
@@ -156,14 +160,14 @@ Public Sub DctAdd(ByRef add_dct As Dictionary, _
         
     '~~ When the add_order argument is an object but does not have a name property raise an error
     If bOrderByKey Then
-        If VarType(add_key) = vbObject Then
+        If IsObject(add_key) Then
             On Error Resume Next
             add_key.Name = add_key.Name
             If Err.Number <> 0 _
             Then Err.Raise AppErr(7), ErrSrc(PROC), "The add_order option is by add_key, the add_key is an object but does not have a name property!"
         End If
     ElseIf bOrderByItem Then
-        If VarType(add_item) = vbObject Then
+        If IsObject(add_item) Then
             On Error Resume Next
             add_item.Name = add_item.Name
             If Err.Number <> 0 _
@@ -192,9 +196,9 @@ Public Sub DctAdd(ByRef add_dct As Dictionary, _
     
     For Each vKeyExisting In add_dct
         
-        If VarType(add_dct.Item(vKeyExisting)) = vbObject _
-        Then Set vItemExisting = add_dct.Item(vKeyExisting) _
-        Else vItemExisting = add_dct.Item(vKeyExisting)
+        If IsObject(add_dct(vKeyExisting)) _
+        Then Set vItemExisting = add_dct(vKeyExisting) _
+        Else vItemExisting = add_dct(vKeyExisting)
         
         With dctTemp
             If bDone Then
@@ -305,7 +309,7 @@ Private Sub AddAscByKey(ByRef add_dct As Dictionary, _
         '~~ and the add_key already exists the add_item is updated
         If bOrderByKey And Not bStayWithFirst Then
             If .Exists(add_key) Then
-                If VarType(add_item) = vbObject Then Set .Item(add_key) = add_item Else .Item(add_key) = add_item
+                If IsObject(add_item) Then Set .Item(add_key) = add_item Else .Item(add_key) = add_item
                 GoTo xt
             End If
         End If
@@ -313,14 +317,14 @@ Private Sub AddAscByKey(ByRef add_dct As Dictionary, _
         
     '~~ When the add_order argument is an object but does not have a name property raise an error
     If bOrderByKey Then
-        If VarType(add_key) = vbObject Then
+        If IsObject(add_key) Then
             On Error Resume Next
             add_key.Name = add_key.Name
             If Err.Number <> 0 _
             Then Err.Raise AppErr(7), ErrSrc(PROC), "The add_order option is by add_key, the add_key is an object but does not have a name property!"
         End If
     ElseIf bOrderByItem Then
-        If VarType(add_item) = vbObject Then
+        If IsObject(add_item) Then
             On Error Resume Next
             add_item.Name = add_item.Name
             If Err.Number <> 0 _
@@ -349,7 +353,7 @@ Private Sub AddAscByKey(ByRef add_dct As Dictionary, _
     
     For Each vKeyExisting In add_dct
         
-        If VarType(add_dct.Item(vKeyExisting)) = vbObject _
+        If IsObject(add_dct.Item(vKeyExisting)) _
         Then Set vItemExisting = add_dct.Item(vKeyExisting) _
         Else vItemExisting = add_dct.Item(vKeyExisting)
         
@@ -542,13 +546,13 @@ Private Function DctAddOrderValue(ByVal dctkey As Variant, _
 ' --------------------------------------------------------------------
     If bOrderByKey Then
     
-        If VarType(dctkey) = vbObject _
+        If IsObject(dctkey) _
         Then DctAddOrderValue = dctkey.Name _
         Else DctAddOrderValue = dctkey
         
     ElseIf bOrderByItem Then
     
-        If VarType(dctitem) = vbObject _
+        If IsObject(dctitem) _
         Then DctAddOrderValue = dctitem.Name _
         Else DctAddOrderValue = dctitem
     
@@ -595,7 +599,10 @@ Public Function DctDiffers(ByVal dd_dct1 As Dictionary, _
         Case dd_diff_items And Not dd_diff_keys
             '~~ A difference is constituted by different items
             For i = 0 To dd_dct1.Count - 1
-                If Differs(dd_dct1.Items()(i), dd_dct2.Items()(i), dd_ignore_items_empty) Then
+                If Differs(v1:=dd_dct1.Items()(i) _
+                         , v2:=dd_dct2.Items()(i) _
+                         , ignore_case:=dd_ignore_case _
+                         , ignore_empty:=dd_ignore_items_empty) Then
                     DctDiffers = True
                     Exit For
                 End If
@@ -604,7 +611,10 @@ Public Function DctDiffers(ByVal dd_dct1 As Dictionary, _
         Case dd_diff_keys And Not dd_diff_items
             '~~ A difference is constituted by different keys
             For i = 0 To dd_dct1.Count - 1
-                If Differs(dd_dct1.Keys()(i), dd_dct2.Keys()(i)) Then
+                If Differs(v1:=dd_dct1.Keys()(i) _
+                         , v2:=dd_dct2.Keys()(i) _
+                         , ignore_case:=dd_ignore_case _
+                         , ignore_empty:=dd_ignore_items_empty) Then
                     DctDiffers = True
                     Exit For
                 End If
@@ -613,8 +623,14 @@ Public Function DctDiffers(ByVal dd_dct1 As Dictionary, _
         Case dd_diff_keys And dd_diff_items
             '~~ A difference is constituted by different keys and different items
             For i = 0 To dd_dct1.Count - 1
-                DctDiffers = Differs(dd_dct1.Keys()(i), dd_dct2.Keys()(i)) _
-                         And Differs(dd_dct1.Items()(i), dd_dct2.Items()(i), dd_ignore_items_empty)
+                DctDiffers = Differs(v1:=dd_dct1.Keys()(i) _
+                                   , v2:=dd_dct2.Keys()(i) _
+                                   , ignore_case:=dd_ignore_case _
+                                   , ignore_empty:=dd_ignore_items_empty) _
+                         And Differs(v1:=dd_dct1.Items()(i) _
+                                   , v2:=dd_dct2.Items()(i) _
+                                   , ignore_case:=dd_ignore_case _
+                                   , ignore_empty:=dd_ignore_items_empty)
                 If DctDiffers Then Exit For
             Next i
     End Select
@@ -647,28 +663,47 @@ Private Function Differs(ByVal v1 As Variant, _
                 Optional ByVal ignore_case As Boolean = False, _
                 Optional ByVal ignore_empty As Boolean = False) As Boolean
 ' ------------------------------------------------------------------------------
-' Returns TRUE when v1 differs from v2. When v1 and v2 is an object TRUE is
-' returned when objects' Name differ, when the objects do not have a Name
-' property TRUE is returned when the objects are different.
+' Returns TRUE when v1 is not identical with v2. I.e when they are objects,
+' TRUE is returned when the object's Name differ. When only one of the two
+' is a string and the other one is an object the string is compared with the
+' object's Name property.
 ' ------------------------------------------------------------------------------
+    On Error Resume Next
     Select Case True
-        Case VarType(v1) = vbObject And VarType(v2) = vbObject
-            On Error Resume Next
-            Differs = v1.Name <> v2.Name
-            If Err.Number <> 0 _
-            Then Differs = Not v1 Is v2
-        Case (VarType(v1) = vbObject And VarType(v1) <> vbObject)
-            Differs = True
-        Case (VarType(v1) <> vbObject And VarType(v1) = vbObject)
-            Differs = True
-        Case VarType(v1) = vbString And VarType(v2) = vbString
+        Case IsObject(v1) And IsObject(v2)
+            If ignore_case _
+            Then Differs = StrComp(v1.Name, v2.Name, vbTextCompare) _
+            Else Differs = StrComp(v1.Name, v2.Name, vbBinaryCompare)
+            If Err.Number <> 0 Then
+                On Error GoTo -1
+                Differs = True
+            End If
+        Case IsObject(v1) And TypeName(v2) = "String"
+            If ignore_case _
+            Then Differs = StrComp(v1.Name, v2, vbTextCompare) _
+            Else Differs = StrComp(v1.Name, v2, vbBinaryCompare)
+            If Err.Number <> 0 Then
+                On Error GoTo -1
+                Differs = True
+            End If
+        Case TypeName(v1) = "String" And IsObject(v2)
+            If ignore_case _
+            Then Differs = StrComp(v1, v2.Name, vbTextCompare) _
+            Else Differs = StrComp(v1, v2.Name, vbBinaryCompare)
+            If Err.Number <> 0 Then
+                On Error GoTo -1
+                Differs = True
+            End If
+        Case Else
             If ignore_case _
             Then Differs = StrComp(v1, v2, vbTextCompare) _
             Else Differs = StrComp(v1, v2, vbBinaryCompare)
-        Case Else
-            Differs = v1 <> v2
+            If Differs Then
+                Debug.Print "Ignore Case = " & CStr(ignore_case)
+                Debug.Print "Differs: " & v1 & vbLf & _
+                            "         " & v2
+            End If
     End Select
-                         
 End Function
 
 Private Function DctAddItemExists( _
