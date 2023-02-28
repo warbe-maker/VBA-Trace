@@ -1,13 +1,16 @@
-23-01-24 13:34:45 Export Changed Components (by Add-in) for Trc.xlsm: 
-23-01-24 13:34:45 ----------------------------------------------------
-23-01-24 13:34:45 UserForm        fMsg .........: Unchanged Used Common Component
-23-01-24 13:34:45 Standard-Module mCompManClient: Unchanged Used Common Component
-23-01-24 13:34:45 Standard-Module mDct .........: Unchanged Used Common Component
-23-01-24 13:34:45 Standard-Module mDemo ........: Unchanged component
-23-01-24 13:34:45 Standard-Module mErH .........: Unchanged Used Common Component
-23-01-24 13:34:45 Standard-Module mFile ........: Unchanged Used Common Component
-23-01-24 13:34:45 Standard-Module mMsg .........: Unchanged Used Common Component
-23-01-24 13:34:45 Standard-Module mTrcTest .....: Unchanged component
-23-01-24 13:34:45 Workbook        wbTrcTest ....: Unchanged component
-23-01-24 13:34:45 Worksheet       wsAbout ......: Unchanged component
-23-01-24 13:34:45 Worksheet       wsTest .......: Unchanged component
+23-02-27 16:23:12 Export Changed Components (by CompMan.xlsb) for Trc.xlsm: 
+23-02-27 16:23:12 ----------------------------------------------------------
+23-02-27 16:23:12 UserForm        fMsg .........: Unchanged Used Common Component
+23-02-27 16:23:12 Standard-Module mCompManClient: Unchanged Used Common Component
+23-02-27 16:23:12 Standard-Module mDct .........: Unchanged Used Common Component
+23-02-27 16:23:12 Standard-Module mDemo ........: Unchanged component
+23-02-27 16:23:12 Standard-Module mErH .........: Unchanged Used Common Component
+23-02-27 16:23:12 Standard-Module mFile ........: Unchanged Used Common Component
+23-02-27 16:23:12 Standard-Module mMsg .........: Unchanged Used Common Component
+23-02-27 16:23:12 Standard-Module mTrc .........: Hosted Raw Common Component code modified
+23-02-27 16:23:12                                 Code modified of Hosted Raw Common Component
+23-02-27 16:23:12                                 Exported, Revision Number increased, Export File copied to 'Common Components Folder'
+23-02-27 16:23:12 Standard-Module mTrcTest .....: Unchanged component
+23-02-27 16:23:12 Workbook        wbTrcTest ....: Unchanged component
+23-02-27 16:23:12 Worksheet       wsAbout ......: Unchanged component
+23-02-27 16:23:12 Worksheet       wsTest .......: Unchanged component

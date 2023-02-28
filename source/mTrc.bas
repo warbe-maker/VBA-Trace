@@ -274,19 +274,19 @@ Public Property Get LogTxt() As String
     Dim s   As String
        
     If sLogFile <> vbNullString Then
-        With fso
-            Set ts = .OpenTextFile(FileName:=sLogFile, IOMode:=ForReading)
-        End With
-        
-        If Not ts.AtEndOfStream Then
-            s = ts.ReadAll
-            If VBA.Right$(s, 2) = vbCrLf Then
-                s = VBA.Left$(s, Len(s) - 2)
+        If fso.FileExists(sLogFile) Then
+            Set ts = fso.OpenTextFile(FileName:=sLogFile, IOMode:=ForReading)
+            
+            If Not ts.AtEndOfStream Then
+                s = ts.ReadAll
+                If VBA.Right$(s, 2) = vbCrLf Then
+                    s = VBA.Left$(s, Len(s) - 2)
+                End If
+            Else
+                LogTxt = vbNullString
             End If
-        Else
-            LogTxt = vbNullString
+            If LogTxt = vbCrLf Then LogTxt = vbNullString Else LogTxt = s
         End If
-        If LogTxt = vbCrLf Then LogTxt = vbNullString Else LogTxt = s
     End If
     
 xt: Set fso = Nothing
@@ -310,8 +310,10 @@ Private Property Let LogTxt(ByVal tl_string As String)
     Dim oFile   As TextStream
     
     If Not sLogFile = vbNullString Then
-        Set oFile = fso.OpenTextFile(sLogFile, ForAppending)
-        oFile.WriteLine tl_string
+        If fso.FileExists(sLogFile) Then
+            Set oFile = fso.OpenTextFile(sLogFile, ForAppending)
+            oFile.WriteLine tl_string
+        End If
     End If
     
 xt: Set fso = Nothing

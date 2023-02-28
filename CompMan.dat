@@ -1,0 +1,22 @@
+[fMsg]
+KindOfComponent=used
+RawRevisionNumber=2022-12-31.001
+[mCompManClient]
+KindOfComponent=used
+RawRevisionNumber=2023-02-24.001
+[mDct]
+KindOfComponent=used
+RawRevisionNumber=2022-12-12.004
+[mErH]
+KindOfComponent=used
+RawRevisionNumber=2022-05-25.001
+[mFile]
+KindOfComponent=used
+RawRevisionNumber=2022-06-28.001
+[mMsg]
+KindOfComponent=used
+RawRevisionNumber=2023-02-14.001
+[mTrc]
+KindOfComponent=hosted
+RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mTrc.bas
+RawRevisionNumber=2023-02-27.002
