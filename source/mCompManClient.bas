@@ -2,31 +2,33 @@ Attribute VB_Name = "mCompManClient"
 Option Explicit
 ' ----------------------------------------------------------------------
 ' Standard Module mCompManClient
+' ------------------------------
+' Component to be imported into any Workbook in order to enbale it for
+' being serviced by CompMan. The component is the interface between a
+' the serviced Workbook/VB-Project and CompMan as the servicing Workbook
+' for the services:
+' - "Export Changed Components"
+' - "Update Outdated Common Components"
+' - "Synchronize VB-Projects"
 '
-' Interface between a Workbook/VB-Project and the 'Component Management'
-' for providing the services:
-' - Export of changed components
-' - Update of outdated used 'Common Components' (by re-importing an
-'   up-to-date component's Export File whereby this corresponding 'raw'
-'   component is hosted in another, possibly dedicated Workbook).
-' - Synchronization of a Sync-Target-Workbook with its up-to-date
-' Sync-Source-Workbook
-'
-' W. Rauschenberger, Berlin May 2022
-'
-' See also Github repo:
+' See also the public Github repo:
 ' https://github.com/warbe-maker/Excel-VB-Components-Management-Services
+'
+' W. Rauschenberger, Berlin Feb 2023
 ' ----------------------------------------------------------------------
-' CompMan's global specifications essential for CompMan clients
-Public Const SRVC_UPDATE_OUTDATED   As String = "UpdateOutdatedCommonComponents"
-Public Const SRVC_SYNCHRONIZE       As String = "SynchronizeVBProjects"
-Public Const SRVC_EXPORT_CHANGED    As String = "ExportChangedComponents"
-Public Const SRVC_EXPORT_ALL        As String = "ExportAll"
-Public Const COMPMAN_ADDIN          As String = "CompMan.xlam"
-Public Const COMPMAN_DEVLP          As String = "CompMan.xlsb"
+Public Const COMPMAN_ADDIN              As String = "CompMan.xlam"
+Public Const COMPMAN_DEVLP              As String = "CompMan.xlsb"
+Public Const SRVC_EXPORT_ALL            As String = "ExportAll"
+Public Const SRVC_EXPORT_ALL_DSPLY      As String = "Export All Components"
+Public Const SRVC_EXPORT_CHANGED        As String = "ExportChangedComponents"
+Public Const SRVC_EXPORT_CHANGED_DSPLY  As String = "Export Changed Components"
+Public Const SRVC_SYNCHRONIZE           As String = "SynchronizeVBProjects"
+Public Const SRVC_SYNCHRONIZE_DSPLY     As String = "Synchronize VB-Projects"
+Public Const SRVC_UPDATE_OUTDATED       As String = "UpdateOutdatedCommonComponents"
+Public Const SRVC_UPDATE_OUTDATED_DSPLY As String = "Update Outdated Common Components"
 
-Private Const vbResume              As Long = 6 ' return value (equates to vbYes)
-Private Busy                        As Boolean ' prevent parallel execution of a service
+Private Const vbResume                  As Long = 6 ' return value (equates to vbYes)
+Private Busy                            As Boolean ' prevent parallel execution of a service
 
 Private Property Let DisplayedServiceStatus(ByVal s As String)
     With Application
@@ -293,11 +295,13 @@ Private Function WbkServicingName(ByVal csa_service As String) As String
     Dim ResultRequiredAddinNotAvailable As Long
     Dim ResultConfigInvalid             As Long
     Dim ResultOutsideCfgFolder          As Long
+    Dim ResultRequiredDevInstncNotOpen  As Long
     
-    ResultConfigInvalid = AppErr(1)             ' Configuration for the service is invalid
-    ResultOutsideCfgFolder = AppErr(2)          ' Outside the for the service required folder
-    ResultRequiredAddinNotAvailable = AppErr(3) ' Required Addin for DevInstance update paused or not open
-        
+    ResultConfigInvalid = AppErr(1)              ' Configuration for the service is invalid
+    ResultOutsideCfgFolder = AppErr(2)           ' Outside the for the service required folder
+    ResultRequiredAddinNotAvailable = AppErr(3)  ' Required Addin for DevInstance update paused or not open
+    ResultRequiredDevInstncNotOpen = AppErr(4) '
+    
     '~~ Availability check CompMan Add-in
     On Error Resume Next
     ServicedByAddinResult = Application.Run(COMPMAN_ADDIN & "!mCompMan.RunTest", csa_service, ThisWorkbook)
@@ -311,20 +315,22 @@ Private Function WbkServicingName(ByVal csa_service As String) As String
         '~~ Display/indicate why the service cannot be provided
         Case ServicedByWrkbkResult = ResultConfigInvalid
             Select Case csa_service
-                Case SRVC_SYNCHRONIZE:      DisplayedServiceStatus = "'Synchronize VB-Project' service denied (a valid configuration is missing)!"
-                Case SRVC_UPDATE_OUTDATED:  DisplayedServiceStatus = "Export Changed Components denied (a valid configuration is missing)!"
-                Case SRVC_EXPORT_CHANGED:   DisplayedServiceStatus = "'Update outdated Common Components' service denied (a valid configuration is missing)!"
+                Case SRVC_SYNCHRONIZE:      DisplayedServiceStatus = vbNullString ' "'" & SRVC_SYNCHRONIZE_DSPLY & "' service denied (no Sync-Target- and or Sync-Archive-Folder configured)!"
+                Case SRVC_UPDATE_OUTDATED:  DisplayedServiceStatus = "'" & SRVC_UPDATE_OUTDATED_DSPLY & "' service denied (a valid configuration is missing)!"
+                Case SRVC_EXPORT_CHANGED:   DisplayedServiceStatus = "'" & SRVC_EXPORT_CHANGED_DSPLY & "' service denied (a valid configuration is missing)!"
             End Select
         Case ServicedByWrkbkResult = ResultOutsideCfgFolder
             Select Case csa_service
-                Case SRVC_SYNCHRONIZE:      Debug.Print "'Synchronize VB-Project' service silently denied! (Workbook has not been opened from within the configured 'Sync-Target-Folder')"
-                Case SRVC_UPDATE_OUTDATED:  Debug.Print "'Export Changed Components' service silently denied! (Workbook has not been opened from within the configured 'Dev-and-Test-Folder')"
-                Case SRVC_EXPORT_CHANGED:   Debug.Print "'Update outdated Common Components' service silently denied! (Workbook has not been opened from within the configured 'Dev-and-Test-Folder')"
+                Case SRVC_SYNCHRONIZE:      Debug.Print "'" & SRVC_SYNCHRONIZE_DSPLY & "' service silently denied! (Workbook has not been opened from within the configured 'Sync-Target-Folder')"
+                Case SRVC_UPDATE_OUTDATED:  Debug.Print "'" & SRVC_EXPORT_CHANGED_DSPLY & "' service silently denied! (Workbook has not been opened from within the configured 'Dev-and-Test-Folder')"
+                Case SRVC_EXPORT_CHANGED:   Debug.Print "'" & SRVC_UPDATE_OUTDATED_DSPLY & "' service silently denied! (Workbook has not been opened from within the configured 'Dev-and-Test-Folder')"
             End Select
         Case ServicedByWrkbkResult = ResultRequiredAddinNotAvailable
             DisplayedServiceStatus = "The required Add-in is not available for the 'Update' service for the Development-Instance!"
-            
-        '~~ Servicing instance decision
+        Case ServicedByWrkbkResult = ResultRequiredDevInstncNotOpen
+            DisplayedServiceStatus = mCompManClient.COMPMAN_DEVLP & " is the Workbook reqired for the " & SRVC_SYNCHRONIZE & " but it is not open!"
+        
+        '~~ When neither of the above is True the servicing Workbook instance is decided
         Case IsDevInstance And csa_service = SRVC_UPDATE_OUTDATED And ServiceAvailableByAddin:  WbkServicingName = mCompManClient.COMPMAN_ADDIN
         Case Not IsDevInstance And ServiceAvailableByCompMan:                                   WbkServicingName = mCompManClient.COMPMAN_DEVLP
         Case Not IsDevInstance And Not ServiceAvailableByCompMan And ServiceAvailableByAddin:   WbkServicingName = mCompManClient.COMPMAN_ADDIN
