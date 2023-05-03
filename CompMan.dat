@@ -1,11 +1,15 @@
+[_MostRecentExport]
+UsedExportFolder=source
 [fMsg]
+DueModificationWarning=1
 KindOfComponent=used
 RawRevisionNumber=2022-12-31.001
 [mCompManClient]
+DueModificationWarning=1
 KindOfComponent=used
 RawRevisionNumber=2023-02-24.001
-DueModificationWarning=1
 [mDct]
+DueModificationWarning=1
 KindOfComponent=used
 RawRevisionNumber=2022-12-12.004
 [mErH]
@@ -15,12 +19,10 @@ RawRevisionNumber=2022-05-25.001
 KindOfComponent=used
 RawRevisionNumber=2022-06-28.001
 [mMsg]
+DueModificationWarning=1
 KindOfComponent=used
 RawRevisionNumber=2023-02-14.001
-DueModificationWarning=1
 [mTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mTrc.bas
-RawRevisionNumber=2023-03-17.002
-[_MostRecentExport]
-UsedExportFolder=source
+RawRevisionNumber=2023-05-03.004
