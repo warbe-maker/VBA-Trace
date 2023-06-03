@@ -229,7 +229,7 @@ Public Sub Test_00_Regression()
         
     BoP ErrSrc(PROC)
     Test_03_Execution_Trace
-    mTrc.LogInfo = "Test Log-Info explicitely provided"
+    mTrc.LogInfo = "Test Log-Info explicitly provided"
     Test_03_Execution_Trace_With_Error
 
 xt: EoP ErrSrc(PROC)

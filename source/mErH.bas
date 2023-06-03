@@ -90,12 +90,12 @@ Private Function AppErr(ByVal app_err_no As Long) As Long
     If app_err_no >= 0 Then AppErr = app_err_no + vbObjectError Else AppErr = Abs(app_err_no - vbObjectError)
 End Function
 
-Private Function ArrayIsAllocated(arr As Variant) As Boolean
+Private Function ArrayIsAllocated(Arr As Variant) As Boolean
     
     On Error Resume Next
-    ArrayIsAllocated = VBA.IsArray(arr) _
-                   And Not VBA.IsError(LBound(arr, 1)) _
-                   And LBound(arr, 1) <= UBound(arr, 1)
+    ArrayIsAllocated = VBA.IsArray(Arr) _
+                   And Not VBA.IsError(LBound(Arr, 1)) _
+                   And LBound(Arr, 1) <= UBound(Arr, 1)
     
 End Function
 
@@ -499,7 +499,7 @@ Private Function ErrMsgDsply(ByVal err_source As String, _
                     "    If mErH.ErrMsg(ErrSrc(PROC) = vbResume Then Stop: Resume   makes debugging extremely quick and easy."
 #End If
     
-    '~~ Skip the display when this is a regression test with the error explicitely already asserted
+    '~~ Skip the display when this is a regression test with the error explicitly already asserted
     If bRegression And ErrIsAsserted(err_no_asserted) Then GoTo xt
                        
     '~~ Display the error message via the Common Component procedure mMsg.Dsply

@@ -29,7 +29,7 @@ Option Explicit
 ' - EoP      Indicates the (E)nd (o)f the execution trace of a (P)rocedure.
 ' - Pause    Stops the execution traces time taking, e.g. while an error
 '            message is displayed.
-' - LogInfo  Explicitely writes an entry to the trace lof file by considering
+' - LogInfo  explicitly writes an entry to the trace lof file by considering
 '            the current nesting level.
 '
 ' Public Properties:
@@ -201,7 +201,7 @@ End Property
 Public Property Get LogFileFullName(Optional ByVal tl_append As Boolean = False) As String
 ' ----------------------------------------------------------------------------
 ' Provides the file-spec of a new or existing log-file provide log to file is
-' not explicitely suspended.
+' not explicitly suspended.
 ' ----------------------------------------------------------------------------
     Const PROC = "LogFileFullName-Get"
     
