@@ -18,8 +18,8 @@ Private Sub BoP(ByVal b_proc As String, _
 ' ------------------------------------------------------------------------------
 ' Common 'Begin of Procedure' service. When neither the Common Execution Trace
 ' Component (mTrc) nor the Common Error Handling Component (mErH) is installed
-' (indicated by the Conditional Compile Arguments 'ExecTrace = 1' and/or the
-' Conditional Compile Argument 'ErHComp = 1') this procedure does nothing.
+' (indicated by the Cond. Comp. Arg.s 'ExecTrace = 1' and/or the
+' Cond. Comp. Arg. 'ErHComp = 1') this procedure does nothing.
 ' Else the service is handed over to the corresponding procedures.
 ' May be copied as Private Sub into any module or directly used when mBasic is
 ' installed.
@@ -120,8 +120,8 @@ Private Sub EoP(ByVal e_proc As String, _
 ' ------------------------------------------------------------------------------
 ' Common 'End of Procedure' service. When neither the Common Execution Trace
 ' Component (mTrc) nor the Common Error Handling Component (mErH) is installed
-' (indicated by the Conditional Compile Arguments 'ExecTrace = 1' and/or the
-' Conditional Compile Argument 'ErHComp = 1') this procedure does nothing.
+' (indicated by the Cond. Comp. Arg.s 'ExecTrace = 1' and/or the
+' Cond. Comp. Arg. 'ErHComp = 1') this procedure does nothing.
 ' Else the service is handed over to the corresponding procedures.
 ' May be copied as Private Sub into any module or directly used when mBasic is
 ' installed.
@@ -141,7 +141,7 @@ Private Function ErrMsg(ByVal err_source As String, _
                Optional ByVal err_line As Long = 0) As Variant
 ' ------------------------------------------------------------------------------
 ' Universal error message display service including a debugging option
-' (Conditional Compile Argument 'Debugging = 1') and an optional additional
+' (Cond. Comp. Arg. 'Debugging = 1') and an optional additional
 ' "about the error" information which may be connected to an error message by
 ' two vertical bars (||).
 '
@@ -149,12 +149,12 @@ Private Function ErrMsg(ByVal err_source As String, _
 ' (On error Goto eh).
 '
 ' The function considers the Common VBA Error Handling Component (ErH) which
-' may be installed (Conditional Compile Argument 'ErHComp = 1') and/or the
+' may be installed (Cond. Comp. Arg. 'ErHComp = 1') and/or the
 ' Common VBA Message Display Component (mMsg) installed (Conditional Compile
 ' Argument 'MsgComp = 1'). Only when none of the two is installed the error
 ' message is displayed by means of the VBA.MsgBox.
 '
-' Usage: Example with the Conditional Compile Argument 'Debugging = 1'
+' Usage: Example with the Cond. Comp. Arg. 'Debugging = 1'
 '
 '        Private/Public <procedure-name>
 '            Const PROC = "<procedure-name>"

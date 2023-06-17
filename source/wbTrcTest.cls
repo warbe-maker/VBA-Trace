@@ -16,7 +16,7 @@ Option Explicit
 '
 ' W. Rauschenberger, Berlin, June 2020
 ' -----------------------------------------------------------------------
-Private Const HOSTED_RAWS = "mTrc"
+Private Const HOSTED_RAWS = "mTrc, clsTrc"
 
 Private Sub Workbook_Open()
     mCompManClient.CompManService mCompManClient.SRVC_UPDATE_OUTDATED, HOSTED_RAWS

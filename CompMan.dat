@@ -1,5 +1,9 @@
 [_MostRecentExport]
 UsedExportFolder=source
+[clsTrc]
+KindOfComponent=hosted
+RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\clsTrc.cls
+RawRevisionNumber=2023-06-17.005
 [fMsg]
 DueModificationWarning=1
 KindOfComponent=used
@@ -26,4 +30,4 @@ RawRevisionNumber=2023-05-18.001
 [mTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mTrc.bas
-RawRevisionNumber=2023-05-18.001
+RawRevisionNumber=2023-06-17.005
