@@ -1,27 +1,27 @@
-23-06-17 09:48:18 Execution trace by 'Common VBA Execution Trace Service' (https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service)
-23-06-17 09:48:18                 >> Regression Test module mTrc
-23-06-17 09:48:18 00,0000         |  >> TestmTrc.Regression_Test
-23-06-17 09:48:18 00,0018         |  |  >> TestmTrc.Regression_Test_03_Execution_Trace
-23-06-17 09:48:18 00,0025         |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a
-23-06-17 09:48:18 00,0031         |  |  |  |  > TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a call of 6b and 6c
-23-06-17 09:48:18 00,0036         |  |  |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6b
-23-06-17 09:48:18 00,1093 00,1057 |  |  |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6b
-23-06-17 09:48:18 00,1101         |  |  |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6c
-23-06-17 09:48:18 00,1106 00,0005 |  |  |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6c
-23-06-17 09:48:18 00,1112 00,1082 |  |  |  |  < TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a call of 6b and 6c
-23-06-17 09:48:18 00,1117 00,1091 |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a
-23-06-17 09:48:18 00,1121 00,1103 |  |  << TestmTrc.Regression_Test_03_Execution_Trace
-23-06-17 09:48:18                 |  |  Test Log-Info explicitly provided
-23-06-17 09:48:18 00,1128         |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_With_Error
-23-06-17 09:48:18 00,1132         |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a
-23-06-17 09:48:18 00,1135         |  |  |  |  > TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a call of 6b and 6c
-23-06-17 09:48:18 00,1139         |  |  |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6b
-23-06-17 09:48:18 00,1888 00,0749 |  |  |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6b
-23-06-17 09:48:18                 |  |  |  |  |  This is just an info
-23-06-17 09:48:18 00,1904 00,0769 |  |  |  |  < TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a call of 6b and 6c
-23-06-17 09:48:18 00,1909 00,0777 |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a
-23-06-17 09:48:18 00,1913 00,0785 |  |  << TestmTrc.Regression_Test_03_Execution_Trace_With_Error
-23-06-17 09:48:18 00,1917 00,1917 |  << TestmTrc.Regression_Test
-23-06-17 09:48:18 00,1917 00,1917 << Regression Test module mTrc
-23-06-17 09:48:18                 Impact on the overall performance (caused by the trace itself): 00,0004 seconds!
-23-06-17 09:48:18 Execution trace by 'Common VBA Execution Trace Service' (https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service)
+23-06-20 16:25:23 Execution trace by 'Common VBA Execution Trace Service' (https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service)
+23-06-20 16:25:23                 >> Regression Test module mTrc
+23-06-20 16:25:23 00,0000         |  >> TestmTrc.Regression_Test
+23-06-20 16:25:23 00,0013         |  |  >> TestmTrc.Regression_Test_03_Execution_Trace
+23-06-20 16:25:23 00,0018         |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a
+23-06-20 16:25:23 00,0023         |  |  |  |  > TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a call of 6b and 6c
+23-06-20 16:25:23 00,0027         |  |  |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6b
+23-06-20 16:25:23 00,0912 00,0884 |  |  |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6b
+23-06-20 16:25:23 00,0917         |  |  |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6c
+23-06-20 16:25:23 00,0920 00,0004 |  |  |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6c
+23-06-20 16:25:23 00,0925 00,0902 |  |  |  |  < TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a call of 6b and 6c
+23-06-20 16:25:23 00,0929 00,0911 |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_TestProc_6a
+23-06-20 16:25:23 00,0933 00,0920 |  |  << TestmTrc.Regression_Test_03_Execution_Trace
+23-06-20 16:25:23                 |  |  Test Log-Info explicitly provided
+23-06-20 16:25:23 00,0940         |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_With_Error
+23-06-20 16:25:23 00,0944         |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a
+23-06-20 16:25:23 00,0947         |  |  |  |  > TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a call of 6b and 6c
+23-06-20 16:25:23 00,0951         |  |  |  |  |  >> TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6b
+23-06-20 16:25:23 00,1652 00,0701 |  |  |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6b
+23-06-20 16:25:23                 |  |  |  |  |  This is just an info
+23-06-20 16:25:23 00,1668 00,0721 |  |  |  |  < TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a call of 6b and 6c
+23-06-20 16:25:23 00,1673 00,0729 |  |  |  << TestmTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_6a
+23-06-20 16:25:23 00,1677 00,0737 |  |  << TestmTrc.Regression_Test_03_Execution_Trace_With_Error
+23-06-20 16:25:23 00,1681 00,1681 |  << TestmTrc.Regression_Test
+23-06-20 16:25:23 00,1681 00,1681 << Regression Test module mTrc
+23-06-20 16:25:23                 Impact on the overall performance (caused by the trace itself): 00,0004 seconds!
+23-06-20 16:25:23 Execution trace by 'Common VBA Execution Trace Service' (https://github.com/warbe-maker/Common-VBA-Execution-Trace-Service)

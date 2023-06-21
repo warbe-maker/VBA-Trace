@@ -1,0 +1,29 @@
+23-06-21 20:35:07 Execution trace by 'Common VBA Execution Trace Service (clsTrc)' (https://github.com/warbe-maker/VBA-Trace)
+23-06-21 20:35:07                 >> Regression Test Class Module clsTrc
+23-06-21 20:35:07 00,0000         |  >> TestclsTrc.Regression_Test
+23-06-21 20:35:07 00,0018         |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace
+23-06-21 20:35:07 00,0024         |  |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03a
+23-06-21 20:35:07 00,0030         |  |  |  |  > TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03a call of 6b and 6c
+23-06-21 20:35:07 00,0107         |  |  |  |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03b
+23-06-21 20:35:07 00,1557 00,1450 |  |  |  |  |  << TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03b
+23-06-21 20:35:07 00,1565         |  |  |  |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03c
+23-06-21 20:35:07 00,1571 00,0006 |  |  |  |  |  << TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03c
+23-06-21 20:35:07 00,1578 00,1548 |  |  |  |  < TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03a call of 6b and 6c
+23-06-21 20:35:07 00,1584 00,1560 |  |  |  << TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03a
+23-06-21 20:35:07 00,1591 00,1573 |  |  << TestclsTrc.Regression_Test_03_Execution_Trace
+23-06-21 20:35:07                 |  |  Test Log-Info explicitly provided
+23-06-21 20:35:07 00,1601         |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_With_Error
+23-06-21 20:35:07 00,1608         |  |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03a
+23-06-21 20:35:07 00,1613         |  |  |  |  > TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03a call of 6b and 6c
+23-06-21 20:35:07 00,1619         |  |  |  |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03b
+23-06-21 20:35:07 00,3047 00,1428 |  |  |  |  |  << TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03b
+23-06-21 20:35:07 00,3055         |  |  |  |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03c
+23-06-21 20:35:07                 |  |  |  |  |  |  This procedure will raise a VB-Runtime Error 6 (oderflow) - not displayed with the regression test because asserted by mErH.Assert
+23-06-21 20:35:07 00,3087 00,0031 |  |  |  |  |  << TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03c !!! VB-Runtime Error 6  !!! 
+23-06-21 20:35:07 00,3087 00,1474 |  |  |  |  < TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03a call of 6b and 6c
+23-06-21 20:35:07 00,3094 00,1486 |  |  |  << TestclsTrc.Regression_Test_03_Execution_Trace_With_Error_TestProc_03a
+23-06-21 20:35:07 00,3102 00,1501 |  |  << TestclsTrc.Regression_Test_03_Execution_Trace_With_Error
+23-06-21 20:35:07 00,3109 00,3109 |  << TestclsTrc.Regression_Test
+23-06-21 20:35:07 00,3109 00,3109 << Regression Test Class Module clsTrc
+23-06-21 20:35:07                 Impact on the overall performance (caused by the trace itself): 0,7 milliseconds!
+23-06-21 20:35:07 Execution trace by 'Common VBA Execution Trace Service (clsTrc)' (https://github.com/warbe-maker/VBA-Trace)
