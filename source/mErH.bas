@@ -6,13 +6,9 @@ Option Explicit
 '
 ' Public services:
 ' ----------------
-' AppErr     Converts a positive number into a negative error number ensuring it
-'            not conflicts with a VB Runtime Error. A negative error number is
-'            turned back into the original positive Application  Error Number.
-' Asserted   Only used for a test procedure which tests certain error
-'            condition. The display of an error message is skipped when
-'            Regression = True and the about to be displayed error number is
-'            an asserted one.
+' Asserted   Only used with regression testing (Regression = True) to avoid the
+'            display errors specifically tested. When Regression = False the
+'            Asserted service is ignored and any error is displayed.
 ' BoP        Indicates the Begin of a Procedure and maintains the call stack.
 ' EoP        Indicates the End of a Procedure and maintains the call stack.
 '            Triggers the display of the Execution Trace when the end of the
@@ -23,23 +19,25 @@ Option Explicit
 '            - passed on the error to the 'Entry Procedure' (which is the first
 '              procedure with a BoP statement thereby assembling the 'path
 '              to the error' displayed when the 'Entry Procedure' is reached.
-' Regression When TRUE the ErrMsg service considers a testing mode which means
-'            that the error is only displayed when not regarded 'Asserted'.
-' Uses:
-' -----
-' fMsg/mMsg   when installed and indicated by the Cond. Comp. Arg. `MsgComp = 1`
-' mTrc/clsTrc only by the test environment, when installed and the Cond. Comp.
-'               Arg. `XcTrc_mTrc = 1` or `XcTrc_clsTrc = 1`.
+' Regression When TRUE the ErrMsg only displays errors which are not regarded
+'            'Asserted'.
+'
+' Uses components:
+' ----------------
+' fMsg/mMsg   Used only when installed and activated by the Cond. Comp. Arg. `MsgComp = 1`
+' mTrc        Used only by the test environment and only when activated by the Cond. Comp.
+'             Arg. `XcTrc_mTrc = 1`
+'
 ' Requires:
 ' ---------
 ' Reference to "Microsoft Scripting Runtime"
 '
+' W. Rauschenberger, Berlin, June 2023
+'
 ' See https://github.com/warbe-maker/VBA-Error
 ' See https://warbe-maker.github.io/vba/common/2020/10/02/Comprehensive-Common-VBA-Error-Handler.html
-'
-' W. Rauschenberger, Berlin, June 2023
 ' ------------------------------------------------------------------------------
-Public Const CONCAT         As String = "||"
+Public Const CONCAT As String = "||"
 
 ' Begin of ShellRun declarations ---------------------------------------------
 Private Declare PtrSafe Function apiShellExecute Lib "shell32.dll" _
@@ -68,6 +66,8 @@ Private Const GWL_STYLE As Long = -16
 
 
 Private Const ErrMsgDefaultButton   As Long = vbOKOnly
+Private Const GITHUB_REPO_URL       As String = "https://github.com/warbe-maker/VBA-Error"
+
 Private cllErrPath          As Collection   ' managed by ErrPath... procedures exclusively
 Private ProcStack           As Collection   ' stack maintained by BoP (push) and EoP (pop)
 Private lSubsequErrNo       As Long         ' possibly different from the initial error number if it changes when passed on
@@ -117,11 +117,10 @@ Private Function AppErr(ByVal app_err_no As Long) As Long
 End Function
 
 Public Sub README(Optional ByVal r_bookmark As String = vbNullString)
-    Const BASE_URL = "https://github.com/warbe-maker/VBA-Error" ' /blob/master/README.md"
     
     If r_bookmark = vbNullString _
-    Then ShellRun BASE_URL _
-    Else ShellRun BASE_URL & "#" & r_bookmark
+    Then ShellRun GITHUB_REPO_URL _
+    Else ShellRun GITHUB_REPO_URL & "#" & r_bookmark
         
 End Sub
 
@@ -179,58 +178,33 @@ Public Sub Asserted(ParamArray botp_errs_asserted() As Variant)
     vErrsAsserted = botp_errs_asserted
 End Sub
 
-Public Sub BoP(ByVal bop_id As String, ParamArray bop_arguments() As Variant)
+Public Sub BoP(ByVal b_id As String, _
+      Optional ByVal b_args As String = vbNullString)
 ' ------------------------------------------------------------------------------
-' Trace and stack the 'Begin of a Procedure'.
-' The traced_arguments (bop_arguments) are passed on to the mTrc.BoP/Trc.BoP and
-' displayed with the error message in case.
+' Trace and push on proc-stack the 'Begin of a Procedure'.
 ' ------------------------------------------------------------------------------
-    Const PROC = "BoP"
-    Dim s As String
-    
-    On Error GoTo eh
-    If UBound(bop_arguments) >= 0 Then s = Join(bop_arguments, ";")
-
     If StackIsEmpty(ProcStack) Then
         Set cllRecentErrors = Nothing: Set cllRecentErrors = New Collection
     End If
-    
-    StackPush ProcStack, bop_id
-#If XcTrc_clsTrc = 1 Then
-    '~~ The Common Component is supposed to be available as Class Module clsTrc with instance name Trc
-    Trc.BoP_ErH bop_id, s
-#ElseIf XcTrc_mTrc = 1 Then
-    '~~ The Common Component is supposed to be available as Standard Module mTrc
-    mTrc.BoP_ErH bop_id, s
+    StackPush ProcStack, b_id
+#If XcTrc_clsTrc = 1 Then   ' when clsTrc is installed and active
+    Trc.BoP_ErH b_id, b_args
+#ElseIf XcTrc_mTrc = 1 Then ' when mTrc is installed and active
+    mTrc.BoP_ErH b_id, b_args
 #End If
-
-xt: Exit Sub
-
-eh: MsgBox Err.Description, vbOKOnly, "Error in " & ErrSrc(PROC)
-    Stop: Resume
 End Sub
 
-Public Sub EoP(ByVal eop_id As String)
-' ------------------------------------
-' Trace and stack End of Procedure
-' ------------------------------------
-    Const PROC = "EoP"
-    
-    On Error GoTo eh
-#If XcTrc_clsTrc = 1 Then
-    '~~ The Common Component is supposed to be available as Class Module clsTrc with instance name Trc
-    Trc.EoP eop_id
-#ElseIf XcTrc_mTrc = 1 Then
-    '~~ The Common Component is supposed to be available as Standard Module mTrc
-    mTrc.EoP eop_id
+Public Sub EoP(ByVal e_id As String, _
+      Optional ByVal e_args As String = vbNullString)
+' ------------------------------------------------------------------------------
+' Trace and pop from proc-stack the 'Eegin of a Procedure'.
+' ------------------------------------------------------------------------------
+#If XcTrc_clsTrc = 1 Then   ' when clsTrc is installed and active
+    Trc.EoP e_id, e_args
+#ElseIf XcTrc_mTrc = 1 Then ' when mTrc is installed and active
+    mTrc.EoP e_id, e_args
 #End If
-    If StackTop(ProcStack) = eop_id Then
-        StackPop ProcStack
-    End If
-    
-xt: Exit Sub
-
-eh: ErrMsg ErrSrc(PROC)
+    If StackTop(ProcStack) = e_id Then StackPop ProcStack
 End Sub
 
 Private Function ErrArgName(ByVal s As String) As Boolean

@@ -3,11 +3,14 @@ UsedExportFolder=source
 [clsTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\clsTrc.cls
-RawRevisionNumber=2023-06-21.007
+RawRevisionNumber=2023-06-22.001
 [fMsg]
 DueModificationWarning=1
 KindOfComponent=used
-RawRevisionNumber=2023-05-18.001
+RawRevisionNumber=2023-06-22.001
+[mBasic]
+KindOfComponent=used
+RawRevisionNumber=2023-06-22.003
 [mCompManClient]
 DueModificationWarning=1
 KindOfComponent=used
@@ -19,16 +22,12 @@ RawRevisionNumber=2023-04-11.002
 [mErH]
 DueModificationWarning=1
 KindOfComponent=used
-RawRevisionNumber=2023-06-21.001
-[mFile]
-DueModificationWarning=1
-KindOfComponent=used
-RawRevisionNumber=2022-06-28.001
+RawRevisionNumber=2023-06-22.001
 [mMsg]
 DueModificationWarning=1
 KindOfComponent=used
-RawRevisionNumber=2023-05-18.001
+RawRevisionNumber=2023-06-22.001
 [mTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mTrc.bas
-RawRevisionNumber=2023-06-21.006
+RawRevisionNumber=2023-06-22.001
