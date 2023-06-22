@@ -228,9 +228,9 @@ Public Function AppIsInstalled(ByVal exe As String) As Boolean
 ' Returns TRUE when an application (exe) is installed, i.e. the provided name
 ' is found in the VBA.Environ$ Path.
 ' ----------------------------------------------------------------------------
-    Dim i As Long: i = 1
-    Do Until VBA.Environ$(i) Like "Path=*": i = i + 1: Loop
-    AppIsInstalled = Environ$(i) Like "*" & exe & "*"
+    Dim I As Long: I = 1
+    Do Until VBA.Environ$(I) Like "Path=*": I = I + 1: Loop
+    AppIsInstalled = Environ$(I) Like "*" & exe & "*"
 End Function
 
 Public Function ArrayCompare(ByVal ac_v1 As Variant, _
@@ -252,7 +252,7 @@ Public Function ArrayCompare(ByVal ac_v1 As Variant, _
     On Error GoTo eh
     Dim j       As Long
     Dim l       As Long
-    Dim i       As Long
+    Dim I       As Long
     Dim lMethod As VbCompareMethod
     Dim dct     As New Dictionary
     
@@ -260,14 +260,14 @@ Public Function ArrayCompare(ByVal ac_v1 As Variant, _
     
     If Not mBasic.ArrayIsAllocated(ac_v1) And mBasic.ArrayIsAllocated(ac_v2) Then
         If ac_ignore_empty Then mBasic.ArrayTrimm ac_v2
-        For i = LBound(ac_v2) To UBound(ac_v2)
-            dct.Add i + 1, "'" & ac_v2(i) & "'" & vbLf
-        Next i
+        For I = LBound(ac_v2) To UBound(ac_v2)
+            dct.Add I + 1, "'" & ac_v2(I) & "'" & vbLf
+        Next I
     ElseIf mBasic.ArrayIsAllocated(ac_v1) And Not mBasic.ArrayIsAllocated(ac_v2) Then
         If ac_ignore_empty Then mBasic.ArrayTrimm ac_v1
-        For i = LBound(ac_v1) To UBound(ac_v1)
-            dct.Add i + 1, "'" & ac_v1(i) & "'" & vbLf
-        Next i
+        For I = LBound(ac_v1) To UBound(ac_v1)
+            dct.Add I + 1, "'" & ac_v1(I) & "'" & vbLf
+        Next I
     ElseIf Not mBasic.ArrayIsAllocated(ac_v1) And Not mBasic.ArrayIsAllocated(ac_v2) Then
         GoTo xt
     End If
@@ -276,33 +276,33 @@ Public Function ArrayCompare(ByVal ac_v1 As Variant, _
     If ac_ignore_empty Then mBasic.ArrayTrimm ac_v2
     
     l = 0
-    For i = LBound(ac_v1) To Min(UBound(ac_v1), UBound(ac_v2))
-        If StrComp(ac_v1(i), ac_v2(i), lMethod) <> 0 Then
-            dct.Add i + 1, "'" & ac_v1(i) & "'" & vbLf & "'" & ac_v2(i) & "'"
+    For I = LBound(ac_v1) To Min(UBound(ac_v1), UBound(ac_v2))
+        If StrComp(ac_v1(I), ac_v2(I), lMethod) <> 0 Then
+            dct.Add I + 1, "'" & ac_v1(I) & "'" & vbLf & "'" & ac_v2(I) & "'"
             l = l + 1
             If ac_stop_after <> 0 And l >= ac_stop_after Then
                 GoTo xt
             End If
         End If
-    Next i
+    Next I
     
     If UBound(ac_v1) < UBound(ac_v2) Then
-        For i = UBound(ac_v1) + 1 To UBound(ac_v2)
-            dct.Add i + 1, "''" & vbLf & " '" & ac_v2(i) & "'"
+        For I = UBound(ac_v1) + 1 To UBound(ac_v2)
+            dct.Add I + 1, "''" & vbLf & " '" & ac_v2(I) & "'"
             l = l + 1
             If ac_stop_after <> 0 And l >= ac_stop_after Then
                 GoTo xt
             End If
-        Next i
+        Next I
         
     ElseIf UBound(ac_v2) < UBound(ac_v1) Then
-        For i = UBound(ac_v2) + 1 To UBound(ac_v1)
-            dct.Add i + 1, "'" & ac_v1(i) & "'" & vbLf & "''"
+        For I = UBound(ac_v2) + 1 To UBound(ac_v1)
+            dct.Add I + 1, "'" & ac_v1(I) & "'" & vbLf & "''"
             l = l + 1
             If ac_stop_after <> 0 And l >= ac_stop_after Then
                 GoTo xt
             End If
-        Next i
+        Next I
     End If
 
 xt: Set ArrayCompare = dct
@@ -323,7 +323,7 @@ Public Function ArrayDiffers(ByVal ad_v1 As Variant, _
 ' ----------------------------------------------------------------------------
     Const PROC  As String = "ArrayDiffers"
     
-    Dim i       As Long
+    Dim I       As Long
     Dim j       As Long
     Dim va()    As Variant
     Dim s1      As String
@@ -350,31 +350,31 @@ Public Function ArrayDiffers(ByVal ad_v1 As Variant, _
             ArrayDiffers = Join(ad_v1) <> Join(ad_v2)
             If Err.Number = 0 Then GoTo xt
             '~~ At least one of the joins resulted in a string exeeding the maximum possible lenght
-            For i = LBound(ad_v1) To Min(UBound(ad_v1), UBound(ad_v2))
-                If ad_v1(i) <> ad_v2(i) Then
+            For I = LBound(ad_v1) To Min(UBound(ad_v1), UBound(ad_v2))
+                If ad_v1(I) <> ad_v2(I) Then
                     ArrayDiffers = True
                     Exit Function
                 End If
-            Next i
+            Next I
         End If
     Else
-        i = LBound(ad_v1)
+        I = LBound(ad_v1)
         j = LBound(ad_v2)
-        For i = i To mBasic.Min(UBound(ad_v1), UBound(ad_v2))
-            While Len(ad_v1(i)) = 0 And i + 1 <= UBound(ad_v1)
-                i = i + 1
+        For I = I To mBasic.Min(UBound(ad_v1), UBound(ad_v2))
+            While Len(ad_v1(I)) = 0 And I + 1 <= UBound(ad_v1)
+                I = I + 1
             Wend
             While Len(ad_v2(j)) = 0 And j + 1 <= UBound(ad_v2)
                 j = j + 1
             Wend
-            If i <= UBound(ad_v1) And j <= UBound(ad_v2) Then
-                If StrComp(ad_v1(i), ad_v2(j), ad_comp_mode) <> 0 Then
+            If I <= UBound(ad_v1) And j <= UBound(ad_v2) Then
+                If StrComp(ad_v1(I), ad_v2(j), ad_comp_mode) <> 0 Then
                     ArrayDiffers = True
                     GoTo xt
                 End If
             End If
             j = j + 1
-        Next i
+        Next I
         If j < UBound(ad_v2) Then
             ArrayDiffers = True
         End If
@@ -440,7 +440,7 @@ Public Sub ArrayRemoveItems(ByRef ri_va As Variant, _
     Dim iElement            As Long
     Dim iIndex              As Long
     Dim NoOfElementsInArray As Long
-    Dim i                   As Long
+    Dim I                   As Long
     Dim iNewUBound          As Long
     
     If Not mBasic.ArrayIsAllocated(ri_va) Then
@@ -477,9 +477,9 @@ Public Sub ArrayRemoveItems(ByRef ri_va As Variant, _
         Err.Raise AppErr(6), ErrSrc(PROC), "FromElement (" & iElement & ") plus the number of elements to remove (" & ri_no_of_elements & ") is beyond the number of elelemnts in the array (" & NoOfElementsInArray & ")!"
     End If
     
-    For i = iIndex + ri_no_of_elements To UBound(a)
-        a(i - ri_no_of_elements) = a(i)
-    Next i
+    For I = iIndex + ri_no_of_elements To UBound(a)
+        a(I - ri_no_of_elements) = a(I)
+    Next I
     
     iNewUBound = UBound(a) - ri_no_of_elements
     If iNewUBound < 0 Then Erase a Else ReDim Preserve a(LBound(a) To iNewUBound)
@@ -531,13 +531,13 @@ Public Sub ArrayTrimm(ByRef a As Variant)
     Const PROC  As String = "ArrayTrimm"
 
     On Error GoTo eh
-    Dim i As Long
+    Dim I As Long
     
     '~~ Eliminate leading blank lines
     If Not mBasic.ArrayIsAllocated(a) Then Exit Sub
     
     Do While (Len(Trim$(a(LBound(a)))) = 0 Or Trim$(a(LBound(a))) = " ") And UBound(a) >= 0
-        mBasic.ArrayRemoveItems ri_va:=a, ri_index:=i
+        mBasic.ArrayRemoveItems ri_va:=a, ri_index:=I
         If Not mBasic.ArrayIsAllocated(a) Then Exit Do
     Loop
     
@@ -661,13 +661,13 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
 End Function
 
 Public Function ElementOfIndex(ByVal a As Variant, _
-                               ByVal i As Long) As Long
+                               ByVal I As Long) As Long
 ' ----------------------------------------------------------------------------
 ' Returns the element number of index (i) in array (a).
 ' ----------------------------------------------------------------------------
     Dim ia  As Long
     
-    For ia = LBound(a) To i
+    For ia = LBound(a) To I
         ElementOfIndex = ElementOfIndex + 1
     Next ia
     
@@ -698,7 +698,7 @@ Public Sub EoP(ByVal e_proc As String, _
 #If ErHComp = 1 Then          ' serves the mTrc/clsTrc when installed and active
     mErH.EoP e_proc, e_args
 #ElseIf XcTrc_clsTrc = 1 Then ' when only clsTrc is installed and active
-    Trc.RoP e_proc, e_args
+    Trc.EoP e_proc, e_args
 #ElseIf XcTrc_mTrc = 1 Then   ' when only mTrc is installed and activate
     mTrc.EoP e_proc, e_args
 #End If
@@ -988,14 +988,14 @@ Public Function Spaced(ByVal s As String) As String
 ' Example: Spaced("Ab c") returns = "A b  c"
 ' ----------------------------------------------------------------------------
     Dim a() As Byte
-    Dim i   As Long
+    Dim I   As Long
     
     If s = vbNullString Then Exit Function
     a = StrConv(Trim$(s), vbFromUnicode)
     Spaced = Chr$(a(LBound(a)))
-    For i = LBound(a) + 1 To UBound(a)
-        If Chr$(a(i)) = " " Then Spaced = Spaced & Chr$(160) Else Spaced = Spaced & Chr$(160) & Chr$(a(i))
-    Next i
+    For I = LBound(a) + 1 To UBound(a)
+        If Chr$(a(I)) = " " Then Spaced = Spaced & Chr$(160) Else Spaced = Spaced & Chr$(160) & Chr$(a(I))
+    Next I
 
 End Function
 
@@ -1020,7 +1020,7 @@ Public Function StackEd(ByVal stck As Collection, _
     
     On Error GoTo eh
     Dim v       As Variant
-    Dim i       As Long
+    Dim I       As Long
     
     If stck Is Nothing Then Set stck = New Collection
     
@@ -1033,37 +1033,37 @@ Public Function StackEd(ByVal stck As Collection, _
         Else StackEd = stck(stck_lvl)
     Else
         '~~ The provided stack item is either an object, a string, or numeric
-        For i = 1 To stck.Count
-            If IsObject(stck(i)) Then
-                Set v = stck(i)
+        For I = 1 To stck.Count
+            If IsObject(stck(I)) Then
+                Set v = stck(I)
                 If v Is stck_item Then
                     If stck_lvl <> 0 Then
-                        If i = stck_lvl Then
+                        If I = stck_lvl Then
                             StackEd = True
                             GoTo xt
                         End If
                     Else
-                        stck_lvl = i
+                        stck_lvl = I
                     End If
                     StackEd = True
                     GoTo xt
                 End If
             Else
-                v = stck(i)
+                v = stck(I)
                 If v = stck_item Then
                     If stck_lvl <> 0 Then
-                        If i = stck_lvl Then
+                        If I = stck_lvl Then
                             StackEd = True
                             GoTo xt
                         End If
                     Else
-                        stck_lvl = i
+                        stck_lvl = I
                     End If
                     StackEd = True
                     GoTo xt
                 End If
             End If
-        Next i
+        Next I
     End If
     
 xt: Exit Function

@@ -40,6 +40,7 @@ Public Sub Regression_Test()
     
     On Error GoTo eh
     
+    Set Trc = Nothing
     Set Trc = New clsTrc
     '~~ Initialization of a new Trace Log File for this Regression test
     With Trc

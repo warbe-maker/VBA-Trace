@@ -1,33 +1,34 @@
-23-06-22-12:30:55  Update Outdated Common Components (by Add-in) for Trc.xlsm 
-23-06-22-12:30:55 ----------------------------------------------------------
-23-06-22-12:30:55  UserForm        fMsg ...........: Used Common Component
-23-06-22-12:30:55  Standard-Module mBasic .........: Used Common Component
-23-06-22-12:30:55  Standard-Module mCompManClient .: Used Common Component
-23-06-22-12:30:55  Standard-Module mDct ...........: Used Common Component
-23-06-22-12:30:55  Standard-Module mErH ...........: Used Common Component
-23-06-22-12:30:55  Standard-Module mMsg ...........: Used Common Component
-23-06-22-12:30:58  UserForm        fMsg ...........: Used Common Component is up-to-date
-23-06-22-12:30:58  Standard-Module mBasic .........: Used Common Component is up-to-date
-23-06-22-12:30:58  Standard-Module mCompManClient .: Used Common Component is up-to-date
-23-06-22-12:30:58  Standard-Module mErH ...........: Used Common Component is up-to-date
-23-06-22-12:30:58  Standard-Module mMsg ...........: Used Common Component is up-to-date
-23-06-22-12:31:01  Standard-Module mDct ...........: Outdated used Common Component updated by re-import of D:\Ablage\Excel VBA\DevAndTest\Common-Components\mDct.bas
-23-06-22-12:31:54 =========================================================================
-23-06-22-12:31:54            Export Changed Components (by Add-in) for Trc.xlsm            
-23-06-22-12:31:54 -------------------------------------------------------------------------
-23-06-22-12:31:54  Standard-Module TestclsTrc .....: Modified VBComponent e x p o r t e d !
-23-06-22-12:31:54  Standard-Module TestmTrc .......: Modified VBComponent e x p o r t e d !
-23-06-22-12:31:54  Class-Module    clsTrc .........: Unchanged hosted raw Common Component
-23-06-22-12:31:54  UserForm        fMsg ...........: Unchanged used Common Component
-23-06-22-12:31:54  Standard-Module mBasic .........: Unchanged used Common Component
-23-06-22-12:31:54  Standard-Module mCompManClient .: Unchanged used Common Component
-23-06-22-12:31:54  Standard-Module mDct ...........: Modified used Common Component!!!!! (because this is not the hosting Workbook a "due revert allert" has been registered!)
-23-06-22-12:31:54                                    Modified used Common Component e x p o r t e d !
-23-06-22-12:31:54  Standard-Module mDemo ..........: Unchanged VBComponent
-23-06-22-12:31:54  Standard-Module mErH ...........: Modified used Common Component!!!!! (because this is not the hosting Workbook a "due revert allert" has been registered!)
-23-06-22-12:31:54                                    Modified used Common Component e x p o r t e d !
-23-06-22-12:31:54  Standard-Module mMsg ...........: Unchanged used Common Component
-23-06-22-12:31:54  Standard-Module mTrc ...........: Unchanged hosted raw Common Component
-23-06-22-12:31:54  Workbook        wbTrcTest ......: Unchanged VBComponent
-23-06-22-12:31:54  Worksheet       wsAbout ........: Unchanged VBComponent
-23-06-22-12:31:54  Worksheet       wsTest .........: Unchanged VBComponent
+23-06-22-22:32:17  Update Outdated Common Components (by CompMan.xlsb) for Trc.xlsm 
+23-06-22-22:32:17 ----------------------------------------------------------------
+23-06-22-22:32:17  UserForm        fMsg ...........: Used Common Component
+23-06-22-22:32:17  Standard-Module mBasic .........: Used Common Component
+23-06-22-22:32:17  Standard-Module mCompManClient .: Used Common Component
+23-06-22-22:32:17  Standard-Module mDct ...........: Used Common Component
+23-06-22-22:32:17  Standard-Module mErH ...........: Used Common Component
+23-06-22-22:32:17  Standard-Module mMsg ...........: Used Common Component
+23-06-22-22:32:20  UserForm        fMsg ...........: Used Common Component is up-to-date
+23-06-22-22:32:20  Standard-Module mBasic .........: Used Common Component is up-to-date
+23-06-22-22:32:20  Standard-Module mCompManClient .: Used Common Component is up-to-date
+23-06-22-22:32:20  Standard-Module mDct ...........: Used Common Component is up-to-date
+23-06-22-22:32:20  Standard-Module mErH ...........: Used Common Component is up-to-date
+23-06-22-22:32:20  Standard-Module mMsg ...........: Used Common Component is up-to-date
+23-06-22-22:33:17 ========================================================
+23-06-22-22:33:17  Export Changed Components (by CompMan.xlsb) for Trc.xlsm 
+23-06-22-22:33:17 --------------------------------------------------------
+23-06-22-22:33:17  Standard-Module TestclsTrc .....: Unchanged VBComponent
+23-06-22-22:33:17  Standard-Module TestmTrc .......: Unchanged VBComponent
+23-06-22-22:33:17  Class-Module    clsTrc .........: Hosted Raw Common Component code modified
+23-06-22-22:33:17                                    Modified hosted Common Component e x p o r t e d !
+23-06-22-22:33:17                                    Modified hosted Common Component's Revision Number increased
+23-06-22-22:33:17                                    Modified hosted Common Component's Export-File copied to D:\Ablage\Excel VBA\DevAndTest\Common-Components
+23-06-22-22:33:17  UserForm        fMsg ...........: Unchanged used Common Component
+23-06-22-22:33:17  Standard-Module mBasic .........: Unchanged used Common Component
+23-06-22-22:33:17  Standard-Module mCompManClient .: Unchanged used Common Component
+23-06-22-22:33:17  Standard-Module mDct ...........: Unchanged used Common Component
+23-06-22-22:33:17  Standard-Module mDemo ..........: Unchanged VBComponent
+23-06-22-22:33:17  Standard-Module mErH ...........: Unchanged used Common Component
+23-06-22-22:33:17  Standard-Module mMsg ...........: Unchanged used Common Component
+23-06-22-22:33:17  Standard-Module mTrc ...........: Unchanged hosted raw Common Component
+23-06-22-22:33:17  Workbook        wbTrcTest ......: Unchanged VBComponent
+23-06-22-22:33:17  Worksheet       wsAbout ........: Unchanged VBComponent
+23-06-22-22:33:17  Worksheet       wsTest .........: Unchanged VBComponent
