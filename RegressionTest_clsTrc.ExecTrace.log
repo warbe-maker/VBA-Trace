@@ -1,5 +1,6 @@
-23-06-22 22:22:30 Elapsed Length  Execution trace by 'Common VBA Execution Trace Service (mTrc)' (https://github.com/warbe-maker/VBA-Trace)
-23-06-22 22:22:30 seconds seconds >> Regression Test Class Module clsTrc
+23-06-22 22:22:30 Elapsed Length  Execution trace by 'Common VBA Execution Trace Service (mTrc)' 
+23-06-22 22:22:30 seconds seconds (https://github.com/warbe-maker/VBA-Trace)
+								  >> Regression Test Class Module clsTrc
 23-06-22 22:22:30 00,0000         |  >> TestclsTrc.Regression_Test (arg1, arg2)
 23-06-22 22:22:30 00,0016 00,0016 |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace
 23-06-22 22:22:30 00,0028 00,0012 |  |  |  >> TestclsTrc.Regression_Test_03_Execution_Trace_TestProc_03a (xxxx, arg2=yyyy, 12,8)
