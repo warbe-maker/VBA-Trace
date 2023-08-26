@@ -3,26 +3,26 @@ UsedExportFolder=source
 [clsTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\clsTrc.cls
-RawRevisionNumber=2023-06-23.002
+RevisionNumber=2023-08-26.001
 [fMsg]
 KindOfComponent=used
-RawRevisionNumber=2023-07-01.001
+RevisionNumber=2023-08-26.001
 [mBasic]
 KindOfComponent=used
-RawRevisionNumber=2023-06-23.002
+RevisionNumber=2023-08-25.001
 [mCompManClient]
 KindOfComponent=used
-RawRevisionNumber=2023-06-29.001
+RevisionNumber=2023-08-25.005
 [mDct]
 KindOfComponent=used
-RawRevisionNumber=2023-06-22.001
+RevisionNumber=2023-07-12.001
 [mErH]
 KindOfComponent=used
-RawRevisionNumber=2023-06-22.003
+RevisionNumber=2023-08-04.001
 [mMsg]
 KindOfComponent=used
-RawRevisionNumber=2023-06-22.001
+RevisionNumber=2023-08-23.001
 [mTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mTrc.bas
-RawRevisionNumber=2023-06-23.002
+RevisionNumber=2023-06-23.002

@@ -1,0 +1,45 @@
+23-08-26-15:19:30     Export Changed Components (by CompMan.xlsb) for Trc.xlsm    
+23-08-26-15:19:30 ----------------------------------------------------------------
+23-08-26-15:19:30  Standard-Module TestclsTrc .....: Unchanged VBComponent ignored
+23-08-26-15:19:30  Standard-Module TestmTrc .......: Unchanged VBComponent ignored
+23-08-26-15:19:30  Class-Module    clsTrc .........: Unchanged Common Component hosted ignored
+23-08-26-15:19:30  UserForm        fMsg ...........: Unchanged Common Component used
+23-08-26-15:19:30  Standard-Module mBasic .........: Unchanged Common Component used
+23-08-26-15:19:30  Standard-Module mCompManClient .: Unchanged Common Component used
+23-08-26-15:19:30  Standard-Module mDct ...........: Unchanged Common Component used
+23-08-26-15:19:30  Standard-Module mDemo ..........: Unchanged VBComponent ignored
+23-08-26-15:19:30  Standard-Module mErH ...........: Unchanged Common Component used
+23-08-26-15:19:30  Standard-Module mMsg ...........: Unchanged Common Component used
+23-08-26-15:19:30  Standard-Module mTrc ...........: Unchanged Common Component hosted ignored
+23-08-26-15:19:30  Workbook        wbTrcTest ......: Unchanged VBComponent ignored
+23-08-26-15:19:30  Worksheet       wsAbout ........: Unchanged VBComponent ignored
+23-08-26-15:19:30  Worksheet       wsTest .........: Unchanged VBComponent ignored
+23-08-26-15:19:44 ======================================================================
+23-08-26-15:19:44    Update Outdated Common Components (by CompMan.xlsb) for Trc.xlsm   
+23-08-26-15:19:44 ----------------------------------------------------------------------
+23-08-26-15:19:44  Standard-Module mDct ...........: Used Common Component is up-to-date
+23-08-26-15:19:45  Standard-Module mTrc ...........: Component is up-to-date! Revision-Number has been set to to 2023-06-23.002 (the raw's in the Common Components Folder)
+23-08-26-15:19:45                                    Used Common Component is up-to-date
+23-08-26-15:20:04  Class-Module    clsTrc .........: Outdated Common Component hosted updated by re-import of the Export-File in the Common-Components folder
+23-08-26-15:20:16  UserForm        fMsg ...........: Outdated Common Component used updated by re-import of the Export-File in the Common-Components folder
+23-08-26-15:20:18  Standard-Module mBasic .........: Outdated Common Component used updated by re-import of the Export-File in the Common-Components folder
+23-08-26-15:20:21  Standard-Module mCompManClient .: Outdated Common Component used updated by re-import of the Export-File in the Common-Components folder
+23-08-26-15:20:23  Standard-Module mErH ...........: Outdated Common Component used updated by re-import of the Export-File in the Common-Components folder
+23-08-26-15:20:27  Standard-Module mMsg ...........: Outdated Common Component used updated by re-import of the Export-File in the Common-Components folder
+23-08-26-15:21:04 ================================================================
+23-08-26-15:21:04     Export Changed Components (by CompMan.xlsb) for Trc.xlsm    
+23-08-26-15:21:04 ----------------------------------------------------------------
+23-08-26-15:21:04  Standard-Module TestclsTrc .....: Unchanged VBComponent ignored
+23-08-26-15:21:04  Standard-Module TestmTrc .......: Unchanged VBComponent ignored
+23-08-26-15:21:04  Class-Module    clsTrc .........: Unchanged Common Component hosted ignored
+23-08-26-15:21:04  UserForm        fMsg ...........: Unchanged Common Component used
+23-08-26-15:21:04  Standard-Module mBasic .........: Unchanged Common Component used
+23-08-26-15:21:04  Standard-Module mCompManClient .: Unchanged Common Component used
+23-08-26-15:21:04  Standard-Module mDct ...........: Unchanged Common Component used
+23-08-26-15:21:04  Standard-Module mDemo ..........: Unchanged VBComponent ignored
+23-08-26-15:21:04  Standard-Module mErH ...........: Unchanged Common Component used
+23-08-26-15:21:04  Standard-Module mMsg ...........: Unchanged Common Component used
+23-08-26-15:21:04  Standard-Module mTrc ...........: Unchanged Common Component hosted ignored
+23-08-26-15:21:04  Workbook        wbTrcTest ......: Unchanged VBComponent ignored
+23-08-26-15:21:04  Worksheet       wsAbout ........: Unchanged VBComponent ignored
+23-08-26-15:21:04  Worksheet       wsTest .........: Unchanged VBComponent ignored
