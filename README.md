@@ -12,7 +12,7 @@ Writes records of traced executions of procedures and code snippets to a trace-l
 |_BoP_          | S   | Indicates the **B**egin **o**f the execution trace of a **P**rocedure.<br>**Attention:** In order to keep this service optional it is exclusively called via an [BoP Interface](#bopeop-interface) which is to be copied in each component when used.       |
 |_BoP\_ErH_     | S   | Exclusively used by the _mErH_ module (when installed and activated).   |
 |_Continue_     | S   | May be used when a a user interaction has been completed (e.g. by pressed button of a `VBA.MsgBox`) to continue a _Pause_ed execution trace's time taking.|
-|_Dsply_        | S   | Displays the content of the trace log file. Available only when the mMsg/fMsg modules are installed and this is indicated by the Conditional Compile Argument 'MsgComp = 1'. Without mMsg/fMsg the trace result log will be viewed with any appropriate text file viewer. |
+|_Dsply_        | S   | Displays the content of the trace log file. Available only when the mMsg/fMsg modules are installed and this is indicated by the Conditional Compile Argument `mMsg = 1`. Without mMsg/fMsg the trace result log will be viewed with any appropriate text file viewer. |
 |_EoC_          | S   | Indicates the **E**nd **o**f a **C**ode sequence to be traced.<br>**Attention:** In order to keep this service optional it is exclusively called via an [EoC Interface](#boceoc-interface) which is to be copied in each component when used.       |
 |_EoP_          | S   | Indicates the (E)nd **o**f the execution trace of a **P**rocedure.<br>**Attention:** In order to keep this service optional it is exclusively called via an [EoP Interface](#bopeop-interface) which is to be copied in each component when used.           |
 |_Pause_        | S   | May be used when a before a user interaction is requested (e.g. by a `VBA.MsgBox`) to suspend the execution trace's time taking. |
@@ -29,8 +29,8 @@ Writes records of traced executions of procedures and code snippets to a trace-l
 1. [Download](#download-from-public-github-repo) either [mTrc.bas][4] or [clsTrc.cls][9]
 2. Import it to your VB-Project
 3. [Activate](#Activation) it through Conditional Compile Argument  
-   &nbsp;&nbsp;&nbsp;`XcTrc_mTc = 1` (when mTrc is installed and is to be used)  
-   &nbsp;&nbsp;&nbsp;`XcTrc_clsTc = 1` (when mTrc is installed and is to be used)  
+   &nbsp;&nbsp;&nbsp;`mTrc = 1` (when mTrc is installed and is to be used)  
+   &nbsp;&nbsp;&nbsp;`clsTrc = 1` (when mTrc is installed and is to be used)  
    Be aware that though both may be installed only one may be used at a time!  
 4. Set a _Reference_ to the _Microsoft Scripting Runtime_  
 Nothing else needs to be installed. Each of the components works completely autonomous.
@@ -54,14 +54,14 @@ Private Sub BoP(ByVal b_proc As String, ParamArray b_arguments() As Variant)
 ' the 'Common VBA Execution Trace Service'.
 ' ------------------------------------------------------------------------------
     Dim s As String: If Not IsMissing(b_arguments) Then s = Join(b_arguments, ";")
-#If ErHComp = 1 Then
+#If mErH = 1 Then
     '~~ The error handling will also hand over to the Common VBA Execution Trace
     '~~ provided one is installed (mTrc/clsTrc) and activated.
     mErH.BoP b_proc, s
-#ElseIf XcTrc_clsTrc = 1 Then
+#ElseIf clsTrc = 1 Then
     '~~ mErH is not installed but the mTrc is
     Trc.BoP b_proc, s
-#ElseIf XcTrc_mTrc = 1 Then
+#ElseIf mTrc = 1 Then
     '~~ mErH neither mTrc is installed but clsTrc is
     mTrc.BoP b_proc, s
 #End If
@@ -74,13 +74,13 @@ Private Sub EoP(ByVal e_proc As String, Optional ByVal e_inf As String = vbNullS
 ' using the EoP service - either through the 'Common VBA Error Services' and/or
 ' the 'Common VBA Execution Trace Service'.
 ' ------------------------------------------------------------------------------
-#If ErHComp = 1 Then
+#If mErH = 1 Then
     '~~ The error handling will also hand over to the Common VBA Execution Trace
     '~~ provided one is installed (mTrc/clsTrc) and activated.
     mErH.EoP e_proc
-#ElseIf XcTrc_clsTrc = 1 Then
+#ElseIf clsTrc = 1 Then
     Trc.EoP e_proc, e_inf
-#ElseIf XcTrc_mTrc = 1 Then
+#ElseIf mTrc = 1 Then
     mTrc.EoP e_proc, e_inf
 #End If
 End Sub
@@ -138,7 +138,7 @@ In the start procedure:
 See the below [arguments](#arguments-for-either-of-the-two-components) for which variant of the two components to use.
 
 ### Using the BoP/EoP service
-Thanks to the [service interfaces](#service-interfaces) and the _Conditional Compile Argument_ which corresponds with the installed component ( `XcTrc_mTrc = 1` (for mTrc), `XcTrc_clsTrc` (for clsTrc) the following will do the execution trace:
+Thanks to the [service interfaces](#service-interfaces) and the _Conditional Compile Argument_ which corresponds with the installed component ( `mTrc = 1` (when mTrc is installed), `clsTrc = 1` (when clsTrc is installed) the following will do the execution trace:
 ```vb
 Private Sub MyProc()
     Const PROC = "MyProc"
