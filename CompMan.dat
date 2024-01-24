@@ -3,26 +3,30 @@ UsedExportFolder=source
 [clsTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\clsTrc.cls
-RevisionNumber=2023-08-26.001
+LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
 [fMsg]
 KindOfComponent=used
-RevisionNumber=2023-08-26.001
+LastModifiedAtDatTime=2024-01-24-14-36-53 (UTC)
 [mBasic]
 KindOfComponent=used
-RevisionNumber=2023-08-25.001
+LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
 [mCompManClient]
 KindOfComponent=used
-RevisionNumber=2023-08-25.005
+LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
 [mDct]
 KindOfComponent=used
-RevisionNumber=2023-07-12.001
+LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
 [mErH]
 KindOfComponent=used
-RevisionNumber=2023-08-04.001
+LastModifiedAtDatTime=2024-01-24-16-47-51 (UTC)
 [mMsg]
 KindOfComponent=used
-RevisionNumber=2023-08-23.001
+LastModifiedAtDatTime=2024-01-24-16-47-51 (UTC)
 [mTrc]
 KindOfComponent=hosted
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mTrc.bas
-RevisionNumber=2023-06-23.002
+LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
+[@NamesHousekeeping]
+DoneNamesHskpng=LastModifiedAtDatTime:LastModAtDateTime:RevisionNumber:RawRevisionNumber;KindOfComponent;UsedExportFolder;:DueModificationWarning
+[wsTest]
+LastModifiedAtDatTime=2023-12-08-12-19-08 (UTC)
