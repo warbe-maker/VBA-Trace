@@ -429,13 +429,14 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Function
 
-Public Function ArrayIsAllocated(arr As Variant) As Boolean
+Public Function ArrayIsAllocated(ByVal arry As Variant) As Boolean
+' ----------------------------------------------------------------------------
+' Retunrs TRUE when the array (arry) is allocated, i.e. has at least one item.
+' ----------------------------------------------------------------------------
     
     On Error Resume Next
-    ArrayIsAllocated = _
-    IsArray(arr) _
-    And Not IsError(LBound(arr, 1)) _
-    And LBound(arr, 1) <= UBound(arr, 1)
+    ArrayIsAllocated = UBound(arry) >= LBound(arry)
+    On Error GoTo -1
     
 End Function
 
@@ -609,10 +610,9 @@ Public Function BaseName(ByVal v As Variant) As String
     Const PROC  As String = "BaseName"
     
     On Error GoTo eh
-    Dim fso As New FileSystemObject
     Dim fle As File
     
-    With fso
+    With New FileSystemObject
         Select Case TypeName(v)
             Case "String":      BaseName = .GetBaseName(v)
             Case "Workbook":    BaseName = .GetBaseName(v.FullName)
@@ -655,10 +655,10 @@ Public Sub BoP(ByVal b_proc As String, _
 ' ------------------------------------------------------------------------------
 #If mErH Then          ' serves the mTrc/clsTrc when installed and active
     mErH.BoP b_proc, b_args
-#ElseIf XcTrc_clsTrc Then ' when only clsTrc is installed and active
+#ElseIf clsTrc Then ' when only clsTrc is installed and active
     If Trc Is Nothing Then Set Trc = New clsTrc
     Trc.BoP b_proc, b_args
-#ElseIf XcTrc_mTrc Then   ' when only mTrc is installed and activate
+#ElseIf mTrc Then   ' when only mTrc is installed and activate
     mTrc.BoP b_proc, b_args
 #End If
 End Sub

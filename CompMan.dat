@@ -1,32 +1,62 @@
+[@NamesHousekeeping]
+
+_MostRecentExport=_MostRecentExport
+clsTrc=clsTrc
+DoneNamesHskpng=LastModifiedAtDatTime<LastModAtDateTime<RevisionNumber<RawRevisionNumber;LastModifiedAtDatTime<LastModAtDateTime<RevisionNumber<RawRevisionNumber;LastModifiedAtDatTime<LastModAtDateTime<RevisionNumber<RawRevisionNumber;DueModificationWarning>
+fMsg=fMsg
+LastModifiedAtDatTime=2023-12-08-12-19-08 (UTC)
+mBasic=mBasic
+mCompManClient=mCompManClient
+mDct=mDct
+mErH=mErH
+mMsg=mMsg
+mTrc=mTrc
+wsTest]=wsTest]
+
 [_MostRecentExport]
 UsedExportFolder=source
+
+[clsLog]
+KindOfComponent=used
+LastModifiedAtDatTime=2024-05-13 14:56:00 (UTC)
+
+[clsTestAid]
+KindOfComponent=used
+LastModifiedAtDatTime=2024-05-14 10:48:34 (UTC)
+
 [clsTrc]
 KindOfComponent=hosted
+LastModifiedAtDatTime=2024-05-14 11:37:36 (UTC)
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\clsTrc.cls
-LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
+
 [fMsg]
 KindOfComponent=used
-LastModifiedAtDatTime=2024-01-24-14-36-53 (UTC)
+LastModifiedAtDatTime=2024-02-08-14-35-34 (UTC)
+
 [mBasic]
 KindOfComponent=used
-LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
+LastModifiedAtDatTime=2024-02-10-18-01-12 (UTC)
+
 [mCompManClient]
 KindOfComponent=used
-LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
+LastModifiedAtDatTime=2024-02-08-14-21-51 (UTC)
+
 [mDct]
 KindOfComponent=used
 LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
+
 [mErH]
 KindOfComponent=used
 LastModifiedAtDatTime=2024-01-24-16-47-51 (UTC)
+
 [mMsg]
 KindOfComponent=used
-LastModifiedAtDatTime=2024-01-24-16-47-51 (UTC)
+LastModifiedAtDatTime=2024-05-09 09:18:30 (UTC)
+
 [mTrc]
 KindOfComponent=hosted
+LastModifiedAtDatTime=2024-05-14 15:53:31 (UTC)
 RawExpFileFullName=D:\Ablage\Excel VBA\DevAndTest\Common-VBA-Execution-Trace-Service\source\mTrc.bas
-LastModifiedAtDatTime=2024-01-24-16-30-53 (UTC)
-[@NamesHousekeeping]
-DoneNamesHskpng=LastModifiedAtDatTime:LastModAtDateTime:RevisionNumber:RawRevisionNumber;KindOfComponent;UsedExportFolder;:DueModificationWarning
+
 [wsTest]
 LastModifiedAtDatTime=2023-12-08-12-19-08 (UTC)

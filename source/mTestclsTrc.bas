@@ -1,4 +1,4 @@
-Attribute VB_Name = "TestclsTrc"
+Attribute VB_Name = "mTestclsTrc"
 Option Explicit
 ' -----------------------------------------------------------------------
 ' Standard Module TestclsTrc: Provides all test obligatory being executed
@@ -6,7 +6,7 @@ Option Explicit
 '
 ' Uses (for test only): mBasic, fMsg/mMsg, mErH, clsTrc
 '
-' W. Rauschenberger Berlin June 2013
+' W. Rauschenberger Berlin June 2033
 ' -----------------------------------------------------------------------
 Private FSo         As New FileSystemObject
 
@@ -28,9 +28,9 @@ Private Sub BoC(ByVal b_id As String, _
 ' Obligatory copy Private for any VB-Component using the service but not having
 ' the mBasic common component installed.
 ' ------------------------------------------------------------------------------
-#If mTrc = 1 Then         ' when mTrc is installed and active
+#If mTrc Then         ' when mTrc is installed and active
     mTrc.BoC b_id, b_args
-#ElseIf clsTrc = 1 Then   ' when clsTrc is installed and active
+#ElseIf clsTrc Then   ' when clsTrc is installed and active
     Trc.BoC b_id, b_args
 #End If
 End Sub
@@ -75,11 +75,11 @@ Private Sub EoP(ByVal e_proc As String, _
 ' Obligatory copy Private for any VB-Component using the service but not having
 ' the mBasic common component installed.
 ' ------------------------------------------------------------------------------
-#If mErH = 1 Then          ' serves the mTrc/clsTrc when installed and active
+#If mErH Then          ' serves the mTrc/clsTrc when installed and active
     mErH.EoP e_proc, e_args
-#ElseIf clsTrc = 1 Then ' when only clsTrc is installed and active
+#ElseIf clsTrc Then ' when only clsTrc is installed and active
     Trc.EoP e_proc, e_args
-#ElseIf mTrc = 1 Then   ' when only mTrc is installed and activate
+#ElseIf mTrc Then   ' when only mTrc is installed and activate
     mTrc.EoP e_proc, e_args
 #End If
 End Sub
@@ -101,7 +101,7 @@ Private Function ErrMsg(ByVal err_source As String, _
 '               to turn them into a negative and in the error message back into
 '               its origin positive number.
 '
-' W. Rauschenberger Berlin, Jan 2024
+' W. Rauschenberger Berlin, Jan 2014
 ' See: https://github.com/warbe-maker/VBA-Error
 ' ------------------------------------------------------------------------------
 #If mErH = 1 Then
@@ -167,7 +167,7 @@ xt:
 End Function
 
 Private Function ErrSrc(ByVal s As String) As String
-    ErrSrc = "TestclsTrc." & s
+    ErrSrc = "mTestclsTrc." & s
 End Function
 
 Public Sub Regression_Test()
@@ -185,12 +185,15 @@ Public Sub Regression_Test()
     
     On Error GoTo eh
     
+    
     Set Trc = Nothing
     Set Trc = New clsTrc
     mErH.Regression = True
     Set TestAid = Nothing: Set TestAid = New clsTestAid
     TestAid.ModeRegression = True
-    
+    TestAid.TestedComp = "clsTrc"
+        
+    Prepare "clsTrc"
     '~~ Initialization of a new Trace Log File for this Regression test
     With Trc
         .Title = "Regression Test Class Module clsTrc"
@@ -198,11 +201,10 @@ Public Sub Regression_Test()
     End With
     
     BoP ErrSrc(PROC), "arg1, arg2"
-    TestclsTrc.Test_00_DefaultVersusSpecifiedLogFile
-    TestclsTrc.Test_01_BoP_EoP
-    TestclsTrc.Test_02_Execution_Trace
+    mTestclsTrc.Test_01_Execution_Trace
     Trc.LogInfo = "Test Log-Info explicitly provided"
-    Test_03_Execution_Trace_With_Error
+    Test_02_Execution_Trace_With_Error
+    mTestclsTrc.Test_03_BoP_EoP
 
 xt: EoP ErrSrc(PROC), "arg1, arg2"
     mErH.Regression = False
@@ -215,12 +217,17 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
+Public Function CondCompArgGet() As String
+    CondCompArgGet = Application.Get
+End Function
+
 Public Sub Test_00_DefaultVersusSpecifiedLogFile()
     Const PROC = "Test_00_DefaultVersusSpecifiedLogFile"
     
     Dim s As String
-
-    Prepare
+    
+    s = TestAid.TestFolder & "\TestExecclsTrc.log"
+    Prepare "clsTrc"
     With TestAid
         Set Trc = Nothing: Set Trc = New clsTrc
         .TestNumber = "00-1"
@@ -231,7 +238,6 @@ Public Sub Test_00_DefaultVersusSpecifiedLogFile()
         
         .TestNumber = "00-2"
         .TestDscrpt = "NewFile without having specified one - the full name is the default file name"
-        s = .TestFolder & "\ExecTrace.log"
         If FSo.FileExists(s) Then FSo.DeleteFile s
         .ResultExpected = s
         Trc.NewFile s
@@ -242,8 +248,6 @@ Public Sub Test_00_DefaultVersusSpecifiedLogFile()
         .TestNumber = "00-3"
         .TestDscrpt = "Start with default, change to specified, default is deleted when existing"
         Trc.NewFile ' becomes the default file
-        s = .TestFolder & "\TestExecTrace.log"
-        .TestFile = s
         .ResultExpected = s
         Trc.FileFullName = s
         .Result = Trc.FileFullName
@@ -257,20 +261,20 @@ xt: TestAid.EndOfTest
 
 End Sub
 
-Public Sub Test_01_BoP_EoP()
+Public Sub Test_03_BoP_EoP()
 ' ---------------------------------------------------
 ' White-box- and regression-test procedure obligatory
 ' to be performed after any code modification.
 ' ---------------------------------------------------
-    Const PROC = "Test_01_BoP_EoP"
+    Const PROC = "Test_03_BoP_EoP"
     
-    Prepare
+    Prepare "clsTrc"
     
     BoP ErrSrc(PROC)
     With TestAid
-        .TestNumber = "01-1"
+        .TestNumber = "03-1"
         .TestDscrpt = "BoP/EoP missing"
-        Test_01_BoP_EoP_TestProc_01a_missing_BoP
+        Test_03_BoP_EoP_TestProc_03a_missing_BoP
         ' ==============================================================================
     
     End With
@@ -285,17 +289,17 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_01_BoP_EoP_TestProc_01a_missing_BoP()
+Public Sub Test_03_BoP_EoP_TestProc_03a_missing_BoP()
 ' -----------------------------------------------------------
 ' The error handler is trying its very best not to confuse
 ' with unpaired BoP/EoP code lines. However, it depends at
 ' which level this is the case.
 ' -----------------------------------------------------------
-    Const PROC = "Test_01_BoP_EoP_TestProc_01a_missing_BoP"
+    Const PROC = "Test_03_BoP_EoP_TestProc_03a_missing_BoP"
     
 '    BoP ErrSrc(PROC)
-    Test_01_BoP_EoP_TestProc_01b_paired_BoP_EoP
-    Test_01_BoP_EoP_TestProc_01d_missing_EoP
+    Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP
+    Test_03_BoP_EoP_TestProc_03d_missing_EoP
 
 xt: EoP ErrSrc(PROC)
     Exit Sub
@@ -306,12 +310,12 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_01_BoP_EoP_TestProc_01b_paired_BoP_EoP()
-    Const PROC = "Test_01_BoP_EoP_TestProc_01b_paired_BoP_EoP"
+Public Sub Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP()
+    Const PROC = "Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP"
     On Error GoTo eh
     
     BoP ErrSrc(PROC)
-    Test_01_BoP_EoP_TestProc_01c_paired_BoP_EoP
+    Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP
     
 xt: EoP ErrSrc(PROC)
     Exit Sub
@@ -322,8 +326,8 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_01_BoP_EoP_TestProc_01c_paired_BoP_EoP()
-    Const PROC = "Test_01_BoP_EoP_TestProc_01c_paired_BoP_EoP"
+Public Sub Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP()
+    Const PROC = "Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP"
     
     On Error GoTo eh
     
@@ -339,13 +343,13 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_01_BoP_EoP_TestProc_01d_missing_EoP()
-    Const PROC = "Test_01_BoP_EoP_TestProc_01d_missing_EoP"
+Public Sub Test_03_BoP_EoP_TestProc_03d_missing_EoP()
+    Const PROC = "Test_03_BoP_EoP_TestProc_03d_missing_EoP"
     
     On Error GoTo eh
     
     BoP ErrSrc(PROC)
-    Test_01_BoP_EoP_TestProc_01e_BoC_EoC
+    Test_03_BoP_EoP_TestProc_03e_BoC_EoC
     
 xt: Exit Sub
 
@@ -355,8 +359,8 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_01_BoP_EoP_TestProc_01e_BoC_EoC()
-    Const PROC = "Test_01_BoP_EoP_TestProc_01e_BoC_EoC"
+Public Sub Test_03_BoP_EoP_TestProc_03e_BoC_EoC()
+    Const PROC = "Test_03_BoP_EoP_TestProc_03e_BoC_EoC"
     
     On Error GoTo eh
     
@@ -377,7 +381,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_02_Execution_Trace()
+Public Sub Test_01_Execution_Trace()
 ' ------------------------------------------------------
 ' White-box- and regression-test procedure obligatory
 ' to be performed after any code modification.
@@ -385,15 +389,15 @@ Public Sub Test_02_Execution_Trace()
 ' requires a conditional compile argument ExecTrace = 1.
 ' ------------------------------------------------------
     
-    Const PROC = "Test_02_Execution_Trace"
+    Const PROC = "Test_01_Execution_Trace"
     On Error GoTo eh
     
-    Prepare
+    Prepare "clsTrc"
     BoP ErrSrc(PROC)
     With TestAid
-        .TestNumber = "02-1"
+        .TestNumber = "01-1"
         .TestDscrpt = "Full trace test"
-        Test_02_Execution_Trace_TestProc_02a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
+        Test_01_Execution_Trace_TestProc_01a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
     End With
     
 xt: EoP ErrSrc(PROC)
@@ -406,17 +410,17 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Private Sub Test_02_Execution_Trace_TestProc_02a(ByVal arg1 As Variant, _
+Private Sub Test_01_Execution_Trace_TestProc_01a(ByVal arg1 As Variant, _
                                                  ByVal arg2 As Variant, _
                                                  ByVal arg3 As Variant)
 
     On Error GoTo eh
-    Const PROC = "Test_02_Execution_Trace_TestProc_02a"
+    Const PROC = "Test_01_Execution_Trace_TestProc_01a"
     
     BoP ErrSrc(PROC), arg1 & ", arg2=" & arg2 & ", " & arg3
     Trc.BoC ErrSrc(PROC) & " call of 6b and 6c"
-    Test_02_Execution_Trace_TestProc_02b
-    Test_02_Execution_Trace_TestProc_02c
+    Test_01_Execution_Trace_TestProc_01b
+    Test_01_Execution_Trace_TestProc_01c
     Trc.EoC ErrSrc(PROC) & " call of 6b and 6c"
     
 xt: EoP ErrSrc(PROC)
@@ -428,9 +432,9 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Private Sub Test_02_Execution_Trace_TestProc_02b()
+Private Sub Test_01_Execution_Trace_TestProc_01b()
     
-    Const PROC = "Test_02_Execution_Trace_TestProc_02b"
+    Const PROC = "Test_01_Execution_Trace_TestProc_01b"
     On Error GoTo eh
 
     BoP ErrSrc(PROC)
@@ -450,9 +454,9 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_02_Execution_Trace_TestProc_02c()
+Public Sub Test_01_Execution_Trace_TestProc_01c()
     
-    Const PROC = "Test_02_Execution_Trace_TestProc_02c"
+    Const PROC = "Test_01_Execution_Trace_TestProc_01c"
     On Error GoTo eh
 
     BoP ErrSrc(PROC)
@@ -466,7 +470,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_03_Execution_Trace_With_Error()
+Public Sub Test_02_Execution_Trace_With_Error()
 ' ------------------------------------------------------
 ' White-box- and regression-test procedure obligatory
 ' to be performed after any code modification.
@@ -474,15 +478,15 @@ Public Sub Test_03_Execution_Trace_With_Error()
 ' requires a conditional compile argument ExecTrace = 1.
 ' ------------------------------------------------------
     
-    Const PROC = "Test_03_Execution_Trace_With_Error"
+    Const PROC = "Test_02_Execution_Trace_With_Error"
     On Error GoTo eh
     
-    Prepare
+    Prepare "clsTrc"
     BoP ErrSrc(PROC)
     With TestAid
-        .TestNumber = "03-1"
+        .TestNumber = "02-1"
         .TestDscrpt = "Execution trace with error"
-        Test_03_Execution_Trace_With_Error_TestProc_02a
+        Test_02_Execution_Trace_With_Error_TestProc_01a
     End With
     
 xt: EoP ErrSrc(PROC)
@@ -495,15 +499,15 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Private Sub Test_03_Execution_Trace_With_Error_TestProc_02a()
+Private Sub Test_02_Execution_Trace_With_Error_TestProc_01a()
 
     On Error GoTo eh
-    Const PROC = "Test_03_Execution_Trace_With_Error_TestProc_02a"
+    Const PROC = "Test_02_Execution_Trace_With_Error_TestProc_01a"
     
     BoP ErrSrc(PROC)
     Trc.BoC ErrSrc(PROC) & " call of 6b and 6c"
-    Test_03_Execution_Trace_With_Error_TestProc_02b
-    Test_03_Execution_Trace_With_Error_TestProc_02c
+    Test_02_Execution_Trace_With_Error_TestProc_01b
+    Test_02_Execution_Trace_With_Error_TestProc_01c
     Trc.EoC ErrSrc(PROC) & " call of 6b and 6c"
 
 xt: EoP ErrSrc(PROC)
@@ -515,9 +519,9 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Private Sub Test_03_Execution_Trace_With_Error_TestProc_02b()
+Private Sub Test_02_Execution_Trace_With_Error_TestProc_01b()
     
-    Const PROC = "Test_03_Execution_Trace_With_Error_TestProc_02b"
+    Const PROC = "Test_02_Execution_Trace_With_Error_TestProc_01b"
     On Error GoTo eh
 
     BoP ErrSrc(PROC)
@@ -537,9 +541,9 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Private Sub Test_03_Execution_Trace_With_Error_TestProc_02c()
+Private Sub Test_02_Execution_Trace_With_Error_TestProc_01c()
     
-    Const PROC = "Test_03_Execution_Trace_With_Error_TestProc_02c"
+    Const PROC = "Test_02_Execution_Trace_With_Error_TestProc_01c"
     On Error GoTo eh
 
     BoP ErrSrc(PROC)

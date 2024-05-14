@@ -9,6 +9,8 @@ Option Explicit
 '
 ' W. Rauschenberger Berlin June 2023
 ' -----------------------------------------------------------------------
+Private TestAid     As New clsTestAid
+Private FSo         As New FileSystemObject
 
 Private Function AppErr(ByVal app_err_no As Long) As Long
 ' ------------------------------------------------------------------------------
@@ -21,9 +23,160 @@ Private Function AppErr(ByVal app_err_no As Long) As Long
     If app_err_no >= 0 Then AppErr = app_err_no + vbObjectError Else AppErr = Abs(app_err_no - vbObjectError)
 End Function
 
-Private Function ErrSrc(ByVal s As String) As String
-    ErrSrc = "TestmTrc." & s
+Private Sub BoC(ByVal b_id As String, _
+       Optional ByVal b_args As String = vbNullString)
+' ------------------------------------------------------------------------------
+' Common 'Bnd-of-Code' interface for the Common VBA Execution Trace Service.
+' Obligatory copy Private for any VB-Component using the service but not having
+' the mBasic common component installed.
+' ------------------------------------------------------------------------------
+#If mTrc = 1 Then         ' when mTrc is installed and active
+    mTrc.BoC b_id, b_args
+#ElseIf clsTrc = 1 Then   ' when clsTrc is installed and active
+    Trc.BoC b_id, b_args
+#End If
+End Sub
+
+Private Sub BoP(ByVal b_proc As String, _
+      Optional ByVal b_args As String = vbNullString)
+' ------------------------------------------------------------------------------
+' Common 'Begin of Procedure' interface serving the 'Common VBA Error Services'
+' and - if not installed/activated the 'Common VBA Execution Trace Service'.
+' Obligatory copy Private for any VB-Component using the service but not having
+' the mBasic common component installed.
+' ------------------------------------------------------------------------------
+#If mErH Then          ' serves the mTrc/clsTrc when installed and active
+    mErH.BoP b_proc, b_args
+#ElseIf clsTrc Then ' when only clsTrc is installed and active
+    If Trc Is Nothing Then Set Trc = New clsTrc
+    Trc.BoP b_proc, b_args
+#ElseIf mTrc Then   ' when only mTrc is installed and activate
+    mTrc.BoP b_proc, b_args
+#End If
+End Sub
+
+Private Sub EoC(ByVal e_id As String, _
+      Optional ByVal e_args As String = vbNullString)
+' ------------------------------------------------------------------------------
+' Common 'End-of-Code' interface for the Common VBA Execution Trace Service.
+' Obligatory copy Private for any VB-Component using the service but not having
+' the mBasic common component installed.
+' ------------------------------------------------------------------------------
+#If mTrc = 1 Then         ' when mTrc is installed and active
+    mTrc.EoC e_id, e_args
+#ElseIf clsTrc = 1 Then   ' when clsTrc is installed and active
+    Trc.EoC e_id, e_args
+#End If
+End Sub
+
+Private Sub EoP(ByVal e_proc As String, _
+      Optional ByVal e_args As String = vbNullString)
+' ------------------------------------------------------------------------------
+' Common 'Begin of Procedure' interface serving the 'Common VBA Error Services'
+' and - if not installed/activated the 'Common VBA Execution Trace Service'.
+' Obligatory copy Private for any VB-Component using the service but not having
+' the mBasic common component installed.
+' ------------------------------------------------------------------------------
+#If mErH = 1 Then          ' serves the mTrc/clsTrc when installed and active
+    mErH.EoP e_proc, e_args
+#ElseIf clsTrc = 1 Then ' when only clsTrc is installed and active
+    Trc.EoP e_proc, e_args
+#ElseIf mTrc = 1 Then   ' when only mTrc is installed and activate
+    mTrc.EoP e_proc, e_args
+#End If
+End Sub
+
+Private Function ErrMsg(ByVal err_source As String, _
+               Optional ByVal err_no As Long = 0, _
+               Optional ByVal err_dscrptn As String = vbNullString, _
+               Optional ByVal err_line As Long = 0) As Variant
+' ------------------------------------------------------------------------------
+' Universal error message display service which displays:
+' - a debugging option button
+' - an "About:" section when the err_dscrptn has an additional string
+'   concatenated by two vertical bars (||)
+' - the error message either by means of the Common VBA Message Service
+'   (fMsg/mMsg) when installed (indicated by Cond. Comp. Arg. `mMsg = 1` or by
+'   means of the VBA.MsgBox in case not.
+'
+' Uses: AppErr  For programmed application errors (Err.Raise AppErr(n), ....)
+'               to turn them into a negative and in the error message back into
+'               its origin positive number.
+'
+' W. Rauschenberger Berlin, Jan 2024
+' See: https://github.com/warbe-maker/VBA-Error
+' ------------------------------------------------------------------------------
+#If mErH = 1 Then
+    '~~ When Common VBA Error Services (mErH) is availabel in the VB-Project
+    '~~ (which includes the mMsg component) the mErh.ErrMsg service is invoked.
+    ErrMsg = mErH.ErrMsg(err_source, err_no, err_dscrptn, err_line): GoTo xt
+    GoTo xt
+#ElseIf mMsg = 1 Then
+    '~~ When (only) the Common Message Service (mMsg, fMsg) is available in the
+    '~~ VB-Project, mMsg.ErrMsg is invoked for the display of the error message.
+    ErrMsg = mMsg.ErrMsg(err_source, err_no, err_dscrptn, err_line): GoTo xt
+    GoTo xt
+#End If
+    '~~ When neither of the Common Component is available in the VB-Project
+    '~~ the error message is displayed by means of the VBA.MsgBox
+    Dim ErrBttns    As Variant
+    Dim ErrAtLine   As String
+    Dim ErrDesc     As String
+    Dim ErrLine     As Long
+    Dim ErrNo       As Long
+    Dim ErrSrc      As String
+    Dim ErrText     As String
+    Dim ErrTitle    As String
+    Dim ErrType     As String
+    Dim ErrAbout    As String
+        
+    '~~ Obtain error information from the Err object for any argument not provided
+    If err_no = 0 Then err_no = Err.Number
+    If err_line = 0 Then ErrLine = Erl
+    If err_source = vbNullString Then err_source = Err.Source
+    If err_dscrptn = vbNullString Then err_dscrptn = Err.Description
+    If err_dscrptn = vbNullString Then err_dscrptn = "--- No error description available ---"
+    '~~ About
+    ErrDesc = err_dscrptn
+    If InStr(err_dscrptn, "||") <> 0 Then
+        ErrDesc = Split(err_dscrptn, "||")(0)
+        ErrAbout = Split(err_dscrptn, "||")(1)
+    End If
+    '~~ Type of error
+    If err_no < 0 Then
+        ErrType = "Application Error ": ErrNo = AppErr(err_no)
+    Else
+        ErrType = "VB Runtime Error ":  ErrNo = err_no
+        If err_dscrptn Like "*DAO*" _
+        Or err_dscrptn Like "*ODBC*" _
+        Or err_dscrptn Like "*Oracle*" _
+        Then ErrType = "Database Error "
+    End If
+    
+    '~~ Title
+    If err_source <> vbNullString Then ErrSrc = " in: """ & err_source & """"
+    If err_line <> 0 Then ErrAtLine = " at line " & err_line
+    ErrTitle = Replace(ErrType & ErrNo & ErrSrc & ErrAtLine, "  ", " ")
+    '~~ Description
+    ErrText = "Error: " & vbLf & ErrDesc
+    '~~ About
+    If ErrAbout <> vbNullString Then ErrText = ErrText & vbLf & vbLf & "About: " & vbLf & ErrAbout
+    
+    ErrBttns = vbYesNo
+    ErrText = ErrText & vbLf & vbLf & "Debugging:" & vbLf & "Yes    = Resume Error Line" & vbLf & "No     = Terminate"
+    ErrMsg = MsgBox(Title:=ErrTitle, Prompt:=ErrText, Buttons:=ErrBttns)
+xt:
 End Function
+
+Private Function ErrSrc(ByVal s As String) As String
+    ErrSrc = "TestclsTrc." & s
+End Function
+
+Private Sub Prepare()
+    If Not TestAid.ModeRegression Then
+        mTrc.NewFile TestAid.TestFolder & "\TestExecTrace.log"
+    End If
+End Sub
 
 Public Sub Regression_Test()
 ' ----------------------------------------------------------------------------
@@ -40,215 +193,195 @@ Public Sub Regression_Test()
     
     On Error GoTo eh
     
-    '~~ Initializations (must be done prior the first BoP !)
-    mTrc.FileName = "RegressionTest_mTrc.ExecTrace.log"
-    mTrc.Title = "Regression Test Standard Module mTrc"
-    mTrc.NewFile
     mErH.Regression = True
-        
-    mBasic.BoP ErrSrc(PROC), "arg1, arg2"
-    Regression_Test_03_Execution_Trace
+    Set TestAid = Nothing: Set TestAid = New clsTestAid
+    TestAid.ModeRegression = True
+    
+    '~~ Initialization of a new Trace Log File for this Regression test
+    mTrc.NewFile TestAid.TestFolder & "\RegressionTest_mTrc.log"
+    mTrc.Title = "Regression Test Class Module clsTrc"
+    
+    BoP ErrSrc(PROC), "arg1, arg2"
+    TestclsTrc.Test_00_DefaultVersusSpecifiedLogFile
+    TestclsTrc.Test_01_BoP_EoP
+    TestclsTrc.Test_02_Execution_Trace
     mTrc.LogInfo = "Test Log-Info explicitly provided"
-    Regression_Test_03_Execution_Trace_With_Error
+    Test_03_Execution_Trace_With_Error
 
-xt: mBasic.EoP ErrSrc(PROC), "arg1, arg2"
+xt: EoP ErrSrc(PROC), "arg1, arg2"
     mErH.Regression = False
     mTrc.Dsply
     Exit Sub
     
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Public Sub Regression_Test_01_1_BoP_missing()
-' ---------------------------------------------------
-' About this test:
-' Because BoP/EoP is inconsistent, the EoP is ignored and the called procedure
-' which has consistent BoP/EoP statements is execution traced
-' ---------------------------------------------------
-    Const PROC = "Regression_Test_01_1_BoP_missing"
+Public Sub Test_00_DefaultVersusSpecifiedLogFile()
+    Const PROC = "Test_00_DefaultVersusSpecifiedLogFile"
     
-'    mBasic.BoP ErrSrc(PROC) this procedure will not be recognized as "Entry Procedure" ...
-    Regression_Test_01_1_BoP_missing_TestProc_1a ' ... but this one will be instead
+    Dim s As String
+
+    Prepare
+    With TestAid
+        .TestNumber = "00-1"
+        .TestDscrpt = "No file specified rsults in default name"
+        .ResultExpected = mTrc.DefaultFileName
+        .Result = mTrc.FileFullName
+        ' ==============================================================================
+        
+        .TestNumber = "00-2"
+        .TestDscrpt = "NewFile without having specified one - the full name is the default file name"
+        s = .TestFolder & "\ExecTrace.log"
+        If FSo.FileExists(s) Then FSo.DeleteFile s
+        .ResultExpected = s
+        mTrc.NewFile s
+        .TestFile = s
+        .Result = mTrc.FileFullName
+        ' ==============================================================================
+        
+        .TestNumber = "00-3"
+        .TestDscrpt = "Start with default, change to specified, default is deleted when existing"
+        mTrc.NewFile ' becomes the default file
+        s = .TestFolder & "\TestExecTrace.log"
+        .TestFile = s
+        .ResultExpected = s
+        mTrc.FileFullName = s
+        .Result = mTrc.FileFullName
+        ' ==============================================================================
     
-xt: mBasic.EoP ErrSrc(PROC)
+        .TestFilesRemove
+    End With
+    
+xt: EoP ErrSrc(PROC)
+    TestAid.EndOfTest
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
 End Sub
 
-Private Sub Regression_Test_01_1_BoP_missing_TestProc_1a()
-' -----------------------------------------------------------
-' The error handler is trying its very best not to confuse
-' with unpaired BoP/EoP code lines. However, it depends at
-' which level this is the case.
-' -----------------------------------------------------------
-    Const PROC = "Regression_Test_01_1_BoP_missing_TestProc_1a"
-    
-    mBasic.BoP ErrSrc(PROC)
-xt: mBasic.EoP ErrSrc(PROC)
-    Exit Sub
-
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Public Sub Regression_Test_01_2_BoP_missing()
-' ---------------------------------------------------
-' White-box- and regression-test procedure obligatory
-' to be performed after any code modification.
-' ---------------------------------------------------
-    Const PROC = "Regression_Test_01_2_BoP_missing"
-    
-    mBasic.BoP ErrSrc(PROC)
-    Regression_Test_01_2_BoP_missing_TestProc_1a ' ... but this one will be instead
-    
-xt: mBasic.EoP ErrSrc(PROC)
-    Exit Sub
-
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Private Sub Regression_Test_01_2_BoP_missing_TestProc_1a()
-' -----------------------------------------------------------
-' The error handler is trying its very best not to confuse
-' with unpaired BoP/EoP code lines. However, it depends at
-' which level this is the case.
-' -----------------------------------------------------------
-    Const PROC = "Regression_Test_01_2_BoP_missing_TestProc_1a"
-    
-'    mBasic.BoP ErrSrc(PROC)
-xt: mBasic.EoP ErrSrc(PROC)
-    Exit Sub
-
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Public Sub Regression_Test_02_BoP_EoP()
+Public Sub Test_01_BoP_EoP()
 ' ---------------------------------------------------
 ' White-box- and regression-test procedure obligatory
 ' to be performed after any code modification.
 ' ---------------------------------------------------
-    Const PROC = "Regression_Test_02_BoP_EoP"
+    Const PROC = "Test_01_BoP_EoP"
     
-    mBasic.BoP ErrSrc(PROC)
-    Regression_Test_02_BoP_EoP_TestProc_1a_missing_BoP
+    Prepare
     
-xt: mBasic.EoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
+    With TestAid
+        .TestNumber = "01-1"
+        .TestDscrpt = "BoP/EoP missing"
+        Test_01_BoP_EoP_TestProc_01a_missing_BoP
+        ' ==============================================================================
+    
+    End With
+    
+xt: EoP ErrSrc(PROC)
+    TestAid.EndOfTest
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_02_BoP_EoP_TestProc_1a_missing_BoP()
+Public Sub Test_01_BoP_EoP_TestProc_01a_missing_BoP()
 ' -----------------------------------------------------------
 ' The error handler is trying its very best not to confuse
 ' with unpaired BoP/EoP code lines. However, it depends at
 ' which level this is the case.
 ' -----------------------------------------------------------
-    Const PROC = "Regression_Test_02_BoP_EoP_TestProc_1a_missing_BoP"
+    Const PROC = "Test_01_BoP_EoP_TestProc_01a_missing_BoP"
     
-'    mBasic.BoP ErrSrc(PROC)
-    Regression_Test_02_BoP_EoP_TestProc_1b_paired_BoP_EoP
-    Regression_Test_02_BoP_EoP_TestProc_1d_missing_EoP
+'    BoP ErrSrc(PROC)
+    Test_01_BoP_EoP_TestProc_01b_paired_BoP_EoP
+    Test_01_BoP_EoP_TestProc_01d_missing_EoP
 
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_02_BoP_EoP_TestProc_1b_paired_BoP_EoP()
-    Const PROC = "Regression_Test_02_BoP_EoP_TestProc_1b_paired_BoP_EoP"
+Public Sub Test_01_BoP_EoP_TestProc_01b_paired_BoP_EoP()
+    Const PROC = "Test_01_BoP_EoP_TestProc_01b_paired_BoP_EoP"
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
-    Regression_Test_02_BoP_EoP_TestProc_1c_paired_BoP_EoP
+    BoP ErrSrc(PROC)
+    Test_01_BoP_EoP_TestProc_01c_paired_BoP_EoP
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
     
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_02_BoP_EoP_TestProc_1c_paired_BoP_EoP()
-    Const PROC = "Regression_Test_02_BoP_EoP_TestProc_1c_paired_BoP_EoP"
+Public Sub Test_01_BoP_EoP_TestProc_01c_paired_BoP_EoP()
+    Const PROC = "Test_01_BoP_EoP_TestProc_01c_paired_BoP_EoP"
     
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
-    mBasic.BoC ErrSrc(PROC) & " trace of some code lines (EoC statement missing!)"
+    BoP ErrSrc(PROC)
+    BoC ErrSrc(PROC) & " trace of some code lines (EoC statement missing!)"
 
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
     
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_02_BoP_EoP_TestProc_1d_missing_EoP()
-    Const PROC = "Regression_Test_02_BoP_EoP_TestProc_1d_missing_EoP"
+Public Sub Test_01_BoP_EoP_TestProc_01d_missing_EoP()
+    Const PROC = "Test_01_BoP_EoP_TestProc_01d_missing_EoP"
     
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
-    Regression_Test_02_BoP_EoP_TestProc_1e_BoC_EoC
+    BoP ErrSrc(PROC)
+    Test_01_BoP_EoP_TestProc_01e_BoC_EoC
     
 xt: Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_02_BoP_EoP_TestProc_1e_BoC_EoC()
-    Const PROC = "Regression_Test_02_BoP_EoP_TestProc_1e_BoC_EoC"
+Public Sub Test_01_BoP_EoP_TestProc_01e_BoC_EoC()
+    Const PROC = "Test_01_BoP_EoP_TestProc_01e_BoC_EoC"
     
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
         
     Dim i As Long: Dim j As Long: j = 10000000
-    mBasic.BoC PROC & " code trace empty loop 1 to " & j
+    BoC PROC & " code trace empty loop 1 to " & j
     For i = 1 To j
     Next i
-    mBasic.EoC PROC & " code trace empty loop 1 to " & j ' !!! the string must match with the BoC statement !!!
+    EoC PROC & " code trace empty loop 1 to " & j ' !!! the string must match with the BoC statement !!!
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Public Sub Regression_Test_03_Execution_Trace()
+Public Sub Test_02_Execution_Trace()
 ' ------------------------------------------------------
 ' White-box- and regression-test procedure obligatory
 ' to be performed after any code modification.
@@ -256,49 +389,55 @@ Public Sub Regression_Test_03_Execution_Trace()
 ' requires a conditional compile argument ExecTrace = 1.
 ' ------------------------------------------------------
     
-    Const PROC = "Regression_Test_03_Execution_Trace"
+    Const PROC = "Test_02_Execution_Trace"
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
-    Regression_Test_03_Execution_Trace_TestProc_6a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
-
-xt: mBasic.EoP ErrSrc(PROC)
+    Prepare
+    BoP ErrSrc(PROC)
+    With TestAid
+        .TestNumber = "02-1"
+        .TestDscrpt = "Full trace test"
+        Test_02_Execution_Trace_TestProc_02a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
+    End With
+    
+xt: EoP ErrSrc(PROC)
+    TestAid.EndOfTest
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_03_Execution_Trace_TestProc_6a(ByVal arg1 As Variant, _
-                                               ByVal arg2 As Variant, _
-                                               ByVal arg3 As Variant)
+Private Sub Test_02_Execution_Trace_TestProc_02a(ByVal arg1 As Variant, _
+                                                 ByVal arg2 As Variant, _
+                                                 ByVal arg3 As Variant)
 
     On Error GoTo eh
-    Const PROC = "Regression_Test_03_Execution_Trace_TestProc_6a"
+    Const PROC = "Test_02_Execution_Trace_TestProc_02a"
     
-    mBasic.BoP ErrSrc(PROC), arg1 & " arg2=" & arg2 & ", " & arg3
-    mBasic.BoC ErrSrc(PROC) & " call of 6b and 6c"
-    Regression_Test_03_Execution_Trace_TestProc_6b
-    Regression_Test_03_Execution_Trace_TestProc_6c
-    mBasic.EoC ErrSrc(PROC) & " call of 6b and 6c"
+    BoP ErrSrc(PROC), arg1 & ", arg2=" & arg2 & ", " & arg3
+    mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
+    Test_02_Execution_Trace_TestProc_02b
+    Test_02_Execution_Trace_TestProc_02c
+    mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_03_Execution_Trace_TestProc_6b()
+Private Sub Test_02_Execution_Trace_TestProc_02b()
     
-    Const PROC = "Regression_Test_03_Execution_Trace_TestProc_6b"
+    Const PROC = "Test_02_Execution_Trace_TestProc_02b"
     On Error GoTo eh
 
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
     
     Dim i As Long
     Dim s As String
@@ -306,32 +445,32 @@ Private Sub Regression_Test_03_Execution_Trace_TestProc_6b()
         s = Application.Path ' to produce some execution time
     Next i
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_03_Execution_Trace_TestProc_6c()
+Public Sub Test_02_Execution_Trace_TestProc_02c()
     
-    Const PROC = "Regression_Test_03_Execution_Trace_TestProc_6c"
+    Const PROC = "Test_02_Execution_Trace_TestProc_02c"
     On Error GoTo eh
 
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
 
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Public Sub Regression_Test_03_Execution_Trace_With_Error()
+Public Sub Test_03_Execution_Trace_With_Error()
 ' ------------------------------------------------------
 ' White-box- and regression-test procedure obligatory
 ' to be performed after any code modification.
@@ -339,47 +478,53 @@ Public Sub Regression_Test_03_Execution_Trace_With_Error()
 ' requires a conditional compile argument ExecTrace = 1.
 ' ------------------------------------------------------
     
-    Const PROC = "Regression_Test_03_Execution_Trace_With_Error"
+    Const PROC = "Test_03_Execution_Trace_With_Error"
     On Error GoTo eh
     
-    mBasic.BoP ErrSrc(PROC)
-    Regression_Test_03_Execution_Trace_With_Error_TestProc_6a
+    Prepare
+    BoP ErrSrc(PROC)
+    With TestAid
+        .TestNumber = "03-1"
+        .TestDscrpt = "Execution trace with error"
+        Test_03_Execution_Trace_With_Error_TestProc_02a
+    End With
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
+    TestAid.EndOfTest
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_03_Execution_Trace_With_Error_TestProc_6a()
+Private Sub Test_03_Execution_Trace_With_Error_TestProc_02a()
 
     On Error GoTo eh
-    Const PROC = "Regression_Test_03_Execution_Trace_With_Error_TestProc_6a"
+    Const PROC = "Test_03_Execution_Trace_With_Error_TestProc_02a"
     
-    mBasic.BoP ErrSrc(PROC)
-    mBasic.BoC ErrSrc(PROC) & " call of 6b and 6c"
-    Regression_Test_03_Execution_Trace_With_Error_TestProc_6b
-    Regression_Test_03_Execution_Trace_With_Error_TestProc_6c
-    mBasic.EoC ErrSrc(PROC) & " call of 6b and 6c"
+    BoP ErrSrc(PROC)
+    mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
+    Test_03_Execution_Trace_With_Error_TestProc_02b
+    Test_03_Execution_Trace_With_Error_TestProc_02c
+    mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
 
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_03_Execution_Trace_With_Error_TestProc_6b()
+Private Sub Test_03_Execution_Trace_With_Error_TestProc_02b()
     
-    Const PROC = "Regression_Test_03_Execution_Trace_With_Error_TestProc_6b"
+    Const PROC = "Test_03_Execution_Trace_With_Error_TestProc_02b"
     On Error GoTo eh
 
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
     
     Dim i As Long
     Dim s As String
@@ -387,21 +532,21 @@ Private Sub Regression_Test_03_Execution_Trace_With_Error_TestProc_6b()
         s = Application.Path ' to produce some execution time
     Next i
     
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_03_Execution_Trace_With_Error_TestProc_6c()
+Private Sub Test_03_Execution_Trace_With_Error_TestProc_02c()
     
-    Const PROC = "Regression_Test_03_Execution_Trace_With_Error_TestProc_6c"
+    Const PROC = "Test_03_Execution_Trace_With_Error_TestProc_02c"
     On Error GoTo eh
 
-    mBasic.BoP ErrSrc(PROC)
+    BoP ErrSrc(PROC)
     '~~ The VB Runtime error 6 is anticipated thus regarded asserted
     '~~ when mErH.Regression = True for this test (set with the
     '~~ calling procedure) the display of the error is suspended
@@ -410,45 +555,14 @@ Private Sub Regression_Test_03_Execution_Trace_With_Error_TestProc_6c()
     Dim i As Long
     i = i / 0 ' Error !!!!
 
-xt: mBasic.EoP ErrSrc(PROC)
+xt: EoP ErrSrc(PROC)
     Exit Sub
 
-eh: Select Case mBasic.ErrMsg(ErrSrc(PROC))
+eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
 End Sub
 
-Private Sub Regression_Test_99_DefaultVersusSpecifiedLogFile()
 
-    Dim fso             As New FileSystemObject
-    Dim s               As String
-    Dim sFileName       As String
-    Dim sPath           As String
-    Dim sFileFullName   As String
-    
-    sFileName = fso.GetBaseName(ThisWorkbook.Name) & ".ExecTrace.log"
-    sPath = ThisWorkbook.Path
-    sFileFullName = sPath & "\" & sFileName ' creates the file
-
-    '~~ 1. Defaults
-    mTrc.Initialize ' The way for the Standard Module to provide defaults
-    Debug.Assert mTrc.FileFullName = sFileFullName
-    mTrc.Path = sPath
-    mTrc.FileName = sFileName
-    Debug.Assert mTrc.FileFullName = sFileFullName
-    
-    '~~ 2. NewFile test
-    mTrc.NewFile
-    Debug.Assert fso.FileExists(mTrc.FileFullName)
-    
-    '~~ 3. Go with user-spec log-file (existing default is deleted)
-    mTrc.Initialize ' setup defaults
-    mTrc.FileName = "ExecTrace.My.log"
-    Debug.Assert mTrc.FileFullName = sPath & "\ExecTrace.My.log"
-    Debug.Assert Not fso.FileExists(mTrc.FileFullName)
-        
-    Set fso = Nothing
-    
-End Sub
 
