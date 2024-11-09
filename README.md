@@ -1,26 +1,26 @@
 ## Common VBA Execution Trace Services
 
-Writes records of traced executions of procedures and code snippets to a trace-log-file as shown. Available as a Standard Module or a Class Module (see [Arguments](#arguments-for-either-of-the-two-components) for which one to use).
+Writes records of traced procedure executions and/or code snippets to a trace-log-file. Thereby supports the identification of performance issues and documents execution in general. The services are available as a Standard Module (`mTrc`) or a Class Module (`clsTrc``). See [Arguments](#arguments-for-either-of-the-two-components) for which one to use.
 
 ![](assets/ExecutionTrace.png)
 
 ## Public services
 
-| Service       | Kind&nbsp;[^1]| Purpose                                                                 |
+| Service       | <small>Method<br>Property<br>(r/w)</small>| Purpose                                                                 |
 |---------------|:-----------:|-------------------------------------------------------------------------|
-|_BoC_          | S   | Indicates the **B**egin **o**f a **C**ode sequence to be traced.<br>**Attention:** In order to keep this service optional it is exclusively called via an [BoC Interface](#boceoc-interface) which is to be copied in each component when used.    |
-|_BoP_          | S   | Indicates the **B**egin **o**f the execution trace of a **P**rocedure.<br>**Attention:** In order to keep this service optional it is exclusively called via an [BoP Interface](#bopeop-interface) which is to be copied in each component when used.       |
-|_BoP\_ErH_     | S   | Exclusively used by the _mErH_ module (when installed and activated).   |
-|_Continue_     | S   | May be used when a a user interaction has been completed (e.g. by pressed button of a `VBA.MsgBox`) to continue a _Pause_ed execution trace's time taking.|
-|_Dsply_        | S   | Displays the content of the trace log file. Available only when the mMsg/fMsg modules are installed and this is indicated by the Conditional Compile Argument `mMsg = 1`. Without mMsg/fMsg the trace result log will be viewed with any appropriate text file viewer. |
-|_EoC_          | S   | Indicates the **E**nd **o**f a **C**ode sequence to be traced.<br>**Attention:** In order to keep this service optional it is exclusively called via an [EoC Interface](#boceoc-interface) which is to be copied in each component when used.       |
-|_EoP_          | S   | Indicates the (E)nd **o**f the execution trace of a **P**rocedure.<br>**Attention:** In order to keep this service optional it is exclusively called via an [EoP Interface](#bopeop-interface) which is to be copied in each component when used.           |
-|_Pause_        | S   | May be used when a before a user interaction is requested (e.g. by a `VBA.MsgBox`) to suspend the execution trace's time taking. |
-|_FileName_     | P w | String expression, specifies the name of a desired trace-log-file, defaults to "ExecTrace.log".|
-| _FileFullName_| P w | String expression, specifies the trace-log-file's full name, defaults to `Path & FileName`.|
-|_Path_         | P w | String expression, specifies the folder for the trace-log-file, defaults to `ThisWorkbook.Path`|
-|_LogInfo_      | P w | Adds an entry to the trace log file by considering the current nesting/indentation level. |
-|_Title_        | P w | String expression, specifies the title written to the trace-log-file at the begin and the end of the execution trace (see example above). |
+|`BoC`          | M   | Indicates the **B**egin **o**f a **C**ode sequence to be traced.<br>**Attention:** In order to keep this service optional it is exclusively called via an [BoC Interface](#boceoc-interface) which is to be copied in each component when used.|
+|`BoP`          | M   | Indicates the **B**egin **o**f the execution trace of a **P**rocedure.<br>**Please note:** Because this service is also available with the `mErH` component. When both compomnents are installed `mErH` takes precedence. To manage which one is used BoP has to be called via an [BoP Interface](#bopeop-interface) which decides this based on Conditional Compile Arguments.       |
+|`Continue`     | M   | May be used when a user interaction has been completed (e.g. by pressed button of a `VBA.MsgBox`) to continue a `Pause`ed execution trace's time taking.|
+|`Dsply`        | M   | Displays the content of the trace log file. Available only when the mMsg/fMsg modules are installed and this is indicated by the Conditional Compile Argument `mMsg = 1`. Without mMsg/fMsg the trace result log will be viewed with any appropriate text file viewer. |
+|`EoC`          | M   | Indicates the **E**nd **o**f a **C**ode sequence to be traced.<br>**Please note:** In order to keep this service optional it is exclusively called via an [EoC Interface](#boceoc-interface) which is to be copied in each component when used.|
+|`EoP`          | M   | Indicates the (E)nd **o**f the execution trace of a **P**rocedure.<br>**Attention:** This service is also available with the `mErH` component. When both components are installed `mErH` takes precedence. To manage which one is used `EoP` has to be called via an [EoP Interface](#bopeop-interface) which decides this based on Conditional Compile Arguments. |
+|`Pause`        | M   | May be used when a before a user interaction is requested (e.g. by a `VBA.MsgBox`) to suspend the execution trace's time taking. |
+|`FileBaseName` | r/w | String expression, write only, specifies the execution-trace-log-file's base name, defaults to `ExceTrace`. |
+|`FileExtension`| r/w | String expression, read/write, specifies the log-file's file extension, defaults to `log`|
+|`FileFullName` | r/w | String expression, read/write, write: specifies the full name of the log-file, replaces any defaults (location, base-name, extension; read: returns the joint `FileLocation\FileBaseName.FileExtension`.|
+|`FileLocation` | r/w | String expression, read/write, specifies the log-files location, defaults to the `ActiveWorkbook.Path`.|
+|`LogInfo`      | w | Adds an entry to the trace log file by considering the current nesting/indentation level. |
+|`Title`        | w | String expression, specifies the title written to the trace-log-file at the begin and the end of the execution trace (see example above). |
 
 
 [^1]: S=Sub/Method, P=Property (w=write/Let, r=read/Get)
