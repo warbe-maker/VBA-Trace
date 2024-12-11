@@ -1,12 +1,13 @@
-Attribute VB_Name = "mTestclsTrc"
+Attribute VB_Name = "mTestmTrc"
 Option Explicit
 ' -----------------------------------------------------------------------
-' Standard Module TestclsTrc: Provides all test obligatory being executed
-' =========================== when the clsTrc code is modified.
+' Standard Module TestmTrc: Provides all test obligatory being executed
+' ========================= when the mTrc code is modified.
 '
-' Uses (for test only): mBasic, fMsg/mMsg, mErH, clsTrc
 '
-' W. Rauschenberger Berlin June 2033
+' Uses (for test only): mBasic, fMsg/mMsg, mErH, mTrc
+'
+' W. Rauschenberger Berlin June 2013
 ' -----------------------------------------------------------------------
 Private FSo         As New FileSystemObject
 
@@ -28,9 +29,9 @@ Private Sub BoC(ByVal b_id As String, _
 ' Obligatory copy Private for any VB-Component using the service but not having
 ' the mBasic common component installed.
 ' ------------------------------------------------------------------------------
-#If mTrc Then         ' when mTrc is installed and active
+#If mTrc = 1 Then         ' when mTrc is installed and active
     mTrc.BoC b_id, b_args
-#ElseIf clsTrc Then   ' when clsTrc is installed and active
+#ElseIf clsTrc = 1 Then   ' when clsTrc is installed and active
     Trc.BoC b_id, b_args
 #End If
 End Sub
@@ -75,11 +76,11 @@ Private Sub EoP(ByVal e_proc As String, _
 ' Obligatory copy Private for any VB-Component using the service but not having
 ' the mBasic common component installed.
 ' ------------------------------------------------------------------------------
-#If mErH Then          ' serves the mTrc/clsTrc when installed and active
+#If mErH = 1 Then          ' serves the mTrc/clsTrc when installed and active
     mErH.EoP e_proc, e_args
-#ElseIf clsTrc Then ' when only clsTrc is installed and active
+#ElseIf clsTrc = 1 Then ' when only clsTrc is installed and active
     Trc.EoP e_proc, e_args
-#ElseIf mTrc Then   ' when only mTrc is installed and activate
+#ElseIf mTrc = 1 Then   ' when only mTrc is installed and activate
     mTrc.EoP e_proc, e_args
 #End If
 End Sub
@@ -167,7 +168,7 @@ xt:
 End Function
 
 Private Function ErrSrc(ByVal s As String) As String
-    ErrSrc = "mTestclsTrc." & s
+    ErrSrc = "mTestmTrc." & s
 End Function
 
 Public Sub Regression_Test()
@@ -183,80 +184,77 @@ Public Sub Regression_Test()
 ' ------------------------------------------------------------------------------
     Const PROC = "Regression_Test"
     
+#If mTrc = 1 Then
     On Error GoTo eh
     
-    
-    Set Trc = Nothing
-    Set Trc = New clsTrc
     mErH.Regression = True
     Set TestAid = Nothing: Set TestAid = New clsTestAid
     TestAid.ModeRegression = True
-    TestAid.TestedComp = "clsTrc"
-        
-    Prepare "clsTrc"
+
+    Prepare "mTrc"
     '~~ Initialization of a new Trace Log File for this Regression test
-    With Trc
-        .Title = "Regression Test Class Module clsTrc"
-        .NewFile TestAid.TestFolder & "\RegressionTest_clsTrc.log"
-    End With
+    mTrc.NewFile TestAid.TestFolder & "\RegressionTest_mTrc.log"
+    mTrc.Title = "Regression Test Module mTrc"
     
     BoP ErrSrc(PROC), "arg1, arg2"
-    mTestclsTrc.Test_01_Execution_Trace
-    Trc.LogInfo = "Test Log-Info explicitly provided"
-    Test_02_Execution_Trace_With_Error
-    mTestclsTrc.Test_03_BoP_EoP
+    mTestmTrc.Test_00_DefaultVersusSpecifiedLogFile
+    mTrc.FileFullName = TestAid.TestFolder & "\RegressionTest_mTrc.log"
+    mTestmTrc.Test_01_Execution_Trace
+    mTrc.LogInfo = "Next will raise an error with display bypassed when Regression mode!"
+    mTestmTrc.Test_02_Execution_Trace_With_Error
+'    mTestmTrc.Test_03_BoP_EoP
 
 xt: EoP ErrSrc(PROC), "arg1, arg2"
     mErH.Regression = False
-    Trc.Dsply
+    mTrc.Dsply
     Exit Sub
     
 eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
         Case Else:      GoTo xt
     End Select
+#Else
+    MsgBox "Cond. Comp. Arg" & vbLf & vbLf & _
+           "clsTrc = 0: mTrc = 1" & vbLf & vbLf & _
+           "is required for testing this component!", vbCritical, "Regression test of Standard Module  ""mTrc"" is not possible!"
+#End If
 End Sub
-
-Public Function CondCompArgGet() As String
-    CondCompArgGet = Application.Get
-End Function
 
 Public Sub Test_00_DefaultVersusSpecifiedLogFile()
     Const PROC = "Test_00_DefaultVersusSpecifiedLogFile"
     
     Dim s As String
-    
-    s = TestAid.TestFolder & "\TestExecclsTrc.log"
-    Prepare "clsTrc"
+
+    s = TestAid.TestFolder & "\TestExecmTrc.log"
+    Prepare "mTrc"
     With TestAid
-        Set Trc = Nothing: Set Trc = New clsTrc
         .TestNumber = "00-1"
         .TestDscrpt = "No file specified rsults in default name"
-        .ResultExpected = Trc.DefaultFileName
-        .Result = Trc.FileFullName
+        .ResultExpected = mTrc.DefaultFileName
+        .Result = mTrc.FileFullName
         ' ==============================================================================
         
         .TestNumber = "00-2"
         .TestDscrpt = "NewFile without having specified one - the full name is the default file name"
-        If FSo.FileExists(s) Then FSo.DeleteFile s
         .ResultExpected = s
-        Trc.NewFile s
+        mTrc.NewFile s
         .TestFile = s
-        .Result = Trc.FileFullName
+        .Result = mTrc.FileFullName
         ' ==============================================================================
         
         .TestNumber = "00-3"
         .TestDscrpt = "Start with default, change to specified, default is deleted when existing"
-        Trc.NewFile ' becomes the default file
+        mTrc.NewFile ' becomes the default file
         .ResultExpected = s
-        Trc.FileFullName = s
-        .Result = Trc.FileFullName
+        mTrc.FileFullName = s
+        .Result = mTrc.FileFullName
         ' ==============================================================================
     
         .TestFilesRemove
     End With
     
-xt: TestAid.EndOfTest
+xt: EoP ErrSrc(PROC)
+    TestAid.EndOfTest
     Exit Sub
 
 End Sub
@@ -268,8 +266,7 @@ Public Sub Test_03_BoP_EoP()
 ' ---------------------------------------------------
     Const PROC = "Test_03_BoP_EoP"
     
-    Prepare "clsTrc"
-    
+    Prepare "mTrc"
     BoP ErrSrc(PROC)
     With TestAid
         .TestNumber = "03-1"
@@ -289,7 +286,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_03_BoP_EoP_TestProc_03a_missing_BoP()
+Private Sub Test_03_BoP_EoP_TestProc_03a_missing_BoP()
 ' -----------------------------------------------------------
 ' The error handler is trying its very best not to confuse
 ' with unpaired BoP/EoP code lines. However, it depends at
@@ -310,7 +307,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP()
+Private Sub Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP()
     Const PROC = "Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP"
     On Error GoTo eh
     
@@ -326,7 +323,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP()
+Private Sub Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP()
     Const PROC = "Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP"
     
     On Error GoTo eh
@@ -343,7 +340,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_03_BoP_EoP_TestProc_03d_missing_EoP()
+Private Sub Test_03_BoP_EoP_TestProc_03d_missing_EoP()
     Const PROC = "Test_03_BoP_EoP_TestProc_03d_missing_EoP"
     
     On Error GoTo eh
@@ -359,7 +356,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_03_BoP_EoP_TestProc_03e_BoC_EoC()
+Private Sub Test_03_BoP_EoP_TestProc_03e_BoC_EoC()
     Const PROC = "Test_03_BoP_EoP_TestProc_03e_BoC_EoC"
     
     On Error GoTo eh
@@ -392,7 +389,7 @@ Public Sub Test_01_Execution_Trace()
     Const PROC = "Test_01_Execution_Trace"
     On Error GoTo eh
     
-    Prepare "clsTrc"
+    Prepare "mTrc"
     BoP ErrSrc(PROC)
     With TestAid
         .TestNumber = "01-1"
@@ -418,10 +415,10 @@ Private Sub Test_01_Execution_Trace_TestProc_01a(ByVal arg1 As Variant, _
     Const PROC = "Test_01_Execution_Trace_TestProc_01a"
     
     BoP ErrSrc(PROC), arg1 & ", arg2=" & arg2 & ", " & arg3
-    Trc.BoC ErrSrc(PROC) & " call of 6b and 6c"
+    mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
     Test_01_Execution_Trace_TestProc_01b
     Test_01_Execution_Trace_TestProc_01c
-    Trc.EoC ErrSrc(PROC) & " call of 6b and 6c"
+    mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
     
 xt: EoP ErrSrc(PROC)
     Exit Sub
@@ -454,7 +451,7 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Public Sub Test_01_Execution_Trace_TestProc_01c()
+Private Sub Test_01_Execution_Trace_TestProc_01c()
     
     Const PROC = "Test_01_Execution_Trace_TestProc_01c"
     On Error GoTo eh
@@ -481,7 +478,7 @@ Public Sub Test_02_Execution_Trace_With_Error()
     Const PROC = "Test_02_Execution_Trace_With_Error"
     On Error GoTo eh
     
-    Prepare "clsTrc"
+    Prepare "mTrc"
     BoP ErrSrc(PROC)
     With TestAid
         .TestNumber = "02-1"
@@ -505,10 +502,10 @@ Private Sub Test_02_Execution_Trace_With_Error_TestProc_01a()
     Const PROC = "Test_02_Execution_Trace_With_Error_TestProc_01a"
     
     BoP ErrSrc(PROC)
-    Trc.BoC ErrSrc(PROC) & " call of 6b and 6c"
+    mTrc.BoC ErrSrc(PROC) & " call of 6b and 6c"
     Test_02_Execution_Trace_With_Error_TestProc_01b
     Test_02_Execution_Trace_With_Error_TestProc_01c
-    Trc.EoC ErrSrc(PROC) & " call of 6b and 6c"
+    mTrc.EoC ErrSrc(PROC) & " call of 6b and 6c"
 
 xt: EoP ErrSrc(PROC)
     Exit Sub
@@ -551,7 +548,7 @@ Private Sub Test_02_Execution_Trace_With_Error_TestProc_01c()
     '~~ when mErH.Regression = True for this test (set with the
     '~~ calling procedure) the display of the error is suspended
     mErH.Asserted 6 ' VB-Runtime-error overflow
-    Trc.LogInfo = "This procedure will raise a VB-Runtime Error 6 (overflow) - not displayed with the regression test because asserted by mErH.Assert"
+    mTrc.LogInfo = "This procedure will raise a VB-Runtime Error 6 (oderflow) - not displayed with the regression test because asserted by mErH.Assert"
     Dim i As Long
     i = i / 0 ' Error !!!!
 
@@ -563,4 +560,6 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
         Case Else:      GoTo xt
     End Select
 End Sub
+
+
 

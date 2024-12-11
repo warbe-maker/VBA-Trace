@@ -1,0 +1,100 @@
+; Common Components used/hosted/private in the serviced Workbook. The values are maintained for any Common Component used or hosted when it is exported due
+; to a modification. In case, these values are copied to the pending release registered Common Component.
+; - LastModAt           : Date/time of the last modification date/time (the export file's creation date repectively)
+; - LastModBy           : User, which had made the last modification
+; - LastModExpFileOrigin: Indicates the 'origin'! of the export file (may point to an export file not available on or not accessable by the used compunter)
+; - LastModIn           : The Workbook/VB-Project in which the last code modification had been made (may point to a Workbook om another computer)
+; - LastModOn           : The computer on which the last modification had been made in the above Workbook.
+; =========================================================================================================================================================
+[@NamesHousekeeping]
+DoneNamesHskpng_1=LastModAt<LastUpdateAtDatTime<LastModAtDatTime<LastModifiedAtDatTime<RawRevisionNumber
+DoneNamesHskpng_2=LastModExpFileOrigin<RawExpFileFullName
+DoneNamesHskpng_3=LastModIn<LastModInWrkbook<LastUpdateModIn<LastUpdateModIn<LastModInWrkbkFullName
+DoneNamesHskpng_4=LastModOn<LastUpdateModOn<LastModOnMachine
+DoneNamesHskpng_5=DueModificationWarning>
+DoneNamesHskpng_6=UsedExportFolder>
+
+[clsLog]
+KindOfComponent=used
+LastModAt=2024-12-10 16:49:31 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\clsLog.cls
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[clsTestAid]
+KindOfComponent=used
+LastModAt=2024-12-10 16:49:29 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\clsTestAid.cls
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[clsTrc]
+KindOfComponent=hosted
+LastModAt=2024-12-10 16:49:31 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\clsTrc.cls
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[fMsg]
+KindOfComponent=used
+LastModAt=2024-12-10 16:49:21 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\fMsg.frm
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[mBasic]
+KindOfComponent=used
+LastModAt=2024-12-10 16:49:23 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mBasic.bas
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[mCompManClient]
+KindOfComponent=used
+LastModAt=2024-12-10 16:49:25 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mCompManClient.bas
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[mDct]
+KindOfComponent=used
+LastModAt=2024-12-10 16:46:59 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mDct.bas
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[mErH]
+KindOfComponent=used
+LastModAt=2024-12-10 16:49:19 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mErH.bas
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[mMsg]
+KindOfComponent=used
+LastModAt=2024-12-10 16:49:27 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mMsg.bas
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+
+[mTrc]
+KindOfComponent=hosted
+LastModAt=2024-12-10 16:49:32 (UTC)
+LastModBy=warbe
+LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mTrc.bas
+LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
+LastModOn=THINKPAD-YOGA
+; ----------------------------------------------------------------------------------------------
+; This Private Profile file is maintained by services provided by the class module "clsPrivProf"
+; (see the public Common Component in https://github.com/warbe-maker/VBA-Private-Profile).
+; Main services are: Section separation, optional file header/footer, sections and value-names
+; are maintained in alphabetical ascending order, optional section-/value headers/comments.
