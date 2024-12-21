@@ -228,33 +228,31 @@ Public Sub Test_00_DefaultVersusSpecifiedLogFile()
     s = TestAid.TestFolder & "\TestExecmTrc.log"
     Prepare "mTrc"
     With TestAid
-        .TestNumber = "00-1"
-        .TestDscrpt = "No file specified rsults in default name"
+        .TestId = "00-1"
+        .Verification = "No file specified rsults in default name"
         .ResultExpected = mTrc.DefaultFileName
         .Result = mTrc.FileFullName
         ' ==============================================================================
         
-        .TestNumber = "00-2"
-        .TestDscrpt = "NewFile without having specified one - the full name is the default file name"
+        .TestId = "00-2"
+        .Verification = "NewFile without having specified one - the full name is the default file name"
         .ResultExpected = s
         mTrc.NewFile s
-        .TestFile = s
         .Result = mTrc.FileFullName
         ' ==============================================================================
         
-        .TestNumber = "00-3"
-        .TestDscrpt = "Start with default, change to specified, default is deleted when existing"
+        .TestId = "00-3"
+        .Verification = "Start with default, change to specified, default is deleted when existing"
         mTrc.NewFile ' becomes the default file
         .ResultExpected = s
         mTrc.FileFullName = s
         .Result = mTrc.FileFullName
         ' ==============================================================================
     
-        .TestFilesRemove
     End With
     
 xt: EoP ErrSrc(PROC)
-    TestAid.EndOfTest
+    TestAid.CleanUp
     Exit Sub
 
 End Sub
@@ -269,15 +267,15 @@ Public Sub Test_03_BoP_EoP()
     Prepare "mTrc"
     BoP ErrSrc(PROC)
     With TestAid
-        .TestNumber = "03-1"
-        .TestDscrpt = "BoP/EoP missing"
+        .TestId = "03-1"
+        .Verification = "BoP/EoP missing"
         Test_03_BoP_EoP_TestProc_03a_missing_BoP
         ' ==============================================================================
     
     End With
     
 xt: EoP ErrSrc(PROC)
-    TestAid.EndOfTest
+    TestAid.CleanUp
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -392,13 +390,13 @@ Public Sub Test_01_Execution_Trace()
     Prepare "mTrc"
     BoP ErrSrc(PROC)
     With TestAid
-        .TestNumber = "01-1"
-        .TestDscrpt = "Full trace test"
+        .TestId = "01-1"
+        .Verification = "Full trace test"
         Test_01_Execution_Trace_TestProc_01a arg1:="xxxx", arg2:="yyyy", arg3:=12.8
     End With
     
 xt: EoP ErrSrc(PROC)
-    TestAid.EndOfTest
+    TestAid.CleanUp
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
@@ -481,13 +479,13 @@ Public Sub Test_02_Execution_Trace_With_Error()
     Prepare "mTrc"
     BoP ErrSrc(PROC)
     With TestAid
-        .TestNumber = "02-1"
-        .TestDscrpt = "Execution trace with error"
+        .TestId = "02-1"
+        .Verification = "Execution trace with error"
         Test_02_Execution_Trace_With_Error_TestProc_01a
     End With
     
 xt: EoP ErrSrc(PROC)
-    TestAid.EndOfTest
+    TestAid.CleanUp
     Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))

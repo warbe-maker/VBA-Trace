@@ -149,9 +149,9 @@ Public Sub DctAdd(ByRef add_dct As Dictionary, _
         If bOrderByKey And Not add_staywithfirst Then
             If .Exists(add_key) Then
                 If IsObject(add_item) Then
-                    Set .item(add_key) = add_item
+                    Set .Item(add_key) = add_item
                 Else
-                    .item(add_key) = add_item
+                    .Item(add_key) = add_item
                 End If
                 GoTo xt
             End If
@@ -307,7 +307,7 @@ Private Sub AddAscByKey(ByRef add_dct As Dictionary, _
         '~~ and the add_key already exists the add_item is updated
         If bOrderByKey And Not bStayWithFirst Then
             If .Exists(add_key) Then
-                If IsObject(add_item) Then Set .item(add_key) = add_item Else .item(add_key) = add_item
+                If IsObject(add_item) Then Set .Item(add_key) = add_item Else .Item(add_key) = add_item
                 GoTo xt
             End If
         End If
@@ -351,9 +351,9 @@ Private Sub AddAscByKey(ByRef add_dct As Dictionary, _
     
     For Each vKeyExisting In add_dct
         
-        If IsObject(add_dct.item(vKeyExisting)) _
-        Then Set vItemExisting = add_dct.item(vKeyExisting) _
-        Else vItemExisting = add_dct.item(vKeyExisting)
+        If IsObject(add_dct.Item(vKeyExisting)) _
+        Then Set vItemExisting = add_dct.Item(vKeyExisting) _
+        Else vItemExisting = add_dct.Item(vKeyExisting)
         
         With dctTemp
             If bDone Then
@@ -600,6 +600,8 @@ Private Function Differs(ByVal v1 As Variant, _
 ' is a string and the other one is an object the string is compared with the
 ' object's Name property.
 ' ------------------------------------------------------------------------------
+    Const PROC = "Differs"
+    
     On Error Resume Next
     Select Case True
         Case IsObject(v1) And IsObject(v2)
@@ -631,8 +633,8 @@ Private Function Differs(ByVal v1 As Variant, _
             Then Differs = StrComp(v1, v2, vbTextCompare) _
             Else Differs = StrComp(v1, v2, vbBinaryCompare)
             If Differs Then
-                Debug.Print "Ignore Case = " & CStr(ignore_case)
-                Debug.Print "Differs: " & v1 & vbLf & _
+                Debug.Print ErrSrc(PROC) & ": " & "Ignore Case = " & CStr(ignore_case)
+                Debug.Print ErrSrc(PROC) & ": " & "Differs: " & v1 & vbLf & _
                             "         " & v2
             End If
     End Select
@@ -649,13 +651,13 @@ Private Function DctAddItemExists( _
     DctAddItemExists = False
     
     For Each v In dct
-        If VarType(dct.item(v)) = vbObject Then
-            If dct.item(v) Is dctitem Then
+        If VarType(dct.Item(v)) = vbObject Then
+            If dct.Item(v) Is dctitem Then
                 DctAddItemExists = True
                 Exit Function
             End If
         Else
-            If dct.item(v) = dctitem Then
+            If dct.Item(v) = dctitem Then
                 DctAddItemExists = True
                 Exit Function
             End If
@@ -703,7 +705,7 @@ Public Function KeySort(ByRef s_dct As Dictionary) As Dictionary
     '~~ Transfer based on sorted keys
     For i = LBound(arr) To UBound(arr)
         vKey = arr(i)
-        dct.Add Key:=vKey, item:=s_dct.item(vKey)
+        dct.Add Key:=vKey, Item:=s_dct.Item(vKey)
     Next i
     
 xt: Set s_dct = dct

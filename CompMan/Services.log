@@ -2,3 +2,62 @@
 24-12-10-18:10:40 -------------------------------------------------------------------------------------------------
 24-12-10-18:10:40  Standard-Module  mTestmTrc......:  Modified VBComponent e x p o r t e d !                       
 24-12-10-18:10:40  Standard-Module  mTestclsTrc....:  Modified VBComponent e x p o r t e d !                       
+24-12-21-22:57:28 =================================================================================================================
+24-12-21-22:57:28 -------------------------- Update Outdated Common Components (by Add-in) for Trc.xlsm ---------------------------
+24-12-21-22:57:28 -----------------------------------------------------------------------------------------------------------------
+24-12-21-22:57:28  Standard-Module  mDct...........:  Code difference Line 0584 Serviced (CodeModule)...:     On Error Resume Next 
+24-12-21-22:57:28                                     Code difference Line 0584 Public (Export-File)....:     Const PROC = "Differs" 
+24-12-21-22:57:28  Standard-Module  mErH...........:  Code difference Line 0277 Serviced (CodeModule)...:                 MsgBox "When the err_buttons argument is a numeric value  o n l y  the valid VBA.MsgBox vaulues are supported. " & _ 
+24-12-21-22:57:28                                     Code difference Line 0277 Public (Export-File)....:                 MsgBox "When the argument for the ""err_buttons"" parameter is a numeric value  o n l y  the valid VBA.MsgBox vaulues are supported. " & _ 
+24-12-21-22:57:28  Class-Module     clsTrc.........:  Code difference Line 0039 Serviced (CodeModule)...: ' KeepDays     w   Specifies the number of days a trace-log-file is kept until                                                                             
+24-12-21-22:57:28                                     Code difference Line 0039 Public (Export-File)....: ' KeepLogs     w   Specifies the number of days a trace-log-file is kept until                                                                             
+24-12-21-22:57:28  UserForm         fMsg...........:  Code difference Line 0036 Serviced (CodeModule)...: Private Const DFLT_TXT_MONOSPACED_FONT_NAME As String = "Courier New"   ' Default monospaced Font name                                                     
+24-12-21-22:57:28                                     Code difference Line 0036 Public (Export-File)....: Private Const DFLT_BTTN_MIN_HEIGHT          As Single = 30              ' Default minimum reply button height                                              
+24-12-21-22:57:28  Standard-Module  mBasic.........:  Code difference Line 0012 Serviced (CodeModule)...: ' Public Procedures, Functions, Services:                                                                                                                  
+24-12-21-22:57:28                                     Code difference Line 0012 Public (Export-File)....: ' Public Procedures and Properties (r/w):                                                                                                                  
+24-12-21-22:57:28  Standard-Module  mCompManClient.:  Code difference Line 0002 Serviced (CodeModule)...: ' Standard Module mCompManClient: CompMan client interface. The component is                                                                               
+24-12-21-22:57:28                                     Code difference Line 0002 Public (Export-File)....: ' Standard Module mCompManClient: InterfaceCompMan services (Export Changed                                                                                
+24-12-21-22:57:28  Standard-Module  mMsg...........:  Code difference Line 0006 Serviced (CodeModule)...: ' Box         In analogy to the MsgBox, provides a simple message but with all                                                                             
+24-12-21-22:57:28                                     Code difference Line 0006 Public (Export-File)....: ' Box            In analogy to the MsgBox, provides a simple message but with                                                                              
+24-12-21-22:57:28  Standard-Module  mTrc...........:  Code difference Line 0006 Serviced (CodeModule)...: ' in case the execution terminates by exception. When this module is installed                                                                             
+24-12-21-22:57:28                                     Code difference Line 0006 Public (Export-File)....: ' in case the execution terminates by exception. When this module is                                                                                       
+24-12-21-22:57:28  Class-Module     clsTestAid.....:  Code difference Line 0001 Serviced (CodeModule)...: ' ----------------------------------------------------------------------------                                                                             
+24-12-21-22:57:28                                     Code difference Line 0001 Public (Export-File)....: Option Base 1                                                                                                                                              
+24-12-21-22:57:28  Class-Module     clsLog.........:  Code difference Line 0010 Serviced (CodeModule)...: ' - AlignmentItems   Explicitly specifies the alignment for each column's                                                                                  
+24-12-21-22:57:28                                     Code difference Line 0010 Public (Export-File)....: ' - ColsAlign   Explicitly specifies the alignment for each column's                                                                                       
+24-12-21-22:57:32  Standard-Module  mDct...........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:35  Standard-Module  mErH...........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:37  Class-Module     clsTrc.........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:40  UserForm         fMsg...........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:43  Standard-Module  mBasic.........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:45  Standard-Module  mCompManClient.:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:48  Standard-Module  mMsg...........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:51  Standard-Module  mTrc...........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:55  Class-Module     clsTestAid.....:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-22:57:57  Class-Module     clsLog.........:  Serviced Common Component updated by re-import of the public Export-File from the Common-Components folder.                                                                                                    
+24-12-21-23:08:05 =================================================================================================
+24-12-21-23:08:05 ---------------------- Export Changed Components (by Add-in) for Trc.xlsm -----------------------
+24-12-21-23:08:05 -------------------------------------------------------------------------------------------------
+24-12-21-23:08:05  Class-Module     clsLog.........:  Serviced Common Component properties housekeeping:           
+24-12-21-23:08:05                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:05  Class-Module     clsTestAid.....:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:05                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:05  Class-Module     clsTrc.........:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:05                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:05  UserForm         fMsg...........:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:05                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:05  Standard-Module  mBasic.........:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:05                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:06  Standard-Module  mCompManClient.:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:06                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:06  Standard-Module  mDct...........:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:06                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:06  Standard-Module  mErH...........:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:06                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:06  Standard-Module  mMsg...........:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:06                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:06  Standard-Module  mTrc...........:  Serviced Common Component properties housekeeping:                                
+24-12-21-23:08:06                                     Serviced Common Component's Export-File meets public: Properties set equal public 
+24-12-21-23:08:07  Standard-Module  mTestmTrc......:  Modified VBComponent e x p o r t e d !                                            
+24-12-21-23:08:07  Standard-Module  mTestclsTrc....:  Modified VBComponent e x p o r t e d !                                            
+24-12-21-23:08:07  Standard-Module  mTest..........:  Modified VBComponent e x p o r t e d !                                            

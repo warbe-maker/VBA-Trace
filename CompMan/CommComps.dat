@@ -16,7 +16,7 @@ DoneNamesHskpng_6=UsedExportFolder>
 
 [clsLog]
 KindOfComponent=used
-LastModAt=2024-12-10 16:49:31 (UTC)
+LastModAt=2024-12-21 21:57:57 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\clsLog.cls
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -24,7 +24,7 @@ LastModOn=THINKPAD-YOGA
 
 [clsTestAid]
 KindOfComponent=used
-LastModAt=2024-12-10 16:49:29 (UTC)
+LastModAt=2024-12-21 21:57:54 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\clsTestAid.cls
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -32,7 +32,7 @@ LastModOn=THINKPAD-YOGA
 
 [clsTrc]
 KindOfComponent=hosted
-LastModAt=2024-12-10 16:49:31 (UTC)
+LastModAt=2024-12-21 21:57:36 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\clsTrc.cls
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -40,7 +40,7 @@ LastModOn=THINKPAD-YOGA
 
 [fMsg]
 KindOfComponent=used
-LastModAt=2024-12-10 16:49:21 (UTC)
+LastModAt=2024-12-21 21:57:40 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\fMsg.frm
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -48,7 +48,7 @@ LastModOn=THINKPAD-YOGA
 
 [mBasic]
 KindOfComponent=used
-LastModAt=2024-12-10 16:49:23 (UTC)
+LastModAt=2024-12-21 21:57:43 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mBasic.bas
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -56,7 +56,7 @@ LastModOn=THINKPAD-YOGA
 
 [mCompManClient]
 KindOfComponent=used
-LastModAt=2024-12-10 16:49:25 (UTC)
+LastModAt=2024-12-21 21:57:45 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mCompManClient.bas
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -64,7 +64,7 @@ LastModOn=THINKPAD-YOGA
 
 [mDct]
 KindOfComponent=used
-LastModAt=2024-12-10 16:46:59 (UTC)
+LastModAt=2024-12-21 21:57:32 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mDct.bas
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -72,7 +72,7 @@ LastModOn=THINKPAD-YOGA
 
 [mErH]
 KindOfComponent=used
-LastModAt=2024-12-10 16:49:19 (UTC)
+LastModAt=2024-12-21 21:57:34 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mErH.bas
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -80,7 +80,7 @@ LastModOn=THINKPAD-YOGA
 
 [mMsg]
 KindOfComponent=used
-LastModAt=2024-12-10 16:49:27 (UTC)
+LastModAt=2024-12-21 21:57:48 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mMsg.bas
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm
@@ -88,7 +88,7 @@ LastModOn=THINKPAD-YOGA
 
 [mTrc]
 KindOfComponent=hosted
-LastModAt=2024-12-10 16:49:32 (UTC)
+LastModAt=2024-12-21 21:57:51 (UTC)
 LastModBy=warbe
 LastModExpFileOrigin=E:\Sync\Excel VBA\DevAndTest\Trc\CompMan\source\mTrc.bas
 LastModIn=E:\Sync\Excel VBA\DevAndTest\Trc\Trc.xlsm

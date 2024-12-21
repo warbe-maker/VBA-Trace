@@ -17,7 +17,7 @@ Option Base 1 ' ensures the index conforms with the column number
 ' -----------------
 ' - AlignmentHeaders Explicitly specifies the alignment for each column's
 '                    header, defaults to "C"entered
-' - AlignmentItems   Explicitly specifies the alignment for each column's
+' - ColsAlign   Explicitly specifies the alignment for each column's
 '                    item, defaults to "L"eft adjusted when not provided.
 ' - ColsDelimiter    Defaults to | when Headers are specified and defaults to a
 '                    single space when no Headers are specified.
@@ -27,7 +27,7 @@ Option Base 1 ' ensures the index conforms with the column number
 '                    provided strings or one string with vertical bars, both
 '                    indicating items to be writen alingned in columns.
 ' - Headers          Specifies the column headers
-' - MaxItemLengths   Explicitly specifies each columns minimum width. The width of,
+' - EntryItemsMaxLenght   Explicitly specifies each columns minimum width. The width of,
 '                    defaults to the width of the corresponding column header
 '                    string, is adjusted to the width of the corresponding header
 '                    string when one is provided.
@@ -49,43 +49,57 @@ Option Base 1 ' ensures the index conforms with the column number
 '
 ' Properties:
 ' -----------
-' - FileFullName r/w Specifies the full name of the log-file. The location defaults
-'                    to the ActiveWorkbook's parent folder, the name defaults to the
-'                    ActiveWorkbook's BaseName with a .log file extention.
-' - FileName       w Specifies the log-file's name, defaults to the ActiveWorkbook's
-'                    BaseName with a .log file extention.
-' - KeepDays       w Specifies the number of days a new created log-file is kept
-'                    before it is deleted and re-created, defaults to 1.
-' - LogFile      r   The log-file as file object
-' - Path           w Sepcifies the log-file's location/folder, defaults to the
-'                    ActiveWorkbook's parent folder
+' - FileBaseName  r/w The log-file's base name, defaults to the
+'                     ActiveWorkbook's BaseName.
+' - FileExtension r/w The Log-file's file extension
+' - FileFullName  r/w w: Specifies the full name of the log-file, thereby providing
+'                        the FileBaseName and the FileExtension.
+'                     r: When no FileFullName ever has been provided, the default
+'                        log-file's full name is assemled from FileLocation,
+'                        FileBaseName and FileExtension.
+'                     the ActiveWorkbook's BaseName with a .log file extention.
+' - FileLocation  r/w Defaults to the ActiveWorkbook's Path
+' - KeepLogs        w Specifies the number of logs, i.e. a set of log entries, is
+'                     kept when the log file is reorganized.
+'                     before it is deleted and re-created, defaults to 1.
+' - LogFile       r   The log-file as file object
+' - Path            w Sepcifies the log-file's location/folder, defaults to the
+'                     ActiveWorkbook's parent folder
 '
-' W. Rauschenberger, Berlin Jan 2024
+' W. Rauschenberger, Berlin Nov 2024
 ' See: https://github.com/warbe-maker/VBA-Log-Service
 ' -----------------------------------------------------------------------------------
-Private aAlignmentsHeader   As Variant
-Private aAlignmentsItem     As Variant
-Private aHeaders            As Variant
-Private aHeaderLines        As Variant
-Private aItems              As Variant
-Private aTitleLines         As Variant
-Private aMaxItemLengths     As Variant
-Private aFills()            As String
-Private bInitialized        As Boolean
-Private bNewLog             As Boolean
-Private bWithTimeStamp      As Boolean
-Private bReorganized        As Boolean
-Private FSo                 As New FileSystemObject
-Private lColumns            As Long
-Private lKeepDays           As Long
-Private lLenTitle           As Long
-Private sTitleAlignment     As String
-Private sColsDelimiter      As String
-Private sColsMargin         As String
-Private sFileFullName       As String
-Private sFileName           As String
-Private sPath               As String
-Private sTitleFill          As String
+Private aColsAlign              As Variant
+Private aColsFill               As Variant
+Private aColsHeadersLines       As Variant
+Private aColsWidth              As Variant
+Private aFills                  As Variant
+Private aHeaders                As Variant
+Private aItems                  As Variant
+Private aTitleLines             As Variant
+Private bInitialized            As Boolean
+Private bNewLog                 As Boolean
+Private bWithTimeStamp          As Boolean
+Private FSo                     As New FileSystemObject
+Private lBase                   As Long
+Private lCols                   As Long
+Private lColumns                As Long
+Private lKeepLogs               As Long
+Private sColsDelimiter          As String
+Private sColsMargin             As String
+Private sFileExtension          As String
+Private sFileBaseName           As String
+Private sFileFullName           As String
+Private sFileLocation           As String
+Private sLastSpec               As String ' Entry, Title, Header, else
+Private sTitleAlign             As String
+Private sTitleFill              As String
+
+Private Enum enAlign
+    enAlignLeft = 1
+    enAlignRight = 2
+    enAlignCentered = 3
+End Enum
 
 #If Not mMsg = 1 Then
     ' -------------------------------------------------------------------------------
@@ -98,7 +112,6 @@ Private sTitleFill          As String
     ' be indicated by the Conditional Compile Argument mMsg = 1.
     ' See https://github.com/warbe-maker/Common-VBA-Message-Service
     ' -------------------------------------------------------------------------------
-    Private Const vbResumeOk As Long = 7 ' Buttons value in mMsg.ErrMsg (pass on not supported)
     Private Const vbResume   As Long = 6 ' return value (equates to vbYes)
 #End If
 
@@ -117,99 +130,149 @@ Private Sub Class_Initialize()
 ' Initializing defaults
 ' -----------------------------------------------------------------------------------
     NewLogInit
-    lKeepDays = 1
+    lKeepLogs = 10 ' default
     bWithTimeStamp = False
-    sFileName = FSo.GetBaseName(ActiveWorkbook.Name) & ".log"
-    sPath = ActiveWorkbook.Path
-    FileFullName = sPath & "\" & sFileName
-    NewLog
+    bNewLog = True
+    lBase = ArrayBase
+    ColsDelimiter = " "
+    '~~ Log file name defaults
+    sFileBaseName = FSo.GetBaseName(ActiveWorkbook.FullName)
+    sFileExtension = "log"
+    sFileLocation = ActiveWorkbook.Path
+    sFileFullName = FileFullName
+
 End Sub
 
 Private Sub Class_Terminate()
+    '~~ In case the file already existed it may have passed the KeepLogs limit
+    If FSo.FileExists(sFileFullName) Then
+        Reorg sFileFullName, lKeepLogs
+    End If
+
     Set FSo = Nothing
-    Set aAlignmentsHeader = Nothing
-    Set aAlignmentsItem = Nothing
-    Set aHeaders = Nothing
-    Set aHeaderLines = Nothing
-    Set aMaxItemLengths = Nothing
-    Set aItems = Nothing
-    Set aTitleLines = Nothing
+    ArraysErase
     sColsDelimiter = vbNullString
 End Sub
 
-Private Property Get AlignmentHeaderColumn(Optional ByVal c_col As Long) As String
-    If IsAllocated(aAlignmentsHeader) Then
-        If c_col <= UBound(aAlignmentsHeader) Then
-            AlignmentHeaderColumn = aAlignmentsHeader(c_col)
+Private Property Get AlignmentHeaderCol(Optional ByVal c_col As Long) As String
+    AlignmentHeaderCol = Arry(aColsAlign, c_col)
+End Property
+
+Private Property Let AlignmentHeaderCol(Optional ByVal c_col As Long, _
+                                                ByVal c_align As String)
+    Arry(aColsAlign, c_col) = c_align
+End Property
+
+Private Property Get AlignmentItemCol(Optional ByVal c_col As Long) As String
+    AlignmentItemCol = Arry(aColsAlign, c_col)
+End Property
+
+Private Property Let AlignmentItemCol(Optional ByVal c_col As Long, _
+                                               ByVal c_align As String)
+    Arry(aColsAlign, c_col) = c_align
+End Property
+
+Public Property Get Arry(Optional ByRef c_arr As Variant, _
+                         Optional ByVal c_index As Long = -1) As Variant
+' ----------------------------------------------------------------------------
+' Universal array read procedure. Returns Null when a given array (c_arr) is
+' not allocated or a provided index is beyond/outside current dimensions.
+' ----------------------------------------------------------------------------
+    Dim i As Long
+    
+    If IsArray(c_arr) Then
+        On Error Resume Next
+        i = LBound(c_arr)
+        If Err.Number = 0 Then
+            If c_index >= LBound(c_arr) And c_index <= UBound(c_arr) _
+            Then Arry = c_arr(c_index)
         End If
     End If
-End Property
-
-Private Property Let AlignmentHeaderColumn(Optional ByVal c_col As Long, _
-                                                ByVal c_align As String)
-    ArryRedim aAlignmentsHeader, c_col
-    aAlignmentsHeader(c_col) = c_align
-End Property
-
-Public Property Get AlignmentItemColumn(Optional ByVal c_col As Long) As String
-    Dim s   As String
     
-    If IsAllocated(aAlignmentsItem) Then
-        If c_col <= UBound(aAlignmentsItem) _
-        Then s = aAlignmentsItem(c_col)
+End Property
+
+Public Property Let Arry(Optional ByRef c_arr As Variant, _
+                         Optional ByVal c_index As Long = -99, _
+                                  ByVal c_var As Variant)
+' ----------------------------------------------------------------------------
+' Universal array add/update procedure, avoiding any prior checks whether
+' allocated, empty not yet existing, etc.
+' - Adds an item (c_var) to an array (c_arr) when no index is provided or when
+'   the index lies beyond UBound
+' - When an index is provided, the item is inserted/updated at the given
+'   index - even when the array yet doesn't exist or is not yet allocated.
+' ----------------------------------------------------------------------------
+    Const PROC = "Arry-Let"
+    
+    Dim bIsAllocated As Boolean
+    
+    If IsArray(c_arr) Then
+        On Error GoTo -1
+        On Error Resume Next
+        bIsAllocated = UBound(c_arr) >= LBound(c_arr)
+        On Error GoTo eh
+    ElseIf VarType(c_arr) <> 0 Then
+        Err.Raise AppErr(1), ErrSrc(PROC), "Not a Variant type!"
     End If
     
-    AlignmentItemColumn = s
+    If bIsAllocated = True Then
+        '~~ The array has at least one item
+        If c_index = -99 Then
+            '~~ When for an allocated array no index is provided, the item is added
+            ReDim Preserve c_arr(UBound(c_arr) + 1)
+            c_arr(UBound(c_arr)) = c_var
+        ElseIf c_index >= 0 And c_index <= UBound(c_arr) Then
+            '~~ Replace an existing item
+            c_arr(c_index) = c_var
+        ElseIf c_index > UBound(c_arr) Then
+            '~~ New item beyond current UBound
+            ReDim Preserve c_arr(c_index)
+            c_arr(c_index) = c_var
+        ElseIf c_index < LBound(c_arr) Then
+            Err.Raise AppErr(2), ErrSrc(PROC), "Index is less than LBound of array!"
+        End If
+        
+    ElseIf bIsAllocated = False Then
+        '~~ The array does yet not exist
+        If c_index = -99 Then
+            '~~ When no index is provided the item is the first of a new array
+            c_arr = Array(c_var)
+        ElseIf c_index >= 0 Then
+            ReDim c_arr(c_index)
+            c_arr(c_index) = c_var
+        Else
+            Err.Raise AppErr(3), ErrSrc(PROC), "the provided index is less than 0!"
+        End If
+    End If
+    
+xt: Exit Property
 
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
 End Property
 
-Private Property Let AlignmentItemColumn(Optional ByVal c_col As Long, _
-                                               ByVal c_align As String)
-    ArryRedim aAlignmentsItem, c_col
-    If aAlignmentsItem(c_col) = vbNullString _
-    Then aAlignmentsItem(c_col) = c_align
+Private Property Get ColAlign(Optional ByVal c_col As Long) As String
+' ----------------------------------------------------------------------------
+' Return a column's width, whereby an available explicit specification
+' supercedes a width iplicitely derived from a string.
+' ----------------------------------------------------------------------------
+    ColAlign = Arry(aColsAlign, c_col)
+End Property
 
+Private Property Let ColAlign(Optional ByVal c_col As Long, _
+                                       ByVal c_align As String)
+    Arry(aColsAlign, c_col) = c_align
 End Property
 
 Private Property Get ColFill(Optional ByVal c_col As Long) As String
-    If IsAllocated(aFills) Then
-        If c_col <= UBound(aFills) _
-        Then ColFill = aFills(c_col)
-    End If
+    ColFill = Arry(aFills, c_col)
 End Property
 
 Private Property Let ColFill(Optional ByVal c_col As Long, _
                                       ByVal c_fill As String)
-    ArryRedim aFills, c_col
-    aFills(c_col) = c_fill
-    
-End Property
-
-Private Property Get ColHeader(Optional ByVal c_col As Long, _
-                               Optional ByVal c_line As Long = 1) As String
-    Dim s       As String
-    Dim lWidth  As Long
-    
-    If IsAllocated(aHeaderLines) Then
-        aHeaders = aHeaderLines(c_line)
-        If c_col <= UBound(aHeaders) Then
-            s = WithMargins(aHeaders(c_col))
-            lWidth = Len(s)
-            lWidth = Max(ColWidth(c_col), lWidth, ColWidthFinal(c_col)) ' width with marging may be greater than originally calculated
-            ColHeader = AlignString(aHeaders(c_col), lWidth, AlignmentHeaderColumn(c_col), sColsMargin)
-        End If
-    End If
-End Property
-
-Private Property Let ColHeader(Optional ByVal c_col As Long, _
-                               Optional ByVal c_line As Long = 1, _
-                                        ByVal c_header As String)
-    
-    ArryRedim aHeaderLines, c_line
-    ArryRedim aHeaders, c_col
-    aHeaders(c_col) = c_header
-    aHeaderLines(c_line) = aHeaders
-    
+    Arry(aFills, c_col) = c_fill
 End Property
 
 Private Property Get ColItem(Optional ByVal c_col As Long) As String
@@ -227,7 +290,7 @@ Private Property Get ColItem(Optional ByVal c_col As Long) As String
     On Error GoTo eh
     Dim lWidth  As Long
     
-    If IsAllocated(aItems) Then
+    If ArrayIsAllocated(aItems) Then
         If bNewLog Then
             '~~ When this is the first line of a new series of log entries the width
             '~~ may still be expanded when the item's width is greater than the
@@ -237,10 +300,10 @@ Private Property Get ColItem(Optional ByVal c_col As Long) As String
         End If
         
         If c_col < lColumns Then
-            ColItem = AlignString(aItems(c_col), ColWidthFinal(c_col), AlignmentItemColumn(c_col), sColsMargin, ColFill(c_col))
+            ColItem = Align(aItems(c_col), AlignmentItemCol(c_col), ColWidthFinal(c_col), ColFill(c_col), sColsMargin, True)
         ElseIf c_col = lColumns Then
             '~~ The width of the rightmost column is unlimited and left aligned.
-            ColItem = AlignString(aItems(c_col), Len(aItems(c_col)) + Len(sColsMargin), "L", sColsMargin, " ")
+            ColItem = Align(aItems(c_col), "L", Len(aItems(c_col)) + Len(sColsMargin), " ", sColsMargin, True)
         End If
     End If
     
@@ -254,9 +317,16 @@ End Property
 
 Private Property Let ColItem(Optional ByVal c_col As Long, _
                                       ByVal c_item As String)
-    ArryRedim aItems, c_col
-    aItems(c_col) = c_item
+    Arry(aItems, c_col) = c_item
 End Property
+
+Private Property Get Cols() As Long
+    Cols = Max(lCols, ArrayNoOfElements(aColsAlign), ArrayNoOfElements(aColsWidth))
+End Property
+
+Private Property Let Cols(ByVal c_cols As Long):    lCols = c_cols: End Property
+
+Friend Property Get ColsDelimiter() As String:  ColsDelimiter = sColsDelimiter: End Property
 
 Friend Property Let ColsDelimiter(ByVal s As String)
     Select Case s
@@ -265,89 +335,131 @@ Friend Property Let ColsDelimiter(ByVal s As String)
     End Select
 End Property
 
-Private Property Get ColWidth(Optional ByVal c_col As Long) As Long
-    If IsAllocated(aMaxItemLengths) Then
-        If c_col <= UBound(aMaxItemLengths) Then
-            ColWidth = aMaxItemLengths(c_col)
-        End If
-    End If
+Public Property Let ColsHeader(Optional ByVal c_line As Long, _
+                                        ByVal c_cols_header As Variant)
+' -----------------------------------------------------------------------------------
+' Saves/adds provided column headers (c_cols_header) to an array (aColsHeaderLines)
+' where each item is one column header line. A lines column headers (c_cols_header)
+' may be provided as array, collection, or as a string delimited any string
+' identified by by the function SplitStr.
+'
+' Precondition:
+' The columns delimiter (ColsDelimiter) and the columns size (ColsSpecs) had been
+' specified, whereby only the widths matter since headers alignment defaults to
+' centered filled with spaces.
+' -----------------------------------------------------------------------------------
+    Dim v           As Variant
+    Dim s           As String
+    Dim iCol        As Long
+    Dim sColHeader  As String
+    Dim sColFill    As String
+    Dim sItem       As String
+    Dim aHeaders    As Variant
+    Dim sDelim      As String
+    
+    c_line = c_line ' avoid dead code
+    aHeaders = StringAsArray(c_cols_header)
+    sColFill = " "
+
+    For Each v In aHeaders
+        iCol = iCol + 1
+        sColHeader = Trim$(v) ' ensure centered regardless any leading or trailing spaces
+        ColWidth(iCol) = Len(v)
+        sItem = Align(sColHeader, "C", ColWidth(iCol), sColFill, ColsMargin, True)
+        s = ConcatenateStrings(s, sItem, ColsDelimiter, sDelim)
+    Next v
+    Arry(aColsHeadersLines) = s ' add s to the array
+    
 End Property
 
-Private Property Let ColWidth(Optional ByVal c_col As Long, _
-                                       ByVal c_width As Long)
-    ArryRedim aMaxItemLengths, c_col
-    aMaxItemLengths(c_col) = c_width
+Public Property Get ColsMargin() As String
+    If sColsDelimiter <> " " Then ColsMargin = " " Else ColsMargin = vbNullString
 End Property
 
-Private Property Get DelimiterLineDue() As Boolean
-    DelimiterLineDue = bNewLog _
-                    Or TitleSpecified _
-                    Or HeadersSpecified
+Public Property Let ColsSpecs(ByVal c_specs As String)
+' ----------------------------------------------------------------------------
+' Specifying columns specifications length, alignment, and fill
+' ----------------------------------------------------------------------------
+    Dim aSpecs  As Variant
+    Dim iCol    As Long
+    Dim v       As Variant
+    
+    aSpecs = StringAsArray(c_specs)
+    ArrayErase aColsWidth
+    ArrayErase aColsAlign
+    ArrayErase aColsFill
+    
+    For Each v In aSpecs
+        iCol = iCol + 1
+        ColSpec iCol, v
+    Next v
+    
 End Property
 
-Friend Property Get FileFullName() As String:   FileFullName = sFileFullName:   End Property
+Public Property Get ColWidth(Optional ByVal c_col As Long) As Long
+' ----------------------------------------------------------------------------
+' The (maximized) column width is used for:
+' 1. The Title line (when one had been specified)
+' 2. The column header lines and the header underline
+' 3. The final re-assembling of the very first column arranged Entry line
+'    (which triggered the above two)
+' ----------------------------------------------------------------------------
+    ColWidth = Arry(aColsWidth, c_col)
+
+End Property
+
+Public Property Let ColWidth(Optional ByVal c_col As Long, _
+                                      ByVal c_width As Long)
+' ----------------------------------------------------------------------------
+' Initially a column's width may or may not be specified explicitly by
+' 'ColsWidth'. Provided the truncate option is False the width is subsequently
+' maximized by the aligned item which may include a possible (implicitly
+' specified) filling. The final column width is the one specified explicitly
+' or derived implicitly plus the length of the specified filling. I.e.
+' an item specified "xxxx .:" will finally end up in a column width of 10.
+' ----------------------------------------------------------------------------
+    Arry(aColsWidth, c_col) = Max(Arry(aColsWidth, c_col), c_width)
+    
+End Property
+
+Friend Property Get FileBaseName() As String:           FileBaseName = sFileBaseName:   End Property
+
+Friend Property Let FileBaseName(ByVal s As String):    sFileBaseName = s:              End Property
+
+Friend Property Get FileExtension() As String:          FileExtension = sFileExtension: End Property
+
+Friend Property Let FileExtension(ByVal s As String):   sFileExtension = s:             End Property
+
+Friend Property Get FileFullName() As String
+    FileFullName = sFileLocation & "\" & sFileBaseName & "." & sFileExtension
+    FileFullName = Replace(FileFullName, "\\", "\")
+    FileFullName = Replace(FileFullName, "..", ".")
+End Property
 
 Friend Property Let FileFullName(ByVal s As String)
 ' ----------------------------------------------------------------------------
 ' Specifies the log file's name and location, by the way maintaining the Path
-' and the FileName property.
+' and the FileBaseName property.
 ' ----------------------------------------------------------------------------
-    Dim lDaysAge    As Long
     
     With FSo
-        If sFileFullName <> s Then
+        If s <> FileFullName Then
             '~~ The log file's name is not/no longer the one previously used
-            If .FileExists(sFileFullName) Then .DeleteFile sFileFullName
+            If .FileExists(FileFullName) Then .DeleteFile FileFullName
         End If
-        sFileFullName = s
-        sPath = .GetParentFolderName(s)
-        If Not .FileExists(sFileFullName) Then .CreateTextFile sFileFullName
-        sFileName = .GetFileName(s)
-        
-        '~~ In case the file already existed it may have passed the KeepDays limit
-        lDaysAge = VBA.DateDiff("d", .GetFile(sFileFullName).DateLastAccessed, Now())
-        If lDaysAge > lKeepDays Then
-            .DeleteFile sFileFullName
-            .CreateTextFile sFileFullName
-        End If
-        
+        sFileExtension = .GetExtensionName(s)
+        sFileLocation = .GetParentFolderName(s)
+        sFileBaseName = .GetBaseName(s)
     End With
-
+    sFileFullName = s
+    
 End Property
 
-Friend Property Get FileName() As String:       FileName = sFileName:           End Property
+Friend Property Get FileLocation() As String:           FileLocation = sFileLocation:   End Property
 
-Friend Property Let FileName(ByVal s As String)
-    If FSo.GetExtensionName(s) = vbNullString Then
-        s = s & ".log"
-    End If
-    sFileName = s
-    sFileFullName = Replace(sPath & "\" & sFileName, "\\", "\")
-End Property
+Friend Property Let FileLocation(ByVal s As String):    sFileLocation = s:              End Property
 
-Private Property Get HeadersSpecified() As Boolean
-    HeadersSpecified = IsAllocated(aHeaderLines)
-End Property
-
-Private Property Let HeadersSpecified(ByVal b As Boolean)
-    If Not b Then
-        Set aHeaderLines = Nothing
-        Set aHeaders = Nothing
-    End If
-End Property
-
-Friend Property Let KeepDays(ByVal l As Long):  lKeepDays = l:  End Property
-
-Friend Property Get LogFile() As File
-' -----------------------------------------------------------------------------------
-' Returns the log file as file object
-' -----------------------------------------------------------------------------------
-    With New FileSystemObject
-        If Not .FileExists(sFileFullName) Then .CreateTextFile sFileFullName
-        Set LogFile = .GetFile(sFileFullName)
-    End With
-
-End Property
+Friend Property Let KeepLogs(ByVal l As Long):          lKeepLogs = l:                  End Property
 
 Friend Property Let Path(ByVal v As Variant)
 ' -----------------------------------------------------------------------------------
@@ -360,14 +472,14 @@ Friend Property Let Path(ByVal v As Variant)
     
     Select Case VarType(v)
         Case VarType(v) = vbString
-            sPath = v
+            sFileLocation = v
         Case VarType(v) = vbObject
             If TypeOf v Is Workbook Then
                 Set wbk = v
-                sPath = wbk.Path
+                sFileLocation = wbk.Path
             ElseIf TypeOf v Is Folder Then
                 Set fld = v
-                sPath = fld.Path
+                sFileLocation = fld.Path
             Else
                 Err.Raise AppErr(1), ErrSrc(PROC), "The provided argument is neither a string specifying a " & _
                                                    "folder's path, nor a Workbook object, nor a Folder object!"
@@ -386,330 +498,82 @@ Private Property Get SplitStr(ByRef s As String)
     Else If InStr(s, vbCr) <> 0 Then SplitStr = vbCr
 End Property
 
-Private Property Get TitleSpecified() As Boolean
-    TitleSpecified = IsAllocated(aTitleLines)
-End Property
-
-Private Property Let TitleSpecified(ByVal b As Boolean)
-    If Not b Then Set aTitleLines = Nothing
-End Property
-
-Public Sub Alignment(ByVal a_string As String, _
-            Optional ByRef a_return As String, _
-            Optional ByRef a_fill As String, _
-            Optional ByRef a_align As String)
-' -----------------------------------------------------------------------------------
-' Returns the alignment derived from a string (a_string), whereby the string may be
-' an item (implicit alignment spec) or an explicit alignment spec.
-' When a_align = vbNullString the following is returned:
-'      - the alignment specified implicitly (a_align) in accordance with the
-'        following rules:
-'        - (L)eft adjusted  = Leading spaces > trailing spaces
-'        - (C)entered       = Leading spaces = trailing spaces
-'        - (R)ight adjusted = Leading spaces < trailing spaces.
-'      - the fill string (a_fill) if any
-'      - the provided string (a_string) unstripped from any implicit alignment/fill
-'        specs whereby leading spaces are preserved with "L"eft adjusted and
-'        trailing spaces are preserved with "R"ight adjusted.
-'
-'      Examples:  |   (L)eft  |(C)entered |  (R)ight  | Fill |
-'                 |-----------+-----------+-----------+------|
-'                 | "xxx "    | "xxx"     | " xxxx"   |      |
-'                 | " xxxx  " | " xxxx "  | "  xxxx " |
-'                 | "xxx ."   |           |           | "."
-'                 | "xxx .:"  |           |           | ".:"
-'                 |           | "- xxx -" |           | "-"
-' Else (a_align <> vbNullString)
-'      The string (a_align) is returned (a_return) with leading and/or trailing
-'      spaces unstripped in accordance with the provided alignment (a_align).
-'
-' Important to understand:
-' In case an alignment (a_align) is already provided only the returned string
-' is unstripped from irrelevant leading and/or trailing spaces.
-' -----------------------------------------------------------------------------------
-    Dim lLeft   As Long
-    Dim lRight  As Long
-    Dim i       As Long
-    
-    a_fill = " " ' default
-    Select Case True
-        Case a_string = "L", a_string = "R", a_string = "C"
-            a_align = a_string
-
-        Case Right$(a_string, 3) = " .:"
-            If a_align = vbNullString Then
-                a_align = "L"
-                a_fill = ".:"
-            End If
-            a_return = Left$(a_string, Len(a_string) - 3)   ' unstrip the alignment/fill spec
-        
-        Case Right$(a_string, 2) = ".:"
-            If a_align = vbNullString Then
-                a_align = "L"
-                a_fill = ".:"
-            End If
-            a_return = Left$(a_string, Len(a_string) - 2)   ' unstrip the alignment/fill spec
-        
-        Case Right$(a_string, 2) = " ."
-            If a_align = vbNullString Then
-                a_align = "L"
-                a_fill = "."
-            End If
-            a_return = Left$(a_string, Len(a_string) - 2)   ' unstrip the alignment/fill spec
-        
-        Case Right$(a_string, 1) = "."
-            If a_align = vbNullString Then
-                a_align = "L"
-                a_fill = "."
-            End If
-            a_return = Left$(a_string, Len(a_string) - 1)   ' unstrip the alignment/fill spec
-        
-        Case Left$(a_string, 2) = "- " And Right$(a_string, 2) = " -"
-            If a_align = vbNullString Then
-                a_align = "C"
-                a_fill = "-"
-            End If
-            a_return = Mid$(a_string, 3, Len(a_string) - 4) ' unstrip the alignment/fill spec
-        Case Left$(a_string, 1) = "-" And Right$(a_string, 1) = "-"
-            If a_align = vbNullString Then
-                a_align = "C"
-                a_fill = "-"
-            End If
-            a_return = Mid$(a_string, 2, Len(a_string) - 2) ' unstrip the alignment/fill spec
-        
-        Case Else
-            '~~ No fill string is provided with the implicit specified alignment
-            If a_align = vbNullString Then
-                '~~ The alignment is still to be returned
-                For i = 1 To Len(a_string)
-                    '~~ Count leading spaces
-                    If i = 1 Then
-                        If Left(a_string, 1) <> " " Then Exit For
-                    Else
-                        If Mid$(a_string, i, 1) <> " " Then Exit For
-                    End If
-                    lLeft = lLeft + 1
-                Next i
-                For i = Len(a_string) To 1 Step -1
-                    '~~ Count trailing spaces
-                    If i = Len(a_string) Then
-                        If Right(a_string, 1) <> " " Then Exit For
-                    Else
-                        If Mid$(a_string, i, 1) <> " " Then Exit For
-                    End If
-                    lRight = lRight + 1
-                Next i
-                Select Case True
-                    Case lLeft = lRight:    If Not a_align = "L" Then a_align = "C"
-                    Case lLeft < lRight:    a_align = "L"
-                    Case lLeft > lRight:    a_align = "R"
-                End Select
-            End If
-            
-            '~~ Untrip leading and/or trailing spaces in accordance with the alignment (analysed or provide)
-            Select Case a_align
-                Case "C":    a_return = Trim$(a_string)  ' unstrip any leading and trailing spaces
-                Case "L":    a_return = RTrim$(a_string) ' unstrip trailing spaces
-                Case "R":    a_return = LTrim$(a_string) ' unstrip leading spaces
-            End Select
-    
-    End Select
-
-End Sub
-
-Public Sub AlignmentHeaders(ParamArray c_align() As Variant)
-' -----------------------------------------------------------------------------------
-' Explicit headers column alignment specification, overwrites any already specified
-' alignment (possibly implicitly specified).
-' character is neither L, nor C, nor R, the alignment is considered "implicit",
-' indicated by the number of left and right spaces.
-' -----------------------------------------------------------------------------------
-    Const PROC = "AlignmentHeaders"
-    
-    On Error GoTo eh
-    Dim i       As Long
-    Dim iCol    As Long
-    Dim sAlign  As String
-    Dim sReturn As String
-    Dim sFill   As String
-    Dim s       As String
-    Dim v       As Variant
-        
-    If Not IsError(c_align(LBound(c_align))) Then
-        If InStr(c_align(LBound(c_align)), "|") <> 0 Then
-            '~~ The | in the string indicates an alternative how column aligned
-            '~~ headers may be specified
-            s = c_align(LBound(c_align))
-            If Left(s, 1) = "|" Then s = Right(s, Len(s) - 1)
-            If Right(s, 1) = "|" Then s = Left(s, Len(s) - 1)
-            v = Split(s, "|")
-        Else
-            '~~ The headers are all elements of the ParamArray
-            v = c_align
-        End If
-    Else
-        v = c_align
-    End If
-    
-    For i = LBound(v) To UBound(v)
-        If Not IsError(v(i)) Then
-            iCol = i + 1
-            sAlign = vbNullString
-            If Not IsError(v(i)) Then
-                '~~ Skippes not specified columns
-                Select Case UCase$(v(i))
-                    Case "L", "C", "R"
-                        AlignmentHeaderColumn(iCol) = UCase(v(i))
-                    Case Else
-                        Alignment v(i), sReturn, sFill, sAlign
-                        Select Case UCase(Left$(sAlign, 1))
-                            Case "L", "C", "R"
-                                AlignmentHeaderColumn(iCol) = UCase(Left$(sAlign, 1))
-                            Case Else
-                                Select Case UCase(Left$(sReturn, 1))
-                                    Case "L", "C", "R"
-                                        AlignmentHeaderColumn(iCol) = UCase(Left$(sAlign, 1))
-                                    Case Else
-                                        Err.Raise AppErr(1), ErrSrc(PROC), "The alignment for column " & iCol & " is neither L, nor R, nor C!"
-                                End Select
-                        End Select
-                End Select
-            End If
-        End If
-    Next i
-    
-xt: Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Public Sub AlignmentItems(ParamArray c_align() As Variant)
-' -----------------------------------------------------------------------------------
-' Explicit specification of the items column alignment. When no explicit alignment is
-' is specified or the first character is neither L, nor C, nor R, the alignment
-' default to the implicit specification of the first line's items.
-' Valid specifications: Spec        Meaning
-'                       ----------- -------------------------------
-'                       L           Left adjusted no fill
-'                       L.          Left adjusted filled with ....:
-'                       R           Right adjusted
-'                       C           Centered
-'                       -C-, C-, -C Centered with - fills
-'
-' -----------------------------------------------------------------------------------
-    Const PROC = "AlignmentItems"
-    Dim i       As Long
-    Dim iCol    As Long
-    Dim s       As String
-    Dim sAlign  As String
-    Dim sFill   As String
-    Dim v       As Variant
-    Dim sReturn As String
-    
-    On Error GoTo eh
-    If Not IsError(c_align(LBound(c_align))) Then
-        '~~ IsError indicates a columns alignment 'not explicitly specified'.
-        '~~ The corresponding columns will be aligned implicitly specified
-        '~~ with the first entry's items specifications
-        s = c_align(LBound(c_align))
-        If InStr(s, "|") <> 0 Then
-            If Left(s, 1) = "|" Then s = Right(s, Len(s) - 1)
-            If Right(s, 1) = "|" Then s = Left(s, Len(s) - 1)
-            v = Split(s, "|")
-        Else
-            v = c_align
-        End If
-    Else
-        v = c_align
-    End If
-                
-    For i = LBound(v) To UBound(v)
-        iCol = i + 1
-        If Not IsError(v(i)) Then
-            sFill = " "
-            sAlign = vbNullString
-            Alignment v(i), sReturn, sFill, sAlign
-            Select Case True
-                Case sAlign = "L" And sFill = " "
-                Case sAlign = "L" And sFill = "."
-                Case sAlign = "L" And sFill = ".:"
-                Case sAlign = "R"
-                Case sAlign = "C" And sFill = " "
-                Case sAlign = "C" And sFill = "-"
-                Case Else: Err.Raise AppErr(1), ErrSrc(PROC), "The specified alignment is invalid! Valid specs are:" & vbLf & _
-                                                              "L, L., R, C, -C, C-, -C-"
-            End Select
-            AlignmentItemColumn(iCol) = sAlign
-            ColFill(iCol) = sFill
-        Else
-            AlignmentItemColumn(iCol) = vbNullString
-            ColFill(iCol) = " "
-        End If
-    Next i
-    
-xt: Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Public Function AlignString(ByVal a_strng As String, _
-                            ByVal a_lngth As Long, _
-                   Optional ByVal a_align As String = "L", _
-                   Optional ByVal a_margn As String = vbNullString, _
-                   Optional ByVal a_fill As String = " ") As String
+Public Function Align(ByVal a_string As String, _
+             Optional ByVal a_align As String = "L", _
+             Optional ByVal a_length As Long = 0, _
+             Optional ByVal a_fill As String = " ", _
+             Optional ByVal a_margin As String = vbNullString, _
+             Optional ByVal a_col_arranged As Boolean = False) As String
 ' ----------------------------------------------------------------------------
-' Returns a string (a_strng) with a lenght (a_lngth) aligned (a_align) and
-' filled with (a_fill).
-' Preconditions:
-' - The length (a_lngth) is the final lenght including any specific fillss
-' - The string (a_strn) may contain already leading or trailing preserved
+' Returns a string (a_string)
+' - in the length (a_length) enclosed in margins (a_margin) whereby a non
+'   provided width defaults to the string's (a_string) width
+' - aligned (a_align), when not provided, defaults to the alignment implicitly
+'   specified
+' - filled with (a_fill), defaults to a single space when not provided.
+' Specifics:
+' - When a margin is provided, the final length will be the specified length
+'   plus the length of a left and a right margin. A margin is typically used
+'   when the string is one item of serveral organized in columns when the
+'   column delimiter is a vbNullString. When the column delimiter is a |
+'   usually a marign of a single space is used
+' - The string (a_strn) may contain already leading or trailing spaces of
+'   the left are preserved when the string is left aligned and the right
+'   spaces are preserved when the string is right aligned.
 '   spaces.
+' - The function is also used to align items arragend in columns.
+'
+' Attention to column arranged alignment (a_col_arranged = True):
+' ---------------------------------------------------------------
+' - The length is regarded the maximum. I.e. when the string (a_string) is
+'   longer it is  truncated to the right
+' - The final result string has any margin (left and right) added
+' - The final string has of any fill <> vbNullString at least one fill
+'   (a_fill) added, in the example below this is " -"
+'   Example: A string xxx with given length of 10, a single space margin and
+'            a " -" fill, left aligned results in: " xxx -------- " which is
+'            a final lenght of 14.
+'
+' Attention to normal alignment (a_col_arranged = True):
+' ------------------------------------------------------
+' - The provided length is the final length returned. I.e. when the provided
+'   string (a_string) exceeds the length (a_length) the result is truncated
+'   to the right
+' - Any specified margin is ignored
+' - Fills (a_fill) are added to the right to the extent the length of the
+'   provided string (a_string) allows it without exceeding the final length
+'   (a_lenght).
+'
+' W. Rauschenberger, Berlin Jun 2024
 ' ----------------------------------------------------------------------------
-    Const PROC = "AlignString"
+    Const PROC = "Align"
     
     On Error GoTo eh
-    Dim sFill   As String
-    Dim s       As String
-
-    If Trim$(a_strng) = vbNullString Then
-        AlignString = String$(a_lngth, " ")
-    Else
-        If a_fill = vbNullString Then a_fill = " "
-        Select Case Left(UCase(a_align), 1)
-            
-            Case "L"
-                a_strng = WithMargins(a_strng)
-                Select Case a_fill
-                    Case ".:"
-                        If Right$(a_strng, 1) <> " " Then a_strng = a_strng & " "
-                        AlignString = Left$(a_strng & String(a_lngth, a_fill), a_lngth - 1) & ":"
-                    Case "."
-                        If Right$(a_strng, 1) <> " " Then a_strng = a_strng & " "
-                        AlignString = Left$(a_strng & String(a_lngth, a_fill), a_lngth)
-                    Case Else
-                        AlignString = Left$(a_strng & String(a_lngth, a_fill), a_lngth)
-                End Select
-            
-            Case "R"
-                AlignString = Right$(String(a_lngth, a_fill) & a_strng & a_margn, a_lngth)
-                
-            Case "C"
-                s = " " & Trim$(a_strng) & " "
-                If Len(s) < a_lngth Then
-                    sFill = String$(Int((a_lngth - Len(s)) / 2), a_fill)
-                End If
-                    AlignString = sFill & s & sFill
-                If Len(AlignString) < a_lngth Then
-                    AlignString = AlignString & VBA.String$(a_lngth - Len(AlignString), a_fill)
-                End If
-        End Select
+    Dim lLength As Long
+    
+    If a_string = vbNullString Then
+        '~~ A non provided string results in one filled with a_fill
+        '~~ enclosed in margins (a_margin)
+        Align = a_margin & String$(a_length, a_fill) & a_margin
+        GoTo xt
     End If
+        
+    If a_align = vbNullString Then
+        '~~ When no alignment is indicated it default to left with a single space fill.
+        a_align = "L"
+        a_fill = " "
+    End If
+        
+    If a_length = 0 _
+    Then lLength = Len(a_string) _
+    Else lLength = a_length
+
+    If a_fill = vbNullString Then a_fill = " "
+    Select Case a_align
+        Case "L":   Align = AlignLeft(a_string, lLength, a_fill, a_margin, a_col_arranged)
+        Case "R":   Align = AlignRght(a_string, lLength, a_fill, a_margin, a_col_arranged)
+        Case "C":   Align = AlignCntr(a_string, lLength, a_fill, a_margin, a_col_arranged)
+    End Select
 
 xt: Exit Function
 
@@ -719,64 +583,603 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Function
 
+Private Function AlignCntr(ByVal a_string As String, _
+                           ByRef a_length As Long, _
+                  Optional ByVal a_fill As String = " ", _
+                  Optional ByVal a_margin As String = vbNullString, _
+                  Optional ByVal a_col_arranged = False) As String
+' ----------------------------------------------------------------------------
+' Returns a string (a_string) centered within a guven width (a_length). When
+' truncate (a_truncate) is False (the default), the returned with (a_with)
+' may be extended to the width of the string (a_steing). The result may not be
+' centered exactly.
+' ----------------------------------------------------------------------------
+    Const PROC = "AlignCntr"
+    
+    On Error GoTo eh
+    Dim lLoop       As Long
+    Dim s           As String
+    Dim sFillLeft   As String
+    Dim sFillRight  As String
+    Dim sFill       As String
+    Dim lWidth      As Long
+    Dim lLoss       As Long
+
+    If a_length = 0 _
+    Then Err.Raise AppErr(1), ErrSrc(PROC), "A zero length is nor supported by alignment centered!"
+
+    s = a_string
+    Select Case a_fill
+        Case " ":           sFill = " ": sFillLeft = " ":          sFillRight = " ":            lLoss = 0
+        Case "-":           sFill = "-": sFillLeft = vbNullString: sFillRight = vbNullString:   lLoss = 2
+        Case " -", "- ":    sFill = "-": sFillLeft = " ":          sFillRight = " ":            lLoss = 4
+        Case "=":           sFill = "=": sFillLeft = vbNullString: sFillRight = vbNullString:   lLoss = 2
+        Case " =", "= ":    sFill = "=": sFillLeft = " ":          sFillRight = " ":            lLoss = 4
+        Case Else
+            Err.Raise AppErr(2), ErrSrc(PROC), _
+            "The specified fill is not applicable for a centered alignment! " & _
+            "Accepted is "" "", ""-"", ""="", "" -"", ""- "", "" ="", ""= """
+    End Select
+    
+    '~~ Determine the final width/length of the returned string - excluding margins
+    If a_col_arranged Then
+        lWidth = AlignWidthExMargin(a_fill, a_length, enAlignCentered)
+        s = AlignTruncated(s, enAlignCentered, lWidth - lLoss)
+    Else
+        lWidth = a_length
+        If Len(s) > lWidth Then s = Left(s, lWidth)
+    End If
+    
+    Do While Len(s) < lWidth
+        lLoop = lLoop + 1
+        Select Case True
+            Case Len(s) = lWidth
+                Exit Do
+            Case Len(s & sFillRight) <= lWidth
+                s = s & sFillRight
+                sFillRight = sFill
+                If Len(s) < lWidth Then
+                    s = sFillLeft & s ' add fill left
+                    sFillLeft = sFill
+                End If
+        End Select
+        If lLoop > lWidth Then
+            Stop
+        End If
+    Loop
+    AlignCntr = s
+    If a_col_arranged Then AlignCntr = a_margin & s & a_margin _
+
+xt: Exit Function
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Function
+
+Private Function AlignLeft(ByRef a_string As String, _
+                           ByRef a_length As Long, _
+                  Optional ByVal a_fill As String = " ", _
+                  Optional ByVal a_margin As String = vbNullString, _
+                  Optional ByVal a_col_arranged As Boolean = False) As String
+' -----------------------------------------------------------------------------------
+' Returns a string (a_strng) left aligned by:
+' - adding fill characters to the right up to the specified length (a_length),
+'   whereby the filling may start with a single space
+' - enclose the result in left and right margins - which default to a vbNullString
+'   when a_col_arranged = True
+' Specifics:
+' - Left spaces provided with the string (a_string) are preserved
+' - The final length is the specified length plus a left and a right marging - which
+'   may be a vbNullString
+' - It is considered that the string may be an column item which may look ate the end
+'   "| xxxx" when a column delimiter  | is used, else just "xxxx" when the column
+'   delimiter is already a single space. In that case the margin (a_margin) would be
+'   a vbNullString.
+' Precondition: The string (a_string) not/no longer contains any implicit alignment
+'               specs.
+' -----------------------------------------------------------------------------------
+
+    Dim s           As String
+    Dim sFillStart  As String
+    Dim sFill       As String
+    Dim sFillEnd    As String
+    Dim lLoop       As Long
+    Dim lWidth      As Long
+    Dim lLoss       As Long
+    
+    '~~ Preparations for the final string which will have the following syntax:
+    '~~ - a_col_arranged = True: <margin><string><fill-start>[<fill>][<fill>]...<fill-end><margin>
+    '~~ - a_col_arranged = False: <margin><string>
+    s = a_string
+    Select Case a_fill
+        Case " ":   sFillStart = vbNullString: sFill = " ": sFillEnd = " ":             lLoss = 0
+        Case "-":   sFillStart = vbNullString: sFill = "-": sFillEnd = vbNullString:    lLoss = 1
+        Case " -":  sFillStart = " ":          sFill = "-": sFillEnd = vbNullString:    lLoss = 2
+        Case ".":   sFillStart = vbNullString: sFill = ".": sFillEnd = vbNullString:    lLoss = 1
+        Case " .":  sFillStart = " ":          sFill = ".": sFillEnd = vbNullString:    lLoss = 2
+        Case ".:":  sFillStart = vbNullString: sFill = ".": sFillEnd = ":":             lLoss = 2
+        Case " .:": sFillStart = " ":          sFill = ".": sFillEnd = ":":             lLoss = 3
+    End Select
+        
+    '~~ Determine the final width/length of the returned string - excluding margins
+    If a_col_arranged Then
+        lWidth = AlignWidthExMargin(a_fill, a_length, enAlignLeft)
+        s = AlignTruncated(s, enAlignLeft, lWidth - lLoss)
+    Else
+        lWidth = a_length
+        If Len(s) > lWidth Then s = Left(s, lWidth)
+    End If
+
+    Do
+        lLoop = lLoop + 1
+        Select Case True
+            Case Len(s) >= lWidth:                                Exit Do
+            Case Len(s & sFillEnd) = lWidth:                      s = s & sFillEnd
+            Case Len(s & sFillStart) = lWidth:                    s = s & sFillStart:         sFillStart = vbNullString
+            Case Len(s & sFillStart & sFill & sFillEnd) < lWidth: s = s & sFillStart & sFill: sFillStart = vbNullString
+            Case Else:                                            s = s & sFill
+        End Select
+        If lLoop > lWidth Then
+            Stop
+        End If
+    Loop
+    If VBA.Trim$(a_string) = vbNullString Then
+        AlignLeft = String(Len(s), " ")
+    Else
+        AlignLeft = s
+    End If
+    If a_col_arranged Then AlignLeft = a_margin & AlignLeft & a_margin _
+    
+End Function
+
+Private Function AlignRght(ByVal a_string As String, _
+                  Optional ByRef a_length As Long = 0, _
+                  Optional ByVal a_fill As String = " ", _
+                  Optional ByVal a_margin As String = vbNullString, _
+                  Optional ByVal a_col_arranged As Boolean = False) As String
+' -----------------------------------------------------------------------------------
+' Returns a string (a_string) aligned right with at the left filled (a_fill) in a
+' given length (a_lenght), enclosed in specified margins (a_margin).
+' -----------------------------------------------------------------------------------
+    Const PROC = "AlignRght"
+    
+    On Error GoTo eh
+    Dim lLoop       As Long
+    Dim lWidth      As Long
+    Dim s           As String
+    Dim sFill       As String
+    Dim sFillEnd    As String
+    Dim sFillStart  As String
+    Dim lLoss       As Long
+    
+    If a_length = 0 _
+    Then Err.Raise AppErr(1), ErrSrc(PROC), "A zero length is nor supported by alignment right!"
+    
+    s = a_string
+    If a_fill = vbNullString Then a_fill = " "
+    Select Case a_fill
+        Case " ":           sFillStart = vbNullString: sFill = " ": sFillEnd = " ":             lLoss = 0
+        Case ".":           sFillStart = vbNullString: sFill = ".": sFillEnd = vbNullString:    lLoss = 1
+        Case " .", ". ":    sFillStart = " ":          sFill = ".": sFillEnd = vbNullString:    lLoss = 2
+        Case "-":           sFillStart = vbNullString: sFill = "-": sFillEnd = vbNullString:    lLoss = 1
+        Case " -", "- ":    sFillStart = " ":          sFill = "-": sFillEnd = vbNullString:    lLoss = 2
+    End Select
+    
+    '~~ Determine the final width/length of the returned string - excluding margins
+    If a_col_arranged Then
+        lWidth = AlignWidthExMargin(a_fill, a_length, enAlignRight)
+        s = AlignTruncated(s, enAlignRight, lWidth - lLoss)
+    Else
+        lWidth = a_length
+    End If
+
+    Do
+        lLoop = lLoop + 1
+        Select Case True
+            Case Len(s) >= lWidth:                                Exit Do
+            Case Len(sFillStart & s) = lWidth:                    s = sFillStart & s:           sFillStart = vbNullString
+            Case Len(sFillEnd & s) = lWidth:                      s = sFillEnd & s              ' last fill add
+            Case Len(sFillEnd & sFill & sFillStart & s) < lWidth: s = sFill & sFillStart & s:   sFillStart = vbNullString
+            Case Else:                                            s = sFill & s
+        End Select
+        If lLoop > lWidth Then
+            Stop
+        End If
+    Loop
+    AlignRght = s
+    If a_col_arranged Then AlignRght = a_margin & s & a_margin _
+                   
+xt: Exit Function
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Function
+
+Private Function AlignTruncated(ByRef a_string As String, _
+                                ByVal a_align As enAlign, _
+                                ByVal a_space As Long) As String
+' -----------------------------------------------------------------------------------
+' Returns a string truncated when the space available (a_space) is less then the
+' width required by the string (a_string).
+' -----------------------------------------------------------------------------------
+    Dim s As String
+    
+    Select Case a_align
+        Case enAlignLeft:       s = RTrim$(a_string)
+        Case enAlignCentered:   s = Trim$(a_string)
+        Case enAlignRight:      s = LTrim$(a_string)
+    End Select
+        
+    If Len(s) > a_space Then s = Left(s, a_space)
+    AlignTruncated = s
+    
+End Function
+
+Private Function AlignWidthExMargin(ByVal a_fill As String, _
+                                    ByVal a_length As Long, _
+                                    ByVal a_align As enAlign) As Long
+' -----------------------------------------------------------------------------------
+' The provided lenght indicates the maximum string length. However, for another fill
+' but a single space the final returned width always includes the fill (one for
+' left or right and two for centered.
+' Note: col arranged assumes that the columns do have a delimiter |, which makes a
+'       margin appropriate provided one is specified - which is the default.
+' -----------------------------------------------------------------------------------
+    Dim l As Long
+    
+    l = a_length ' default
+
+    If a_fill <> " " Then
+        l = l + Len(a_fill)   ' one in any case
+        If a_align = enAlignCentered Then l = l + Len(a_fill) ' one fill at the left and another one at the right
+    End If
+    AlignWidthExMargin = l
+  
+End Function
+
 Private Function AppErr(ByVal app_err_no As Long) As Long
 ' ------------------------------------------------------------------------------
-' Ensures that a programmed (i.e. an application) error numbers never conflicts
-' with the number of a VB runtime error. Thr function returns a given positive
-' number (app_err_no) with the vbObjectError added - which turns it into a
-' negative value. When the provided number is negative it returns the original
-' positive "application" error number e.g. for being used with an error message.
+' Ensures that a programmed (i.e. an application) error number never conflicts
+' with VB runtime error. Thr function returns a given positive number
+' (app_err_no) with the vbObjectError added - which turns it to negative. When
+' the provided number is negative it returns the original positive "application"
+' error number e.g. for being used with an error message.
 ' ------------------------------------------------------------------------------
-    AppErr = IIf(app_err_no < 0, app_err_no - vbObjectError, vbObjectError - app_err_no)
+    If app_err_no >= 0 Then AppErr = app_err_no + vbObjectError Else AppErr = Abs(app_err_no - vbObjectError)
 End Function
 
-Private Sub ArryRedim(ByRef a_arry As Variant, _
-                      ByVal a_items As Long)
-' -----------------------------------------------------------------------------------
-' Returns the array (a_arry) redimed with the number of required columns (a_items).
-' -----------------------------------------------------------------------------------
-    If Not IsAllocated(a_arry) _
-    Then ReDim a_arry(a_items) _
-    Else ReDim Preserve a_arry(Max(UBound(a_arry), a_items))
-End Sub
-
-Private Function SplitString(ByVal s_s As String) As String
+Private Function ArrayAsFile(ByVal a_array As Variant, _
+                    Optional ByRef a_file As Variant = vbNullString, _
+                    Optional ByVal a_file_append As Boolean = False) As File
+' ----------------------------------------------------------------------------
+' Writes all items of an array (a_arry) to a file (a_file) which might be a
+' file object, a file's full name. When no file (a_file) is provided a
+' temporary file is returned, else the provided file (a_file) as object.
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
+' ----------------------------------------------------------------------------
+      
+    If Not ArrayIsAllocated(a_array) Then Exit Function
     
     Select Case True
-        Case InStr(s_s, vbCrLf) <> 0: SplitString = vbCrLf
-        Case InStr(s_s, vbCr) <> 0:   SplitString = vbCr
-        Case InStr(s_s, vbLf) <> 0:   SplitString = vbLf
+        Case a_file = vbNullString:     a_file = TempFile
+        Case TypeName(a_file) = "File": a_file = a_file.Path
     End Select
-    If Len(SplitString) = 0 Then SplitString = vbCrLf
+    
+    If a_file_append _
+    Then Open a_file For Append As #1 _
+    Else Open a_file For Output As #1
+    Print #1, Join(a_array, vbCrLf)
+    Close #1
+    Set ArrayAsFile = FSo.GetFile(a_file)
     
 End Function
 
-Public Function AsArray(ByVal a_string As String) As String()
-' -----------------------------------------------------------------------------------
-' Returns a string (a_string) as an array of strings. Any leading or trailing split
-' character is removed before the split.
-' -----------------------------------------------------------------------------------
-    Dim sSplit As String
+Private Function ArrayBase() As Long
+    Dim arr As Variant
+    arr = Array("a")
+    ArrayBase = LBound(arr)
+End Function
+
+Private Function ArrayErase(ByRef a_arr As Variant)
+    If IsArray(a_arr) Then Erase a_arr
+End Function
+
+Private Function ArrayHasElements(ByVal a_arr As Variant, _
+                         Optional ByRef a_elements As Long) As Boolean
+' ----------------------------------------------------------------------------
+' Returns TRUE when the array (a_arr) has at least one element.
+' ----------------------------------------------------------------------------
+    Dim v As Variant
     
-    '~~ Obtain (and return) the used line terminating string (vbCrLf) or character
-    sSplit = SplitString(a_string)
+    On Error Resume Next
+    v = a_arr(LBound(a_arr))
+    ArrayHasElements = Err.Number = 0
+    Err.Clear
+    If ArrayHasElements Then
+        If LBound(a_arr) = 0 _
+        Then a_elements = UBound(a_arr) - LBound(a_arr) _
+        Else a_elements = UBound(a_arr) - LBound(a_arr) + 1
+    End If
+
+End Function
+
+Private Function ArrayIsAllocated(a_arr As Variant) As Boolean
+' -----------------------------------------------------------------------------------
+' Retruns TRUE when an array (arr) is allocated, i.e. when it has a valid LBound and
+' and an LBound which is less or equal its UBound.
+' -----------------------------------------------------------------------------------
+    On Error Resume Next
+    ArrayIsAllocated = IsArray(a_arr) _
+              And Not IsError(LBound(a_arr, 1)) _
+              And LBound(a_arr, 1) <= UBound(a_arr, 1)
+End Function
+
+Private Function ArrayNoOfElements(ByVal a_arr As Variant) As Long
+    Dim l As Long
+    If ArrayHasElements(a_arr, l) Then
+        ArrayNoOfElements = l
+    End If
     
-    If Left(a_string, 1) = sSplit Then a_string = Right(a_string, Len(a_string) - 1)
-    If Right(a_string, 1) = sSplit Then a_string = Left(a_string, Len(a_string) - 1)
-    AsArray = Split(a_string, sSplit)
+End Function
+
+Private Sub ArraysErase()
+    
+    ArrayErase aColsAlign
+    ArrayErase aColsWidth
+    ArrayErase aColsHeadersLines
+    ArrayErase aItems
+    ArrayErase aTitleLines
+    
+End Sub
+
+Private Function CollectionAsArray(ByVal v_items As Collection) As Variant
+' ----------------------------------------------------------------------------
+'
+' ----------------------------------------------------------------------------
+    Dim arr As Variant
+    Dim s   As String
+    Dim v   As Variant
+    
+    For Each v In v_items
+        If IsObject(v, s) _
+        Then Arry(arr) = s _
+        Else Arry(arr) = v
+    Next v
+    CollectionAsArray = arr
+    
+End Function
+
+Private Function ColsHeadersLines(ByRef c_width As Long) As String
+' ------------------------------------------------------------------------------
+' Returns all header lines (aColsHeadersLines) as one string delimited by vbCrLf.
+' When none had been specified the function returns a vbNullString.
+' ------------------------------------------------------------------------------
+    Const PROC = "LogColsHeaderWrite"
+    
+    On Error GoTo eh
+    Dim sColDelimUl As String
+    Dim sHeaderUl   As String
+    Dim i           As Long
+    Dim sLines      As String
+    Dim v           As Variant
+    Dim l           As Long
+    
+    If ArrayHasElements(aColsHeadersLines) Then
+        '~~ Prepare cols header top/bottom line
+        For i = LBound(aColsWidth) To UBound(aColsWidth)
+            l = ColWidthFinal(i) + (Len(ColsMargin) * 2)
+            sHeaderUl = ConcatenateStrings(sHeaderUl, String(l, "-"), "+", sColDelimUl)
+        Next i
+        '~~ Line above
+        sLines = sHeaderUl
+        c_width = Len(sLines)
+        '~~ Header lines
+        For Each v In aColsHeadersLines
+            sLines = sLines & vbCrLf & CStr(v)
+        Next v
+        '~~ Line below
+        sLines = sLines & vbCrLf & sHeaderUl
+        ArrayErase aColsHeadersLines
+    
+        ColsHeadersLines = sLines
+    End If
+        
+xt: Exit Function
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Function
+
+Private Function ColsHeadersSpecified() As Boolean
+    ColsHeadersSpecified = ArrayHasElements(aColsHeadersLines)
+End Function
+
+Public Function ColsItems(ParamArray c_items() As Variant) As String
+' -----------------------------------------------------------------------------------
+' Returns a string with the provided items (c_items) arranged in columns, whereby:
+' - column widths provided beforehand by means of ColsWidth are considered,
+'   expanded to the actual required width when the truncate option (c_truncate) is
+'   False and truncated to the specified width otherwise. For a column no width has
+'   been specified beforehand the column width of the first aligned column item is
+'   considered even when the truncate option (c_truncate) is True.
+' - a column delimiter may be a single space or a | (vertical bar). In the first
+'   case the margin for each individual item becomes a vbNullString, in the second
+'   case the margin will default to a single space.
+'
+' Precondition: Column widths had been provided.
+' -----------------------------------------------------------------------------------
+    Const PROC = "ColsItems"
+    
+    On Error GoTo eh
+    Dim iCol       As Long
+    Dim s          As String
+    Dim sColDelim  As String
+    Dim sColItem   As String
+    Dim sColString As String
+    Dim sItemAlgnd As String
+    Dim v          As Variant
+    Dim aItems     As Variant
+    
+    aItems = c_items
+    If Not ArrayHasElements(aItems) Then GoTo xt
+    
+    For Each v In aItems
+        iCol = iCol + 1
+        sColItem = v
+        If sColItem = vbNullString Then sColItem = " "
+        
+        Select Case ColAlign(iCol)
+            Case "L":   sColString = RTrim$(sColItem)
+            Case "C":   sColString = Trim$(sColItem)
+            Case "R":   sColString = LTrim$(sColItem)
+        End Select
+        
+        '~~ With the exception of the rightmost columns - which has an unlimited length -
+        '~~ each column requires a specified width.
+        If ColWidth(iCol) = 0 And iCol < Cols _
+        Then Err.Raise AppErr(2), ErrSrc(PROC), "Missing width spec for column " & iCol & " !"
+        '~~ The rightmost column is adjusted to the max
+        If iCol = Cols _
+        Then ColWidth(iCol) = Len(sColString) ' rightmost column width is maximized on the go
+        
+        sItemAlgnd = Align(sColItem, ColAlign(iCol), ColWidth(iCol), ColFill(iCol), ColsMargin, True)
+        s = ConcatenateStrings(s, sItemAlgnd, ColsDelimiter, sColDelim)
+    Next v
+    
+xt: NewLogLines Len(s) ' when nothing else is specified this is the minimum length for title and headers
+    WriteLines s
+    Exit Function
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Function
+
+Private Sub ColSpec(ByVal c_col As Long, _
+                    ByVal c_strng As String)
+' ----------------------------------------------------------------------------
+' Returns a column's (c_col) specification of the width (c_width), alignment
+' (sAlign), and fill (sFill).
+' ----------------------------------------------------------------------------
+    Const PROC = "ColSpec"
+    
+    On Error GoTo eh
+    Dim s       As String
+    Dim sAlign  As String
+    Dim sFill   As String
+    
+    s = c_strng
+    '~~ Get alignment (defaults to Left when none is specified
+    Select Case True
+        Case ColSpecTry(s, "Left"):     sAlign = "L"
+        Case ColSpecTry(s, "Center"):   sAlign = "C"
+        Case ColSpecTry(s, "Right"):    sAlign = "R"
+        Case ColSpecTry(s, "Lft"):      sAlign = "L"
+        Case ColSpecTry(s, "Cntr"):     sAlign = "C"
+        Case ColSpecTry(s, "Rght"):     sAlign = "R"
+        Case ColSpecTry(s, "L"):        sAlign = "L"
+        Case ColSpecTry(s, "C"):        sAlign = "C"
+        Case ColSpecTry(s, "R"):        sAlign = "R"
+        Case Else:                      sAlign = "L" ' the default
+    End Select
+    ColAlign(c_col) = sAlign
+    
+    '~~ Get fill (defaults to a single space when none is specified
+    Select Case True
+        Case ColSpecTry(s, " .:", sFill)
+        Case ColSpecTry(s, ".:", sFill)
+        Case ColSpecTry(s, " -", sFill):    ColSpecTry s, "- ", sFill   ' if alignment is Centered
+        Case ColSpecTry(s, " =", sFill):    ColSpecTry s, "= ", sFill   ' if alignment is Centered
+        Case ColSpecTry(s, ".", sFill)
+        Case ColSpecTry(s, "-", sFill):     ColSpecTry s, "-", sFill    ' if alignment is Centered
+        Case ColSpecTry(s, " ", sFill)
+        Case Else:                          sFill = " "  ' the default
+    End Select
+    ColFill(c_col) = sFill
+    
+    '~~ Get column width
+    '~~ When alignment and fill specs had been extracted (and eliminated), the
+    '~~ remaining (or the only spec) is to be the column width.
+    If Not IsNumeric(s) _
+    Then Err.Raise AppErr(1), ErrSrc(PROC), _
+         "The column specification does not provide a numeric value indicating the columns width." & "||" & _
+         "The column width is mandatoryIt may be the only specification in case the fill is a single " & _
+         "space (the default) and the alignment is Left (the default)."
+    
+    ColWidth(c_col) = CLng(s)
+    
+xt: Exit Sub
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Sub
+
+Private Function ColSpecTry(ByRef c_strng As String, _
+                            ByVal c_try As String, _
+                   Optional ByRef c_return As String) As Boolean
+                   
+    If InStr(c_strng, c_try) <> 0 Then
+        c_return = c_try
+        ColSpecTry = True
+        c_strng = Replace(c_strng, c_try, vbNullString)
+    End If
 
 End Function
 
 Private Function ColWidthFinal(ByVal c_col As Long) As Long
 ' -----------------------------------------------------------------------------------
-' Returns the final width of a column by considering the either implicitly or
-' explicitly specified width and the fill string in case one is specified.
+' Returns the final width of a column by considering the specified width and the fill
+' string in case one is specified. This is added, because at least one fill - if
+' centered two) is at least added to the string when the fill is not a single space.
+' Note: This is the "inner width" providing enough space for the specified width
+'       which considers the maximum length of the string only. I.e. a singel space
+'       margin may still be added when the columns delimiter is a | (vettical bar).
 ' -----------------------------------------------------------------------------------
-    Select Case ColFill(c_col)
-        Case ".":   ColWidthFinal = ColWidth(c_col) + 2
-        Case ".:":  ColWidthFinal = ColWidth(c_col) + 3
-        Case Else:  ColWidthFinal = ColWidth(c_col)
-    End Select
+    
+    Dim lMult As Long
+    If ColAlign(c_col) = "C" Then lMult = 2 Else lMult = 1
+    
+    If ColFill(c_col) <> " " Then
+        ColWidthFinal = ColWidth(c_col) + Len(ColFill(c_col)) * lMult
+    Else
+        ColWidthFinal = ColWidth(c_col)
+    End If
+    
+End Function
+
+Private Function ConcatenateStrings(ByVal c_string As String, _
+                                    ByVal c_item As String, _
+                                    ByVal c_conc As String, _
+                                    ByRef c_delim As String) As String
+    ConcatenateStrings = c_string & c_delim & c_item
+    c_delim = c_conc
+End Function
+
+Private Function DictionaryAsArray(ByVal v_items As Dictionary) As Variant
+' ----------------------------------------------------------------------------
+'
+' ----------------------------------------------------------------------------
+    Dim arr As Variant
+    Dim s   As String
+    Dim v   As Variant
+    
+    For Each v In v_items
+        If IsObject(v, s) _
+        Then Arry(arr) = s _
+        Else Arry(arr) = v
+    Next v
+    DictionaryAsArray = arr
+    
 End Function
 
 Public Sub Dsply(Optional ByVal d_file_full_name = vbNullString)
@@ -787,92 +1190,18 @@ Public Sub Dsply(Optional ByVal d_file_full_name = vbNullString)
     ShellRun d_file_full_name
 End Sub
 
-Public Sub Entry(ParamArray e() As Variant)
+Public Sub Entry(ByVal e_strng As String)
 ' ----------------------------------------------------------------------------
-' - When a single string without any | is provided the string is appended as a
-'   new line to the log file
-' - When multiple strings are provided or a string contains vertical bars (|)
-'   the indicated items are writen aligned in columns to the log-file
-' - When an item is not available (IsError) an item with spaces only is
-'   assumed
+' Writes a single string appended as new log entry to the log file.
 ' ----------------------------------------------------------------------------
     Const PROC = "Entry"
     
     On Error GoTo eh
-    Dim i       As Long
-    Dim iCol    As Long
-    Dim s       As String
-    Dim v       As Variant
-    Dim sItem   As String
-    Dim sFill   As String
-    Dim sAlign  As String
     
     bInitialized = False
-    
-    If LBound(e) = UBound(e) Then
-        '~~ The log-entry is only one single string
-        If Not IsError(e(LBound(e))) Then
-            s = e(LBound(e))
-            If InStr(s, "|") <> 0 Then
-                '~~ The | in the string indicates items for being column aligned
-                '~~ and additionally the implicit width
-                If Left(s, 1) = "|" Then s = Right(s, Len(s) - 1)
-                If Right(s, 1) = "|" Then s = Left(s, Len(s) - 1)
-                v = Split(s, "|")
-                lColumns = UBound(v)
-                For i = LBound(v) To UBound(v)
-                    iCol = i + 1
-                    ColItem(iCol) = CStr(v(i))
-                    If ColWidth(iCol) = 0 Then
-                        '~~ Only in case no column width has explicitly been
-                        '~~ spcified by means of the MaxItemLengths method
-                        ColWidth(iCol) = Len(v(i))
-                    End If
-                    sAlign = AlignmentItemColumn(iCol)
-                    Alignment v(i), sItem, sFill, sAlign
-                Next i
-                WriteItems
-            Else
-                NewLogLines s
-                WriteLine s
-            End If
-        End If
-    Else
-        '~~ The Entry provides more than just one string, thereby
-        '~~ indicating that these items are to be aligned in columns
-        lColumns = UBound(e) + 1
-        For i = LBound(e) To UBound(e)
-            iCol = i + 1
-            If Not IsError(e(i)) Then
-                sAlign = AlignmentItemColumn(iCol)
-                sFill = ColFill(iCol)
-                If sAlign = vbNullString Then
-                    '~~ Not yet (explicitly) specified
-                    '~~ Alignment returns:
-                    '~~ - sItem with irrelevant leading and/or trailing spaces unstripped
-                    '~~ - sAlign implicitly specified
-                    '~~ - sFill implicitly specified
-                    Alignment e(i), sItem, sFill, sAlign
-                    AlignmentItemColumn(iCol) = sAlign
-                    ColFill(iCol) = sFill
-                Else
-                    '~~ Already (explicitly) specified
-                    '~~ Alignment (only) returns sItem with irrelevant leading and/or trailing spaces unstripped
-                    Alignment e(i), sItem, sFill, sAlign
-                End If
-                ColItem(iCol) = sItem
-                If ColWidth(iCol) = 0 Then
-                    '~~ Only in case no column width has explicitly been
-                    '~~ spcified by means of the MaxItemLengths method
-                    ColWidth(iCol) = Len(sItem)
-                End If
-            Else
-                '~~ Any not provided item becomes one with spaces only
-                ColItem(iCol) = String(ColWidth(iCol), " ")
-            End If
-        Next i
-        WriteItems
-    End If
+    NewLogLines Len(e_strng) ' when nothing else is specified this is the minimum length for title and headers
+    WriteLines e_strng
+    sLastSpec = "Entry"
         
 xt: Exit Sub
 
@@ -972,328 +1301,147 @@ Private Function ErrSrc(ByVal sProc As String) As String
     ErrSrc = "clsLog" & "." & sProc
 End Function
 
-Private Property Let FileAsString(Optional ByVal f_file As Variant, _
-                                  Optional ByVal f_append As Boolean = True, _
-                                           ByVal f_string As String)
+Public Function FileAsArray(ByVal f_file As Variant, _
+                   Optional ByVal f_empty_excluded = False) As Variant
 ' ----------------------------------------------------------------------------
-' Writes the string (f_string) into the file (f_file) which might be a file
-' object or a file's full name.
+' Returns a file's (f_file) records/lines as array.
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
 ' ----------------------------------------------------------------------------
-    Const PROC = "FileAsString-Let"
-    
-    On Error GoTo eh
-    Dim ts      As TextStream
-    Dim sFl     As String
-    
-    With FSo
-        If TypeName(f_file) = "File" Then
-            sFl = f_file.Path
-            If f_append _
-            Then Set ts = .OpenTextFile(FileName:=sFl, IOMode:=ForAppending) _
-            Else Set ts = .OpenTextFile(FileName:=sFl, IOMode:=ForWriting)
-        Else
-            '~~ f_file is regarded a file's full name, created if not existing
-            sFl = f_file
-            If Not .FileExists(sFl) Then
-                .CreateTextFile sFl
-                Set ts = .OpenTextFile(FileName:=sFl, IOMode:=ForWriting)
-            Else
-                If f_append _
-                Then Set ts = .OpenTextFile(FileName:=sFl, IOMode:=ForAppending) _
-                Else Set ts = .OpenTextFile(FileName:=sFl, IOMode:=ForWriting)
-            End If
-        End If
-        
-    End With
-    
-    ts.WriteLine f_string
-
-xt: ts.Close
-    Set FSo = Nothing
-    Set ts = Nothing
-    Exit Property
-    
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Property
-
-Private Property Let FileArry(Optional ByVal f_file As String, _
-                              Optional ByVal f_excl_empty_lines As Boolean = False, _
-                              Optional ByVal f_append As Boolean = False, _
-                                       ByVal f_ar As Variant)
-' ----------------------------------------------------------------------------
-' Writes array (f_ar) to file (f_file) whereby the array is joined to a text
-' string using vbCrLf as line break string.
-' ----------------------------------------------------------------------------
-    Dim sSplit As String
-    
-    '~~ Obtain (and return) the used line terminating string (vbCrLf) or character
-    sSplit = SplitString(f_file)
-
-    f_excl_empty_lines = f_excl_empty_lines
-    FileAsString(f_file:=f_file _
-               , f_append:=f_append _
-                ) = Join(f_ar, sSplit)
-             
-End Property
-
-Private Property Get FileArry(Optional ByVal f_file As String, _
-                              Optional ByVal f_excl_empty_lines As Boolean = False, _
-                              Optional ByVal f_append As Boolean = False) As Variant
-' ----------------------------------------------------------------------------
-' Returns the content of the file string (f_file) - a files full name - as
-' array, with the used line break string.
-' ----------------------------------------------------------------------------
-    Const PROC  As String = "FileArry"
-    
-    On Error GoTo eh
-    Dim cll     As New Collection
-    Dim a       As Variant
-    Dim a1()    As String
-    Dim FSo     As New FileSystemObject
+    Dim arr     As Variant
+    Dim s       As String
     Dim sSplit  As String
-    Dim sFile   As String
-    Dim i       As Long
-    Dim j       As Long
     Dim v       As Variant
     
-    f_append = f_append
-    If Not FSo.FileExists(f_file) _
-    Then Err.Raise AppErr(1), ErrSrc(PROC), "A file named '" & f_file & "' does not exist!"
-    
-    '~~ Unload file to a string
-    sFile = FileAsString(f_file)
-    If sFile = vbNullString Then GoTo xt
-    
-    '~~ Obtain (and return) the used line terminating string (vbCrLf) or character
-    sSplit = SplitString(sFile)
-
-    a = Split(sFile, sSplit)
-    If Not f_excl_empty_lines Then
-        a1 = a
-    Else
-        '~~ Extract non-empty items
-        For i = LBound(a) To UBound(a)
-            If Len(Trim$(a(i))) <> 0 Then cll.Add a(i)
-        Next i
-        ReDim a1(cll.Count - 1)
-        j = 0
-        For Each v In cll
-            a1(j) = v:  j = j + 1
+    If TypeName(f_file) = "File" Then f_file = f_file.Path
+    s = FileAsString(f_file, sSplit)
+    If f_empty_excluded Then
+        For Each v In Split(s, sSplit)
+            If Trim$(v) <> vbNullString _
+            Then Arry(arr) = v
         Next v
-    End If
-    
-xt: FileArry = a1
-    Set cll = Nothing
-    Set FSo = Nothing
-    Exit Property
-    
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Property
-
-Private Property Get FileAsString(Optional ByVal f_file As Variant, _
-                                  Optional ByVal f_append As Boolean = True) As String
-' ----------------------------------------------------------------------------
-' Returns the text file's (f_file) content as string. When the file doesn't
-' exist a vbNullString is returned.
-' Note: f_append is not used but specified to comply with Property Let.
-' ----------------------------------------------------------------------------
-    Const PROC = "FileAsString-Get"
-    
-    On Error GoTo eh
-    Dim ts      As TextStream
-    Dim s       As String
-    Dim sFl As String
-    
-    f_append = f_append ' not used! for declaration compliance and dead code check only
-    
-    With FSo
-        If TypeName(f_file) = "File" Then
-            sFl = f_file.Path
-        Else
-            '~~ f_file is regarded a file's full name, created if not existing
-            sFl = f_file
-            If Not .FileExists(sFl) Then GoTo xt
-        End If
-        Set ts = .OpenTextFile(FileName:=sFl, IOMode:=ForReading)
-    End With
-    
-    If Not ts.AtEndOfStream Then
-        s = ts.ReadAll
-        If VBA.Right$(s, 2) = vbCrLf Then
-            s = VBA.Left$(s, Len(s) - 2)
-        End If
+        FileAsArray = arr
     Else
-        FileAsString = vbNullString
-    End If
-    If FileAsString = vbCrLf Then FileAsString = vbNullString Else FileAsString = s
-
-xt: Exit Property
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Property
-
-Public Sub Headers(ParamArray h_col_headers() As Variant)
-' -----------------------------------------------------------------------------------
-' Spacifies the column headers for Entry items aligne in columns.
-' -----------------------------------------------------------------------------------
-    Const PROC = "Headers"
-    
-    On Error GoTo eh
-    Static lLine As Long
-    Dim i       As Long
-    Dim iCol    As Long
-    Dim s       As String
-    Dim v       As Variant
-    Dim lWidth  As Long
-    Dim sAlign  As String
-    Dim sHeader As String
-    
-    If Not HeadersSpecified Then
-        lLine = 0
-        NewLog ' Header indicated a newseries of log entries even when no title had been specified
-    End If
-
-    '~~ When column headers are specified and the ColsDelimiter is still not
-    '~~ specified the delimiter defaults to a vertical bar.
-    Select Case sColsDelimiter
-        Case vbNullString:      sColsMargin = " ":          sColsDelimiter = "|"
-        Case "|":               sColsMargin = " "
-        Case " ":               sColsMargin = vbNullString
-    End Select
-    
-    If Not IsError(h_col_headers(LBound(h_col_headers))) Then
-        s = h_col_headers(LBound(h_col_headers))
-        If InStr(s, "|") <> 0 Then
-            '~~ The | in the string indicates an alternative how column aligned
-            '~~ headers may be specified
-            If Left(s, 1) = "|" Then s = Right(s, Len(s) - 1) ' remove trailing vertical bar - if any
-            If Right(s, 1) = "|" Then s = Left(s, Len(s) - 1) ' remove leading vertical bar - if any
-            v = Split(s, "|")
-        Else
-            '~~ The headers are all elements of the ParamArray
-            v = h_col_headers
-        End If
-    Else
-        v = h_col_headers
+        FileAsArray = Split(s, sSplit)
     End If
     
-    lLine = lLine + 1
-    For i = LBound(v) To UBound(v)
-        If Not IsError(v(i)) Then
-            iCol = i + 1
-            '~~ Skip column without a specified header
-            sAlign = vbNullString
-            Alignment v(i), sHeader, , sAlign
-            If AlignmentHeaderColumn(iCol) = vbNullString Then
-                '~~ Implicit alignment when none has yet been specified
-                '~~ - e.g. explicitly or with a previous header line
-                AlignmentHeaderColumn(iCol) = sAlign
-            End If
-            ColHeader(iCol, lLine) = sHeader
-            lWidth = ColWidth(iCol)
-            ColWidth(iCol) = Max(Len(WithMargins(sHeader)), lWidth)
-            bNewLog = True ' the header specification indicates the begin of a new series of log entries
-        End If
-    Next i
-    Set aHeaders = Nothing
-    
-xt: Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
-
-Private Sub HeadersAssembleLines(ByRef h_lines As String)
-' -----------------------------------------------------------------------------------
-' Assemble column headers, header lines
-' -----------------------------------------------------------------------------------
-    Dim lLine       As Long
-    Dim i           As Long
-    Dim sLineBreak  As String
-    Dim sHeaderLine As String
-    
-    sHeaderLine = vbNullString
-    sLineBreak = vbNullString
-    h_lines = vbNullString
-    
-    If HeadersSpecified Then
-        For lLine = LBound(aHeaderLines) To UBound(aHeaderLines)
-            aHeaders = aHeaderLines(lLine)
-            For i = LBound(aHeaders) To UBound(aHeaders)
-                sHeaderLine = sHeaderLine & sColsDelimiter & ColHeader(i, lLine)
-            Next i
-            h_lines = h_lines & sLineBreak & sHeaderLine
-            sHeaderLine = vbNullString
-            sLineBreak = vbLf
-        Next lLine
-    End If
-
-End Sub
-
-Private Sub HeadersWrite(ByVal h_lines As String, _
-                         ByVal h_width_entry As Long)
-' -----------------------------------------------------------------------------------
-' Write header lines and a header underline
-' -----------------------------------------------------------------------------------
-    Dim vLine   As Variant
-    Dim s       As String
-    Dim sDelim  As String
-    Dim i       As Long
-    
-    For Each vLine In Split(h_lines, vbLf)
-        WriteLine vLine
-    Next vLine
-    
-    '~~ Write header underline
-    If sColsDelimiter = "|" _
-    Then sDelim = "+" _
-    Else sDelim = " "
-    
-    aHeaders = aHeaderLines(1)
-    For i = LBound(aHeaders) To UBound(aHeaders)
-        s = s & sDelim & String(Len(ColHeader(i, 1)), "-")
-    Next i
-    If Len(s) < h_width_entry Then
-        s = s & String(h_width_entry - Len(s), "-")
-    End If
-    WriteLine s
-    Set aHeaders = Nothing
-
-End Sub
-
-Private Function IsAllocated(arr As Variant) As Boolean
-' -----------------------------------------------------------------------------------
-' Retruns TRUE when an array (arr) is allocated, i.e. when it has a valid LBound and
-' and an LBound which is less or equal its UBound.
-' -----------------------------------------------------------------------------------
-    On Error Resume Next
-    IsAllocated = IsArray(arr) _
-              And Not IsError(LBound(arr, 1)) _
-              And LBound(arr, 1) <= UBound(arr, 1)
 End Function
 
-Private Function IsDelimiterLine(ByVal i_line As String, _
-                                 ByRef i_date As Date) As Boolean
-                                 
-    Dim s As String
+Public Function FileAsString(Optional ByVal f_file_full_name As String, _
+                             Optional ByRef f_split As String = vbCrLf, _
+                             Optional ByVal f_exclude_empty As Boolean = False) As String
+' ----------------------------------------------------------------------------
+' Returns the content of a file (f_file_full_name) as a single string plus the
+' records/lines delimiter (f_split) which may be vbCrLf, vbCr, or vbLf.
+' ----------------------------------------------------------------------------
+
+    On Error Resume Next
+    Open f_file_full_name For Input As #1
+    If Err.Number <> 0 Then GoTo xt
+    FileAsString = Input$(lOf(1), 1)
+    Close #1
     
-    If i_line Like "##-##-##-*" _
-    Or i_line Like "##-##-## *" Then
-        s = Left(i_line, 8)
-        i_date = DateSerial(2000 + Left(s, 2), Mid(s, 4, 2), Right(s, 2))
-        IsDelimiterLine = IsDate(i_date) And InStr(i_line, " ====") <> 0
+    Select Case True
+        Case InStr(FileAsString, vbCrLf) <> 0: f_split = vbCrLf
+        Case InStr(FileAsString, vbCr) <> 0:   f_split = vbCr
+        Case InStr(FileAsString, vbLf) <> 0:   f_split = vbLf
+    End Select
+    
+    '~~ Eliminate a trailing eof if any
+    If Right(FileAsString, 1) = VBA.Chr(26) Then
+        FileAsString = Left(FileAsString, Len(FileAsString) - 1)
     End If
+    
+    '~~ Eliminate any trailing split string
+    Do While Right(FileAsString, Len(f_split)) = f_split
+        FileAsString = Left(FileAsString, Len(FileAsString) - Len(f_split))
+        If Len(FileAsString) <= Len(f_split) Then Exit Do
+    Loop
+    
+    If f_exclude_empty Then
+        FileAsString = FileAsStringEmptyExcluded(FileAsString)
+    End If
+    
+xt:
+End Function
+
+Private Function FileAsStringEmptyExcluded(ByVal s_s As String) As String
+' ----------------------------------------------------------------------------
+' Returns a string (s_s) with any empty elements excluded. I.e. the string
+' returned begins and ends with a non vbNullString character and has no
+' ----------------------------------------------------------------------------
+    
+    s_s = FileAsStringTrimmed(s_s) ' leading and trailing empty already excluded
+    Do While InStr(s_s, vbCrLf & vbCrLf) <> 0
+        s_s = Replace(s_s, vbCrLf & vbCrLf, vbCrLf)
+    Loop
+    FileAsStringEmptyExcluded = s_s
+    
+End Function
+
+Private Function FileAsStringTrimmed(ByVal s_s As String, _
+                            Optional ByRef s_as_dict As Dictionary = Nothing) As String
+' ----------------------------------------------------------------------------
+' Returns a file as string (s_s) with any leading and trailing empty items,
+' i.e. record, lines, excluded. When a Dictionary is provided
+' the string is additionally returned as items with the line number as key.
+' ----------------------------------------------------------------------------
+    Dim s   As String
+    Dim i   As Long
+    Dim v   As Variant
+    
+    s = s_s
+    '~~ Eliminate any leading empty items
+    Do While Left(s, 2) = vbCrLf
+        s = Right(s, Len(s) - 2)
+    Loop
+    '~~ Eliminate a trailing eof if any
+    If Right(s, 1) = VBA.Chr(26) Then
+        s = Left(s, Len(s) - 1)
+    End If
+    '~~ Eliminate any trailing empty items
+    Do While Right(s, 2) = vbCrLf
+        s = Left(s, Len(s) - 2)
+    Loop
+    
+    FileAsStringTrimmed = s
+    If Not s_as_dict Is Nothing Then
+        With s_as_dict
+            For Each v In Split(s, vbCrLf)
+                i = i + 1
+                .Add i, v
+            Next v
+        End With
+    End If
+    
+End Function
+
+Private Function IsDelimiterLine(ByVal i_line As String) As Boolean
+' -----------------------------------------------------------------------------------
+' Returns TRUE when a line (i_line) is a delimiter line.
+' -----------------------------------------------------------------------------------
+    IsDelimiterLine = i_line Like "*===============*"
+End Function
+
+Private Function IsObject(ByVal i_var As Variant, _
+                          ByRef i_name As String) As Boolean
+' ----------------------------------------------------------------------------
+' Returns TRUE and the object's (i_var) name (i_name) when a variant (i_var)
+' is an object. When the object does not have a Name property an error is
+' raised.
+' ----------------------------------------------------------------------------
+    Const PROC = "IsObject"
+    
+    If Not VBA.IsObject(i_var) Then Exit Function
+    IsObject = True
+    On Error Resume Next
+    i_name = i_var.Name
+    If Err.Number <> 0 _
+    Then Err.Raise AppErr(1), ErrSrc(PROC), _
+         "VarTrans tries to use the Name property of an object when it is to be " & _
+         "transferred into a string which is the case when String, Array, or File " & _
+         "is the target format. However, the current item is an object which does " & _
+         "not have a Name property!"
     
 End Function
 
@@ -1309,34 +1457,6 @@ Private Function Max(ParamArray va() As Variant) As Variant
     Next v
     
 End Function
-
-Public Sub MaxItemLengths(ParamArray c_widths() As Variant)
-' -----------------------------------------------------------------------------------
-' Specifies the maximum length for the items aligned in columns which will become the
-' minimum column width. The corresponding final columns widths may be greater however.
-' -----------------------------------------------------------------------------------
-    Const PROC = "MaxItemLengths"
-    
-    On Error GoTo eh
-    Dim i       As Long
-    Dim iCol    As Long
-    
-    For i = LBound(c_widths) To UBound(c_widths)
-        If Not IsError(c_widths(i)) Then
-            If Not IsError(Abs(CInt(c_widths(i)))) Then
-                iCol = i + 1
-                ColWidth(iCol) = c_widths(i)
-            End If
-        End If
-    Next i
-
-xt: Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
-End Sub
 
 Private Function Min(ParamArray va() As Variant) As Variant
 ' -----------------------------------------------------------------------------------
@@ -1358,148 +1478,162 @@ Public Sub NewFile()
 ' -----------------------------------------------------------------------------------
     With FSo
         If .FileExists(sFileFullName) Then .DeleteFile sFileFullName
-        .CreateTextFile sFileFullName
+'        .CreateTextFile sFileFullName
     End With
     NewLog
 End Sub
 
-Public Sub NewLog(Optional ByVal b As Boolean = True)
+Public Sub NewLog()
 ' -----------------------------------------------------------------------------------
 ' Explicitly (by default) starts a new series of log entries even when neither Title
-' nor Headers are specified.
+' nor ColsHeader are specified.
 ' Attention: Even when called with FALSE to indicate that no delimiter line is
 '            desired, this still triggers the initialization of a new series of log
 '            entried by means of NewlogInit
 ' -----------------------------------------------------------------------------------
-    bNewLog = b
+    bNewLog = True
     If Not bInitialized Then NewLogInit
-    If Not bReorganized Then Reorg
+    sColsDelimiter = vbNullString
+    ArrayErase aColsAlign
+    ArrayErase aHeaders
+    ArrayErase aColsHeadersLines
+
 End Sub
 
 Private Sub NewLogInit()
 ' -----------------------------------------------------------------------------------
 ' Essential for a new series of log entries. Triggered either by NewLog, Title, or
-' Headers. bInitialized is reset to false with the next subsequent Entry method call.
+' ColsHeader. bInitialized is reset to false with the next subsequent Entry method call.
 '
 ' Attention: This is the initialization of a new series of log entries - even when
 '            NewLog False had been called in order to suppress the delimiter line.
 ' -----------------------------------------------------------------------------------
     If Not bInitialized Then
-        aAlignmentsHeader = vbNullString
-        aAlignmentsItem = vbNullString
-        aItems = vbNullString
-        sColsDelimiter = vbNullString   ' Default in case no Headers are specified
-        sColsMargin = vbNullString      ' Default in case no Headers are specified
+        ArrayErase aColsAlign
+        ArrayErase aItems
+        sColsDelimiter = vbNullString   ' Default in case no ColsHeader are specified
+        sColsMargin = vbNullString      ' Default in case no ColsHeader are specified
         bInitialized = True
     End If
 End Sub
 
-Private Sub NewLogLines(ByVal n_line As String)
-
-    Dim lWidthEntry     As Long
+Private Sub NewLogLines(ByVal n_width As Long)
+' ----------------------------------------------------------------------------
+' Writes any extra lines for a new log prior a log entry line (n-line) by
+' considering the entry line's length.
+' ----------------------------------------------------------------------------
+    Const PROC = "NewLogLines"
+    
+    On Error GoTo eh
     Dim sHeaderLines    As String
     Dim sTitleLines     As String
-    Dim vLine           As Variant
+    Dim lWidth          As Long
+    
+    If bNewLog Then
+    
+        '~~ Assemble header lines (width considered by title)
+        If ColsHeadersSpecified Then sHeaderLines = ColsHeadersLines(n_width)
+        '~~ Assemble title lines
+        lWidth = n_width
+        If TitlesSpecified Then sTitleLines = TitlesAssembled(lWidth)
+        
+        If FSo.FileExists(sFileFullName) Then WriteLines String(lWidth, "=")  ' log delimiter line
+        If sTitleLines <> vbNullString Then
+            WriteLines sTitleLines
+            If sHeaderLines = vbNullString _
+            Then WriteLines String(lWidth, "-")
+        End If
+        If sHeaderLines <> vbNullString _
+        Then WriteLines sHeaderLines
+        bNewLog = False ' may be set to True again when a new Title is provided or explicit
+    End If
+    ArrayErase aTitleLines
+    ArrayErase aColsHeadersLines
+    
+xt: Exit Sub
 
-    '~~ Assemble the headerlines
-    If HeadersSpecified Then
-        HeadersAssembleLines sHeaderLines
-    End If
-    
-    lLenTitle = Max(lLenTitle, Len(n_line))
-    lWidthEntry = Max(lLenTitle, lWidthEntry, Len(n_line))
-    
-    '~~ Assemble the title lines
-    If TitleSpecified Then
-        TitleAssembleLines n_line, lWidthEntry, sTitleLines
-    End If
-    
-    If DelimiterLineDue Then
-        WriteDelimiterLine lWidthEntry
-    End If
-    
-    If TitleSpecified Then
-        For Each vLine In Split(sTitleLines, vbLf)
-            WriteLine vLine
-        Next vLine
-        WriteLine String(lWidthEntry, "-") ' title underline
-        TitleSpecified = False
-    End If
-      
-    If HeadersSpecified Then
-        HeadersWrite sHeaderLines, lWidthEntry
-        HeadersSpecified = False
-    End If
-    bNewLog = False ' may be set to True again when a new Title is provided or explicit
-    
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
 End Sub
 
-Public Sub Reorg()
+Public Sub Reorg(ByVal r_file_full_name As String, _
+        Optional ByVal r_keep As Long = 1)
 ' ----------------------------------------------------------------------------
-' Keep the number of specified days (KeepDays) and remove any excessive.
+' Returns a log file (r_file_full_name) with any logs exceeding a number (r_logs)
+' unstripped.
+' Note: When only one log is kept (the default) the log file still may have
+'       two logs. The one kept and the one added after the Reorg. When the
+'       Reorg is done with the termination of the class instance 1 will be 1.
 ' ----------------------------------------------------------------------------
     Const PROC = "Reorg"
     
     On Error GoTo eh
-    Dim aLog        As Variant
-    Dim aDay()      As String
-    Dim d           As Date
-    Dim dct         As New Dictionary
-    Dim dCurrent    As Date
-    Dim sSplit      As String
-    Dim v           As Variant
-    Dim vDay        As Variant
-    Dim i           As Long
+    Dim aFile   As Variant
+    Dim aLog    As Variant
+    Dim cllLog  As New Collection
+    Dim cllLogs As New Collection
+    Dim i       As Long
+    Dim lLen    As Long
+    Dim v       As Variant
+    Dim bTop    As Boolean: bTop = True
     
-    '~~ 1. Unload log to array
-    aLog = FileArry(sFileFullName)
-    If Not IsAllocated(aLog) Then GoTo xt
+    If Not FSo.FileExists(r_file_full_name) Then GoTo xt
     
-    '~~ 2. Transfer days to Dictionary, the day' s log entries in a Collection
-    i = 0
-    For Each v In aLog
-        i = i + 1
-        If Not IsDelimiterLine(v, d) Then
-            ReDim Preserve aDay(i)
-            aDay(i) = v
-        Else
-            If d <> dCurrent Then
-                '~~ Delimiter-line of a new day
-                If IsAllocated(aDay) Then
-                    If UBound(aDay) >= 1 Then
-                        dct.Add dCurrent, aDay
-                    End If
-                End If
-                dCurrent = d
-                ReDim aDay(i)
-                aDay(i) = v ' first of new day
-            Else
-                '~~ Delimiter line of the same day
-                ReDim Preserve aDay(i)
-                aDay(i) = v
-            End If
+    '~~ Collect the logs (i.e. lines delimited by a log delimiter line)
+    '~~ into a Collection with each series of log entries/lines as a Collection
+    '~~ with the array and the max line length as items
+    aFile = FileAsArray(r_file_full_name)
+    ArrayErase aLog
+    For i = LBound(aFile) To UBound(aFile)
+        If IsDelimiterLine(aFile(i)) And Not i = LBound(aFile) Then
+            '~~ A delimiter line indicates the start of a new series of log entries
+            cllLog.Add aLog
+            cllLog.Add lLen
+            cllLogs.Add cllLog
+            ArrayErase aLog
+            Set cllLog = Nothing
+            Set cllLog = New Collection
+            lLen = 0
         End If
+        If Not (i = LBound(aFile) And IsDelimiterLine(aFile(i))) Then
+            '~~ A file beginning with a delimiter line the first line is ignored
+            lLen = Max(lLen, Len(aFile(i)))
+            Arry(aLog) = aFile(i)
+        End If
+    Next i
+    '~~ Collect the last series of log entries
+    cllLog.Add aLog
+    cllLog.Add lLen
+    cllLogs.Add cllLog
+    ArrayErase aLog
+    Set cllLog = Nothing
+    Set cllLog = New Collection
+    
+    '~~ Remove all excessive logs
+    If cllLogs.Count < r_keep Then GoTo xt
+    Do While cllLogs.Count > r_keep
+        cllLogs.Remove 1
+    Loop
+    
+    '~~ Rewrite the remaining logs to the log file
+    ArrayErase aFile
+    For Each v In cllLogs
+        Set cllLog = v
+        aLog = cllLog(1)
+        lLen = cllLog(2)
+        i = LBound(aLog)
+        If IsDelimiterLine(aLog(i)) And bTop Then i = i + 1
+        bTop = False
+        For i = i To UBound(aLog)
+            Arry(aFile) = aLog(i)
+        Next i
+        '~~ Re-write the log
     Next v
+    ArrayAsFile aFile, sFileFullName
     
-    If IsAllocated(aDay) Then
-        dct.Add dCurrent, aDay
-    End If
-    
-    '~~ 3. When no of days > KeepDays rewrite ony the number of KeepDays
-    If dct.Count > lKeepDays Then
-        '~~ 3.1 Remove excessive log days
-        While dct.Count > lKeepDays
-            dct.Remove (dct.Keys()(0))
-        Wend
-        '~~ 3.2 (Re-)write log-file
-        FSo.DeleteFile sFileFullName
-        For Each vDay In dct
-            FileArry(sFileFullName, True) = dct(vDay)
-        Next vDay
-    End If
-    
-xt: bReorganized = True
-    Exit Sub
+xt: Exit Sub
 
 eh: Select Case ErrMsg(ErrSrc(PROC))
         Case vbResume:  Stop: Resume
@@ -1559,6 +1693,114 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
+Private Function SplitIndctr(ByVal s_strng As String, _
+                    Optional ByRef s_indctr As String = vbNullString) As String
+' ----------------------------------------------------------------------------
+' Returns the split indicator of a string (s_strng) as string and as argument
+' (s_indctr) provided no split indicator (s_indctr) is already provided.
+' The dedection of a split indicator is bypassed in case one has already been
+' provided.
+' ----------------------------------------------------------------------------
+    If s_indctr = vbNullString Then
+        Select Case True
+            Case InStr(s_strng, vbCrLf) <> 0: s_indctr = vbCrLf
+            Case InStr(s_strng, vbLf) <> 0:   s_indctr = vbLf      ' e.g. in case of a downloaded file's_strng complete string
+            Case InStr(s_strng, "|&|") <> 0:  s_indctr = "|&|"
+            Case InStr(s_strng, ", ") <> 0:   s_indctr = ", "
+            Case InStr(s_strng, "; ") <> 0:   s_indctr = "; "
+            Case InStr(s_strng, ",") <> 0:    s_indctr = ","
+            Case InStr(s_strng, ";") <> 0:    s_indctr = ";"
+        End Select
+    End If
+    SplitIndctr = s_indctr
+
+End Function
+
+Public Function StringAsArray(ByVal s_strng As String, _
+                     Optional ByVal s_split As String = vbNullString, _
+                     Optional ByVal s_trim As Variant = True) As Variant
+' ----------------------------------------------------------------------------
+' Returns a string (s_strng) split into an array of strings. When no split
+' indicator (s_split) is provided it one is found by examination of the
+' string (s_strng). When the option (s_trim) is TRUE (the default), "R", or
+' "L" the items in the array are returned trimmed accordingly.
+' Example 1: arr = StringAsArray("this is a string", " ") is returned as an
+'            array with 3 items: "this", "is", "a", "string".
+' Example 2: arr = StringAsArray(FileAsString(FileBaseName),sSplit,False) is
+'            returned as any array with records/lines of the provided file,
+'            whereby the lines are not trimmed, i.e. leading spaces are
+'            preserved.
+'            Note: The not provided split indicator has the advantage that it
+'                  is provided by the SplitIndctr service, which in that case
+'                  returns either vbCrLf or vbLf, the latter when the file is
+'                  a download.
+' Example 3: arr = FileAsArray(<file>) return the same as example 2.
+' Note: Split indicators dedected by examination are: vbCrLf, vbLf, "|&|",
+'       ", ", "; ", "," or ";". When neither is dedected vbCrLf is returned.
+' ----------------------------------------------------------------------------
+    Dim arr As Variant
+    Dim i   As Long
+    
+    If s_split = vbNullString Then s_split = SplitIndctr(s_strng)
+    arr = Split(s_strng, SplitIndctr(s_strng, s_split))
+    If Not s_trim = False Then
+        For i = LBound(arr) To UBound(arr)
+            Select Case s_trim
+                Case True:  arr(i) = VBA.Trim$(arr(i))
+                Case "R":   arr(i) = VBA.RTrim$(arr(i))
+                Case "L":   arr(i) = VBA.Trim$(arr(i))
+            End Select
+        Next i
+    End If
+    StringAsArray = arr
+    
+End Function
+
+Private Function StringAsFile(ByVal s_strng As String, _
+                     Optional ByRef s_file As Variant = vbNullString, _
+                     Optional ByVal s_file_append As Boolean = False) As File
+' ----------------------------------------------------------------------------
+' Writes a string (s_strng) to a file (s_file) which might be a file object or
+' a file's full name. When no file (s_file) is provided, a temporary file is
+' returned.
+' Note 1: Only when the string has sub-strings delimited by vbCrLf the string
+'         is written a records/lines.
+' Note 2: When the string has the alternate split indicator "|&|" this one is
+'         replaced by vbCrLf.
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
+' ----------------------------------------------------------------------------
+    
+    Select Case True
+        Case s_file = vbNullString: s_file = TempFile
+        Case TypeName(s_file) = "File": s_file = s_file.Path
+    End Select
+    
+    If s_file_append _
+    Then Open s_file For Append As #1 _
+    Else Open s_file For Output As #1
+    Print #1, s_strng
+    Close #1
+    Set StringAsFile = FSo.GetFile(s_file)
+    
+End Function
+
+Private Function TempFile(Optional ByVal f_path As String = vbNullString, _
+                          Optional ByVal f_extension As String = ".txt") As String
+' ------------------------------------------------------------------------------
+' Returns the full file name of a temporary randomly named file. When a path
+' (f_path) is omitted in the CurDir path, else in at the provided folder.
+' ------------------------------------------------------------------------------
+    Dim sTemp As String
+    
+    If VBA.Left$(f_extension, 1) <> "." Then f_extension = "." & f_extension
+    sTemp = Replace(FSo.GetTempName, ".tmp", f_extension)
+    If f_path = vbNullString Then f_path = FSo.GetSpecialFolder(2)
+    sTemp = VBA.Replace(f_path & "\" & sTemp, "\\", "\")
+    TempFile = sTemp
+
+End Function
+
 Private Function TimeStamp() As String ' Public for test purpose only
     TimeStamp = " "
     If bWithTimeStamp Then TimeStamp = Format(Now(), "yy-mm-dd-hh:mm:ss") & TimeStamp
@@ -1566,88 +1808,175 @@ End Function
 
 Public Sub Title(ParamArray t_lines() As Variant)
 ' ----------------------------------------------------------------------------
-' Method for specifying an - optionally multi-lined - title for an
-' (implicitly specified) new series of log entries.
-' Note 1: The first title line implicitly specifies the title's alignment.
-' Note 2: Multiple lines may be specified with one method call (with serveral
-'         ParamArray items) or with several method calls (each for one line).
+' Collects specified title lines for a following new series of log entries
+' whereby multiple lines may be specified as strings (ParamArray items).
+' Note: all titles may be specified with one call or one call per title line.
 ' ----------------------------------------------------------------------------
-    Static lLine    As Long
-    Dim i           As Long
-    Dim sTitle      As String
+    Const PROC = "Title"
     
-    If Not TitleSpecified Then
-        lLine = 0
-        lLenTitle = 0
-        sTitleAlignment = vbNullString
-        sTitleFill = " "
-        NewLog
+    Dim a       As Variant
+    Dim i       As Variant
+    
+    If sLastSpec = "Entry" Or sLastSpec = "ColsHeader" Then
+        ArrayErase aColsAlign
     End If
-        
-    For i = LBound(t_lines) To UBound(t_lines)
-        lLine = lLine + 1
-        ArryRedim aTitleLines, lLine
-        Alignment t_lines(i), sTitle, sTitleFill, sTitleAlignment
-        lLenTitle = Max(lLenTitle, Len(sTitle))
-        aTitleLines(lLine) = sTitle
-    Next i
-    aItems = vbNullString ' a new title clears any previous items
-
-End Sub
-
-Private Sub TitleAssembleLines(ByVal t_line As String, _
-                               ByVal t_width_entry As Long, _
-                               ByRef t_lines As String)
-    Dim sLineBreak  As String
-    Dim i           As Long
     
-    For i = LBound(aTitleLines) To UBound(aTitleLines)
-        If aTitleLines(i) <> vbNullString Then
-            t_lines = t_lines & sLineBreak & AlignString(aTitleLines(i), t_width_entry, sTitleAlignment, vbNullString, sTitleFill)
-            sLineBreak = vbLf
-        End If
+    a = t_lines
+    If Not ArrayHasElements(a) Then GoTo xt
+    
+    If TitleSpecs(a(LBound(a)), sTitleAlign, sTitleFill) Then
+        i = LBound(a) + 1
+    Else
+        i = LBound(a)
+        If i < UBound(a) _
+        Then Err.Raise AppErr(1), ErrSrc(PROC), "The provided title apparently contains nothing more than a titles specs alignment and fill!"
+    End If
+    
+    For i = i To UBound(a)
+        Arry(aTitleLines) = a(i) ' collect the specified title lines
     Next i
+    sLastSpec = "Title"
+    NewLog
+    
+xt: Exit Sub
 
 End Sub
 
-Private Function WithMargins(ByVal w_string As String) As String
+Private Function TitlesAssembled(Optional ByRef t_width As Long = 0) As String
+' ----------------------------------------------------------------------------
+' Writes the collected title lines - if any - to the log file by considering
+' the width of the first log entry and clears the collection. When no width
+' (t_width) is provided the lines are adjusted to the longest line.
+' ----------------------------------------------------------------------------
+    Dim s           As String
+    Dim sSplit      As String
+    Dim v           As Variant
+    
+    If Not ArrayIsAllocated(aTitleLines) Then GoTo xt
+    For Each v In aTitleLines
+        t_width = Max(t_width, Len(v))
+    Next v
+    
+    For Each v In aTitleLines
+        s = s & sSplit & Align(CStr(v), sTitleAlign, t_width, sTitleFill)
+        sSplit = vbCrLf
+    Next v
+    TitlesAssembled = s
+    ArrayErase aTitleLines
+    
+xt: Exit Function
+
+End Function
+
+Private Function TitleSpecs(ByVal t_specs As String, _
+                            ByRef t_align As String, _
+                            ByRef t_fill As String) As Boolean
+' ----------------------------------------------------------------------------
+' Provided the string (t_specs) has <= 3 characters the specified alignement
+' (t_align) and fill (t_fill) and TRUE is returned, else FALSE with the
+' default alignment "C" (dentered) and the fill " -".
+' ----------------------------------------------------------------------------
+    Dim s As String
+    
+    If Len(t_specs) > 5 Then
+        '~~ This is not a title's specification of alignment and fill
+        '~~ thus the defaults are returned
+        t_align = "C"
+        t_fill = " -"
+        GoTo xt
+    End If
+    
+    s = t_specs
+    '~~ Get alignment (defaults to Left when none is specified
+    Select Case True
+        Case ColSpecTry(s, "Left"):     t_align = "L"
+        Case ColSpecTry(s, "Center"):   t_align = "C"
+        Case ColSpecTry(s, "Right"):    t_align = "R"
+        Case ColSpecTry(s, "Lft"):      t_align = "L"
+        Case ColSpecTry(s, "Cntr"):     t_align = "C"
+        Case ColSpecTry(s, "Rght"):     t_align = "R"
+        Case ColSpecTry(s, "L"):        t_align = "L"
+        Case ColSpecTry(s, "C"):        t_align = "C"
+        Case ColSpecTry(s, "R"):        t_align = "R"
+        Case Else:                      t_align = "L" ' the default
+    End Select
+    
+    '~~ Get fill (defaults to a single space when none is specified
+    Select Case True
+        Case ColSpecTry(s, " -", t_fill):   ColSpecTry s, "- ", t_fill   ' if alignment is Centered
+        Case ColSpecTry(s, " =", t_fill):   ColSpecTry s, "= ", t_fill   ' if alignment is Centered
+        Case ColSpecTry(s, "-", t_fill):    ColSpecTry s, "-", t_fill    ' if alignment is Centered
+        Case ColSpecTry(s, "-", t_fill):    ColSpecTry s, "-", t_fill    ' if alignment is Centered
+        Case ColSpecTry(s, " ", t_fill)
+        Case Else:                          t_fill = " "  ' the default
+    End Select
+    TitleSpecs = True
+    
+xt: Exit Function
+
+End Function
+
+Private Function TitlesSpecified() As Boolean
+    TitlesSpecified = ArrayIsAllocated(aTitleLines)
+End Function
+
+Private Function TruncateIfApplicable(ByRef t_string As String, _
+                                      ByVal t_length As Long, _
+                                      ByVal t_col As Long, _
+                                      ByVal t_cols As Long, _
+                                      ByVal t_align As String) As String
 ' -----------------------------------------------------------------------------------
-' Returns a string (w_string) with a leading and trailing margin (w_margin) in case
-' the string (w_string) not already begins and/or ends with a currently specified
-' margin (sColsMargin). A margin = vbNullString is ignored.
+' Unless the column (t_col) is not the rightmost (t_cols) the string (t_string) is
+' truncated when it exceeds the provided length (t_length).
 ' -----------------------------------------------------------------------------------
     Dim s As String
-    If sColsMargin <> vbNullString Then
-        If Left(w_string, 1) <> sColsMargin _
-        Then s = sColsMargin & w_string _
-        Else s = w_string
-        If Right(s, 1) <> sColsMargin _
-        Then s = s & sColsMargin
-        WithMargins = s
+    
+    TruncateIfApplicable = t_string ' in case truncation is not applicable
+    If t_col <> 0 And t_cols <> 0 And t_col = t_cols Then
+        '~~ Adjust the - optional - width for the rightmost column to enable
+        '~~ an apropriate header design in case columns headers are specified.
+        If ColWidth(t_col) = 0 Then ColWidth(t_col) = Len(t_string)
     Else
-        WithMargins = w_string
+        Select Case t_align
+            Case "L":   s = RTrim$(t_string)
+            Case "C":   s = Trim$(t_string)
+            Case "R":   s = LTrim$(t_string)
+        End Select
+        If Len(t_string) > t_length And t_length > 0 _
+        Then TruncateIfApplicable = Left(s, t_length)
     End If
     
 End Function
 
-Public Sub WithTimeStamp(Optional ByVal b As Boolean = True):   bWithTimeStamp = b: End Sub
+'Public Property Get ColsHeaders() As Variant
+'' ----------------------------------------------------------------------------
+'' Returns all columns arranged header lines, whereby each line is an array
+'' of column headers.
+'' ----------------------------------------------------------------------------
+'    ColsHeaders = aColHeaders
+'End Property
 
-Private Sub WriteDelimiterLine(ByVal w_width_entry As Long)
-' -----------------------------------------------------------------------------------
-' Write a delimiter line (yy-mm-dd         =====) when it is due or when the logfile
-' is new.
-' -----------------------------------------------------------------------------------
-    Dim s As String
+Private Function VarAsArray(ByVal v_items As Variant) As Variant
+' ----------------------------------------------------------------------------
+'
+' ----------------------------------------------------------------------------
+    Const PROC = "VarAsArray"
     
-    If DelimiterLineDue Or FSo.GetFile(sFileFullName).Size = 0 Then
-        If Not bWithTimeStamp Then
-            s = Format(Now(), "yy-mm-dd-hh ")
-            WriteLine s & String(w_width_entry - Len(s), "=")
-        Else
-            WriteLine String(w_width_entry, "=")
-        End If
-    End If
-End Sub
+    Select Case True
+        Case TypeName(v_items) = "Collection":  VarAsArray = CollectionAsArray(v_items)
+        Case TypeName(v_items) = "File":        VarAsArray = FileAsArray(v_items)
+        Case TypeName(v_items) = "Dictionary":  VarAsArray = DictionaryAsArray(v_items)
+        Case VarType(v_items) = vbArray:        VarAsArray = v_items
+        Case IsArray(v_items):                  VarAsArray = v_items
+        Case VarType(v_items) = vbString:       VarAsArray = StringAsArray(v_items)
+        Case Else:                              Err.Raise AppErr(1), ErrSrc(PROC), _
+                                                "The provided v_items argument is of a TypeName """ & TypeName(v_items) & _
+                                                """ which is not supported for being transformed into an array!"
+    End Select
+    
+End Function
+
+Public Sub WithTimeStamp(Optional ByVal b As Boolean = True):   bWithTimeStamp = b: End Sub
 
 Private Sub WriteItems()
 ' -----------------------------------------------------------------------------------
@@ -1674,8 +2003,8 @@ Private Sub WriteItems()
         sItemsLine = sItemsLine & sColsDelimiter & ColItem(i)
     Next i
     
-    NewLogLines sItemsLine  ' if any
-    WriteLine sItemsLine
+    If bNewLog Then NewLogLines sItemsLine
+    WriteLines sItemsLine
  
 xt: Exit Sub
 
@@ -1685,25 +2014,16 @@ eh: Select Case ErrMsg(ErrSrc(PROC))
     End Select
 End Sub
 
-Private Sub WriteLine(ByVal w_string As String)
-' ----------------------------------------------------------------------------
-' Writes a string (w_string) into the file (sFileFullName).
-' ----------------------------------------------------------------------------
-    Const PROC = "WriteLine"
+Private Sub WriteLines(ByVal w_lines As String)
+' -----------------------------------------------------------------------------------
+' Writes one to n lines (w_lines) to the log file. Lines are delimited by a vbCrLf.
+' -----------------------------------------------------------------------------------
+    Dim a As Variant
+    Dim s As String
     
-    On Error GoTo eh
-    Dim ts  As TextStream
-   
-    Set ts = FSo.OpenTextFile(FileName:=sFileFullName, IOMode:=ForAppending)
-    ts.WriteLine TimeStamp & w_string
-
-xt: ts.Close
-    Set ts = Nothing
-    Exit Sub
+    a = Split(w_lines, vbCrLf)
+    s = Join(a, vbCrLf & TimeStamp)
+    StringAsFile TimeStamp & s, FileFullName, True
     
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
 End Sub
 

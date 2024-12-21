@@ -100,7 +100,7 @@ Private Function KeySort(ByRef k_dct As Dictionary) As Dictionary
     Dim dct     As New Dictionary
     Dim vKey    As Variant
     Dim arr()   As Variant
-    Dim Temp    As Variant
+    Dim temp    As Variant
     Dim i       As Long
     Dim j       As Long
     
@@ -118,9 +118,9 @@ Private Function KeySort(ByRef k_dct As Dictionary) As Dictionary
     For i = LBound(arr) To UBound(arr) - 1
         For j = i + 1 To UBound(arr)
             If arr(i) > arr(j) Then
-                Temp = arr(j)
+                temp = arr(j)
                 arr(j) = arr(i)
-                arr(i) = Temp
+                arr(i) = temp
             End If
         Next j
     Next i
@@ -128,7 +128,7 @@ Private Function KeySort(ByRef k_dct As Dictionary) As Dictionary
     '~~ Transfer based on sorted keys
     For i = LBound(arr) To UBound(arr)
         vKey = arr(i)
-        dct.Add key:=vKey, item:=k_dct.item(vKey)
+        dct.Add Key:=vKey, Item:=k_dct.Item(vKey)
     Next i
     
 xt: Set k_dct = dct
@@ -192,29 +192,6 @@ Public Sub CondCompArgTest()
     
     Set xlApp = CreateObject("Excel.Application")
 
-'    For Each cmb In xlApp.VBE.CommandBars
-'        If cmb.Index = 1 Then
-'            For Each v In cmb.Controls
-'                If TypeName(v) = "CommandBarPopup" Then
-'                    Set cbp = v
-'                    If cbp.id = "30007" Then
-'                        For Each v2 In cbp.Controls
-'                            Set cbb = v2
-'                            dct.Add cmb.Index & "." & cbp.id & "." & cbb.id & "." & cmb.Name & "." & cbp.Caption & "." & cbb.Caption, cbp
-'                        Next v2
-'                    End If
-'                End If
-'            Next v
-'        End If
-'    Next cmb
-'
-'    KeySort dct
-'    For Each v In dct
-'        Set cbp = dct(v)
-'        Debug.Print v & " : Caption: " & cbp.Caption
-'    Next v
-    
-    TestAid.CondCompArgSet "mTrc = 0"
-    
+       
 End Sub
 

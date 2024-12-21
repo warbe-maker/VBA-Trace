@@ -46,7 +46,7 @@ Option Explicit
 '                  Path & "\" & FileName when not specified.
 ' FileName         Specifies the trace-log-file's name, defaults to
 '                  "ExecTrace.log" when not specified.
-' KeepDays     w   Specifies the number of days a trace-log-file is kept until
+' KeepLogs     w   Specifies the number of days a trace-log-file is kept until
 '                  it is deleted and re-created.
 ' Path         r/w Specifies the path to the trace-log-file, defaults to
 '                  ThisWorkbook.Path when not specified.
@@ -66,7 +66,7 @@ Option Explicit
 ' ---------
 ' Reference to 'Microsoft Scripting Runtime'
 '
-' W. Rauschenberger, Berlin, Apr 2024
+' W. Rauschenberger, Berlin, Aug 2024
 ' See: https://github.com/warbe-maker/VBA-Trace
 ' ----------------------------------------------------------------------------
 Private Const GITHUB_REPO_URL   As String = "https://github.com/warbe-maker/VBA-Trace"
@@ -85,7 +85,6 @@ Private FSo                     As New FileSystemObject
     ' 1) See https://github.com/warbe-maker/Common-VBA-Message-Service for
     '    how to install an use.
     ' ------------------------------------------------------------------------
-    Private Const vbResumeOk As Long = 7 ' Buttons value in mMsg.ErrMsg (pass on not supported)
     Private Const vbResume   As Long = 6 ' return value (equates to vbYes)
 #End If
 
@@ -97,36 +96,43 @@ Private Enum enTraceInfo
     enItmArgs
 End Enum
 
-Private Declare PtrSafe Function apiShellExecute Lib "shell32.dll" _
-    Alias "ShellExecuteA" _
-    (ByVal hwnd As Long, _
-    ByVal lpOperation As String, _
-    ByVal lpFile As String, _
-    ByVal lpParameters As String, _
-    ByVal lpDirectory As String, _
-    ByVal nShowCmd As Long) _
-    As Long
-'***App Window Constants***
-Private Const WIN_NORMAL = 1         'Open Normal
+#If Win64 Or VBA7 Then
+    Private Declare PtrSafe Function apiShellExecute Lib "shell32.dll" _
+        Alias "ShellExecuteA" _
+        (ByVal hWnd As Long, _
+        ByVal lpOperation As String, _
+        ByVal lpFile As String, _
+        ByVal lpParameters As String, _
+        ByVal lpDirectory As String, _
+        ByVal nShowCmd As Long) _
+        As Long
+    Private Declare PtrSafe Function getFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (cySysFrequency As Currency) As Long
+    Private Declare PtrSafe Function getTickCount Lib "kernel32" Alias "QueryPerformanceCounter" (cyTickCount As Currency) As Long
+#Else
+    Private Declare Function apiShellExecute Lib "shell32.dll" _
+        Alias "ShellExecuteA" _
+        (ByVal hWnd As Long, _
+        ByVal lpOperation As String, _
+        ByVal lpFile As String, _
+        ByVal lpParameters As String, _
+        ByVal lpDirectory As String, _
+        ByVal nShowCmd As Long) _
+        As Long
+    Private Declare Function getFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (cySysFrequency As Currency) As Long
+    Private Declare Function getTickCount Lib "kernel32" Alias "QueryPerformanceCounter" (cyTickCount As Currency) As Long
+#End If
 
-'***Error Codes***
+Private Const WIN_NORMAL = 1         'Open Normal
 Private Const ERROR_SUCCESS = 32&
 Private Const ERROR_NO_ASSOC = 31&
 Private Const ERROR_OUT_OF_MEM = 0&
 Private Const ERROR_FILE_NOT_FOUND = 2&
 Private Const ERROR_PATH_NOT_FOUND = 3&
 Private Const ERROR_BAD_FORMAT = 11&
-
-Private Declare PtrSafe Function getFrequency Lib "kernel32" _
-Alias "QueryPerformanceFrequency" (cySysFrequency As Currency) As Long
-Private Declare PtrSafe Function getTickCount Lib "kernel32" _
-Alias "QueryPerformanceCounter" (cyTickCount As Currency) As Long
-
 Private Const DIR_BEGIN_ID      As String = ">"     ' Begin procedure or code trace indicator
 Private Const DIR_END_ID        As String = "<"     ' End procedure or code trace indicator
 Private Const TRC_LOG_SEC_FRMT  As String = "00.0000 "
 
-Private bNewFile            As Boolean          ' default to False
 Private cyTcksAtStart       As Currency         ' Trace log to file
 Private LastNtry            As Collection       '
 Private cySysFrequency      As Currency         ' Execution Trace SysFrequency (initialized with init)
@@ -142,7 +148,7 @@ Private sFirstTraceItem     As String
 Private sTitle              As String
 Private TraceStack          As Collection       ' Trace stack for the trace log written to a file
 Private bLogToFileSuspended As Boolean
-Private lKeepDays           As Long
+Private lKeepLogs           As Long
 
 Private Sub Class_Initialize()
 
@@ -156,8 +162,94 @@ Private Sub Class_Initialize()
 End Sub
 
 Private Sub Class_Terminate()
+    
     Set FSo = Nothing
+    If lKeepLogs <> 0 Then Reorg sFileFullName, lKeepLogs
+    
 End Sub
+
+' ----------------------------------------------------------------------------
+' Universal read/write array procedure.
+' Read:  Returns Null when a given array (c_arr) is not allocated or a
+'        provided index is beyond/outside current number of items.
+' Write: - Adds an item (c_var) to an array (c_arr) when no index is provided
+'          or adds it with the provided index
+'        - When an index is provided, the item is inserted/updated at the
+'          given index, even when the array yet doesn't exist or yet is not
+'          allocated.
+' ----------------------------------------------------------------------------
+Private Property Get Arry(Optional ByRef c_arr As Variant, _
+                          Optional ByVal c_index As Long = -1) As Variant
+    Dim i As Long
+    
+    If IsArray(c_arr) Then
+        On Error Resume Next
+        i = LBound(c_arr)
+        If Err.Number = 0 Then
+            If c_index >= LBound(c_arr) And c_index <= UBound(c_arr) _
+            Then Arry = c_arr(c_index)
+        End If
+    End If
+    
+End Property
+
+Private Property Let Arry(Optional ByRef c_arr As Variant, _
+                          Optional ByVal c_index As Long = -99, _
+                                   ByVal c_var As Variant)
+    Const PROC = "Arry-Let"
+    
+    Dim bIsAllocated As Boolean
+    
+    If IsArray(c_arr) Then
+        On Error GoTo -1
+        On Error Resume Next
+        bIsAllocated = UBound(c_arr) >= LBound(c_arr)
+        On Error GoTo eh
+    ElseIf VarType(c_arr) <> 0 Then
+        Err.Raise AppErr(1), ErrSrc(PROC), "Not a Variant type!"
+    End If
+    
+    If bIsAllocated = True Then
+        '~~ The array has at least one item
+        If c_index = -99 Then
+            '~~ When for an allocated array no index is provided, the item is added
+            ReDim Preserve c_arr(UBound(c_arr) + 1)
+            c_arr(UBound(c_arr)) = c_var
+        ElseIf c_index >= 0 And c_index <= UBound(c_arr) Then
+            '~~ Replace an existing item
+            c_arr(c_index) = c_var
+        ElseIf c_index > UBound(c_arr) Then
+            '~~ New item beyond current UBound
+            ReDim Preserve c_arr(c_index)
+            c_arr(c_index) = c_var
+        ElseIf c_index < LBound(c_arr) Then
+            Err.Raise AppErr(2), ErrSrc(PROC), "Index is less than LBound of array!"
+        End If
+        
+    ElseIf bIsAllocated = False Then
+        '~~ The array does yet not exist
+        If c_index = -99 Then
+            '~~ When no index is provided the item is the first of a new array
+            c_arr = Array(c_var)
+        ElseIf c_index >= 0 Then
+            ReDim c_arr(c_index)
+            c_arr(c_index) = c_var
+        Else
+            Err.Raise AppErr(3), ErrSrc(PROC), "the provided index is less than 0!"
+        End If
+    End If
+    
+xt: Exit Property
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Property
+
+Friend Property Get DefaultFileName() As String
+    DefaultFileName = ThisWorkbook.Path & "\" & "ExecTrace.log"
+End Property
 
 Private Property Get DIR_BEGIN_CODE() As String:            DIR_BEGIN_CODE = DIR_BEGIN_ID:                  End Property
 
@@ -174,10 +266,6 @@ Friend Property Get FileFullName() As String
     FileFullName = sFileFullName
 End Property
 
-Friend Property Get DefaultFileName() As String
-    DefaultFileName = ThisWorkbook.Path & "\" & "ExecTrace.log"
-End Property
-
 Friend Property Let FileFullName(ByVal s As String)
 ' ----------------------------------------------------------------------------
 ' Specifies the trace-log-file's name and location, by the way maintains the
@@ -188,9 +276,9 @@ Friend Property Let FileFullName(ByVal s As String)
     With FSo
         sFileFullName = s
         If .FileExists(sFileFullName) Then
-            '~~ In case the file already existed it may have passed the KeepDays limit
+            '~~ In case the file already existed it may have passed the KeepLogs limit
             lDaysAge = VBA.DateDiff("d", .GetFile(sFileFullName).DateLastAccessed, Now())
-            If lDaysAge > lKeepDays Then
+            If lDaysAge > lKeepLogs Then
                 .DeleteFile sFileFullName
             End If
         End If
@@ -218,14 +306,14 @@ Private Property Get ItmTcks(Optional ByRef t_entry As Collection) As Currency
     ItmTcks = t_entry("I")(enItmTcks)
 End Property
 
-Friend Property Let KeepDays(ByVal l As Long):  lKeepDays = l:  End Property
+Friend Property Let KeepLogs(ByVal l As Long):  lKeepLogs = l:  End Property
 
 Private Property Let Log(ByVal l_line As String)
 ' ----------------------------------------------------------------------------
 ' Writes the string (l_line) to the FileFullName.
 ' ----------------------------------------------------------------------------
                 
-    Open FileFullName For Append As #1
+    Open sFileFullName For Append As #1
     Print #1, l_line
     Close #1
 
@@ -298,6 +386,47 @@ Private Function AppErr(ByVal app_err_no As Long) As Long
 ' positive "application" error number e.g. for being used with an error message.
 ' ------------------------------------------------------------------------------
     If app_err_no >= 0 Then AppErr = app_err_no + vbObjectError Else AppErr = Abs(app_err_no - vbObjectError)
+End Function
+
+Private Function ArryIsAllocated(ByVal a_arr As Variant) As Boolean
+' ----------------------------------------------------------------------------
+' Returns TRUE when the array (a_arr) is allocated, i.e. has at least one item.
+' ----------------------------------------------------------------------------
+    On Error Resume Next
+    ArryIsAllocated = UBound(a_arr) >= LBound(a_arr)
+    On Error GoTo -1
+    
+End Function
+
+Private Function ArrayAsFile(ByVal a_array As Variant, _
+                    Optional ByRef a_file As Variant = vbNullString, _
+                    Optional ByVal a_file_append As Boolean = False) As File
+' ----------------------------------------------------------------------------
+' Writes all items of an array (a_arry) to a file (a_file) which might be a
+' file object, a file's full name. When no file (a_file) is provided a
+' temporary file is returned, else the provided file (a_file) as object.
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
+' ----------------------------------------------------------------------------
+      
+    If Not ArryIsAllocated(a_array) Then Exit Function
+    
+    Select Case True
+        Case a_file = vbNullString:     a_file = TempFile
+        Case TypeName(a_file) = "File": a_file = a_file.Path
+    End Select
+    
+    If a_file_append _
+    Then Open a_file For Append As #1 _
+    Else Open a_file For Output As #1
+    Print #1, Join(a_array, vbCrLf)
+    Close #1
+    Set ArrayAsFile = FSo.GetFile(a_file)
+    
+End Function
+
+Private Function ArryErase(ByRef c_arr As Variant)
+    If IsArray(c_arr) Then Erase c_arr
 End Function
 
 Public Sub BoC(ByVal b_id As String, _
@@ -550,6 +679,98 @@ Private Function ErrSrc(ByVal sProc As String) As String
     ErrSrc = "mTrc." & sProc
 End Function
 
+Private Function FileAsArray(ByVal f_file As Variant, _
+                    Optional ByVal f_empty_excluded = False, _
+                    Optional ByVal f_trim As Variant = False) As Variant
+' ----------------------------------------------------------------------------
+' Returns a file's (f_file) records/lines as array.
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
+' ----------------------------------------------------------------------------
+    Const PROC = "FileAsArray"
+    
+    On Error GoTo eh
+    Dim sSplit  As String
+    Dim s       As String
+    
+    If TypeName(f_file) = "String" Then f_file = FSo.GetFile(f_file)
+    s = FileAsString(f_file, sSplit, f_empty_excluded)
+    FileAsArray = StringAsArray(s, sSplit, f_trim)
+    
+xt: Exit Function
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Function
+
+Public Function FileAsString(ByVal f_file As Variant, _
+                    Optional ByRef f_split As String, _
+                    Optional ByVal f_exclude_empty As Boolean = False) As String
+' ----------------------------------------------------------------------------
+' Returns a file's (f_file) - provided as full name or object - records/lines
+' as a single string with the records/lines delimited (f_split).
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
+' ----------------------------------------------------------------------------
+    Const PROC = "FileAsString"
+    
+    On Error GoTo eh
+    Dim s       As String
+    
+    If TypeName(f_file) = "File" Then f_file = f_file.Path
+    '~~ An error is passed on to the caller
+    If Not FSo.FileExists(f_file) Then Err.Raise AppErr(1), ErrSrc(PROC), _
+                                       "The file, provided by a full name, does not exist!"
+    
+    Open f_file For Input As #1
+    s = Input$(lOf(1), 1)
+    Close #1
+    
+    f_split = SplitIndctr(s) ' may be vbCrLf or vbLf (when file is a download)
+    
+    '~~ Eliminate any trailing split string
+    Do While Right(s, Len(f_split)) = f_split
+        s = Left(s, Len(s) - Len(f_split))
+        If Len(s) <= Len(f_split) Then Exit Do
+    Loop
+    
+    If f_exclude_empty Then
+        s = FileAsStringEmptyExcluded(s)
+    End If
+    FileAsString = s
+
+xt: Exit Function
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Function
+
+Private Function FileAsStringEmptyExcluded(ByVal f_s As String) As String
+' ----------------------------------------------------------------------------
+' Returns a string (f_s) with any empty elements excluded. I.e. the string
+' returned begins and ends with a non vbNullString character and has no
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
+' ----------------------------------------------------------------------------
+    
+    Do While InStr(f_s, vbCrLf & vbCrLf) <> 0
+        f_s = Replace(f_s, vbCrLf & vbCrLf, vbCrLf)
+    Loop
+    FileAsStringEmptyExcluded = f_s
+    
+End Function
+
+Private Function IsDelimiterLine(ByVal i_line As String) As Boolean
+' -----------------------------------------------------------------------------------
+' Returns TRUE when a line (i_line) is a delimiter line.
+' -----------------------------------------------------------------------------------
+    IsDelimiterLine = i_line Like "*==========*"
+End Function
+
 Private Function Itm(ByVal i_dir As String, _
                      ByVal i_id As String, _
                      ByVal i_lvl As Long, _
@@ -576,11 +797,13 @@ Private Sub LogBgn(ByVal l_ntry As Collection, _
 ' ----------------------------------------------------------------------------
     Const PROC = "LogBgn"
     
-    On Error GoTo eh
     Dim ElapsedSecsTotal    As String
     Dim ElapsedSecs         As String
     Dim TopNtry             As Collection
     Dim s                   As String
+    
+    If sFileFullName = vbNullString _
+    Then Err.Raise AppErr(1), ErrSrc(PROC), "Trace log not possible when no log file name has been provided!"
     
     Set TopNtry = StckTop(TraceStack)
     If TopNtry Is Nothing _
@@ -621,12 +844,6 @@ Private Sub LogBgn(ByVal l_ntry As Collection, _
                 , l_strng:=RepeatStrng("|  ", ItmLvl(l_ntry)) & ItmDir(l_ntry) & " " & ItmId(l_ntry) _
                 , l_args:=l_args)
     
-xt: Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
 End Sub
 
 Private Function LogElapsedSecs(ByVal et_ticks_end As Currency, _
@@ -706,7 +923,6 @@ Private Sub LogEntry(ByVal t_id As String, _
     Static sLastId      As String
     Static lLastLvl     As String
     
-    On Error GoTo eh
     Dim bAlreadyAdded   As Boolean
     
     If Not LastNtry Is Nothing Then
@@ -717,7 +933,7 @@ Private Sub LogEntry(ByVal t_id As String, _
         If Not bAlreadyAdded Then
             NtryTcksOvrhdNtry(LastNtry) = cyTcksOvrhdTrc
         Else
-            Debug.Print ItmId(LastNtry) & " already added"
+            Debug.Print ErrSrc(PROC) & ": " & ItmId(LastNtry) & " already added"
         End If
     End If
     
@@ -732,15 +948,9 @@ Private Sub LogEntry(ByVal t_id As String, _
         sLastId = t_id
         lLastLvl = t_lvl
     Else
-        Debug.Print ItmId(LastNtry) & " already added"
+        Debug.Print ErrSrc(PROC) & ": " & ItmId(LastNtry) & " already added"
     End If
 
-xt: Exit Sub
-
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
 End Sub
 
 Private Function LogInfoLvl() As Long
@@ -795,27 +1005,6 @@ Private Function Max(ParamArray va() As Variant) As Variant
         If v > Max Then Max = v
     Next v
     
-End Function
-
-Private Function TempFile(Optional ByVal f_path As String = vbNullString, _
-                          Optional ByVal f_extension As String = ".txt", _
-                          Optional ByVal f_create_as_textstream As Boolean = True) As String
-' ------------------------------------------------------------------------------
-' Returns the full file name of a temporary randomly named file. When a path
-' (f_path) is omitted in the CurDir path, else in at the provided folder.
-' The returned temporary file is registered in cllTestFiles for being removed
-' either explicitely with TestFilesRemove or implicitly when the class
-' terminates.
-' ------------------------------------------------------------------------------
-    Dim sTemp As String
-    
-    If VBA.Left$(f_extension, 1) <> "." Then f_extension = "." & f_extension
-    sTemp = Replace(FSo.GetTempName, ".tmp", f_extension)
-    If f_path = vbNullString Then f_path = CurDir
-    sTemp = VBA.Replace(f_path & "\" & sTemp, "\\", "\")
-    TempFile = sTemp
-    If f_create_as_textstream Then FSo.CreateTextFile sTemp
-
 End Function
 
 Public Sub NewFile(Optional ByVal n_file As String = vbNullString)
@@ -884,6 +1073,87 @@ Public Sub README(Optional ByVal r_bookmark As String = vbNullString)
 
 End Sub
 
+Private Sub Reorg(ByVal r_file_full_name As String, _
+         Optional ByVal r_keep As Long = 1)
+' ----------------------------------------------------------------------------
+' Returns a log file (r_file_full_name) with any logs exceeding a number
+' (r_keep) unstripped.
+' Note: When only one log is kept the log file still may have two logs. The
+'       one kept and the one added after the Reorg. When the Reorg is done
+'       with the termination 1 will be 1.
+' ----------------------------------------------------------------------------
+    Const PROC = "Reorg"
+    
+    On Error GoTo eh
+    Dim aFile   As Variant
+    Dim aLog    As Variant
+    Dim cllLog  As New Collection
+    Dim cllLogs As New Collection
+    Dim i       As Long
+    Dim lLen    As Long
+    Dim v       As Variant
+    Dim bTop    As Boolean: bTop = True
+    
+    If Not FSo.FileExists(r_file_full_name) Then GoTo xt
+    If r_keep = 0 Then GoTo xt
+    
+    '~~ Collect the logs (i.e. lines delimited by a log delimiter line)
+    '~~ into a Collection with each series of log entries/lines as a Collection
+    '~~ with the array and the max line length as items
+    aFile = FileAsArray(r_file_full_name)
+    ArryErase aLog
+    For i = LBound(aFile) To UBound(aFile)
+        If IsDelimiterLine(aFile(i)) Then
+            '~~ A delimiter line indicates the start of a new series of log entries
+            cllLog.Add aLog
+            cllLog.Add lLen
+            cllLogs.Add cllLog
+            ArryErase aLog
+            Set cllLog = Nothing
+            Set cllLog = New Collection
+            lLen = 0
+        End If
+        lLen = Max(lLen, Len(aFile(i)))
+        Arry(aLog) = aFile(i)
+    Next i
+    '~~ Collect the last series of log entries
+    cllLog.Add aLog
+    cllLog.Add lLen
+    cllLogs.Add cllLog
+    ArryErase aLog
+    Set cllLog = Nothing
+    Set cllLog = New Collection
+    
+    '~~ Remove all excessive logs
+    If cllLogs.Count < r_keep Then GoTo xt
+    Do While cllLogs.Count > r_keep
+        cllLogs.Remove 1
+    Loop
+    
+    '~~ Rewrite the remaining logs to the log file
+    ArryErase aFile
+    For Each v In cllLogs
+        Set cllLog = v
+        aLog = cllLog(1)
+        lLen = cllLog(2)
+        i = LBound(aLog)
+        If IsDelimiterLine(aLog(i)) And bTop Then i = i + 1
+        bTop = False
+        For i = i To UBound(aLog)
+            Arry(aFile) = aLog(i)
+        Next i
+        '~~ Re-write the log
+    Next v
+    ArrayAsFile aFile, sFileFullName
+    
+xt: Exit Sub
+
+eh: Select Case ErrMsg(ErrSrc(PROC))
+        Case vbResume:  Stop: Resume
+        Case Else:      GoTo xt
+    End Select
+End Sub
+
 Private Function RepeatStrng(ByVal rs_s As String, _
                              ByVal rs_n As Long) As String
 ' ----------------------------------------------------------------------------
@@ -932,6 +1202,29 @@ Private Function ShellRun(ByVal oue_string As String, _
     End Select
     
     ShellRun = lRet & IIf(stRet = vbNullString, vbNullString, ", " & stRet)
+
+End Function
+
+Private Function SplitIndctr(ByVal s_strng As String, _
+                    Optional ByRef s_indctr As String = vbNullString) As String
+' ----------------------------------------------------------------------------
+' Returns the split indicator of a string (s_strng) as string and as argument
+' (s_indctr) provided no split indicator (s_indctr) is already provided.
+' The dedection of a split indicator is bypassed in case one has already been
+' provided.
+' ----------------------------------------------------------------------------
+    If s_indctr = vbNullString Then
+        Select Case True
+            Case InStr(s_strng, vbCrLf) <> 0: s_indctr = vbCrLf
+            Case InStr(s_strng, vbLf) <> 0:   s_indctr = vbLf      ' e.g. in case of a downloaded file's_strng complete string
+            Case InStr(s_strng, "|&|") <> 0:  s_indctr = "|&|"
+            Case InStr(s_strng, ", ") <> 0:   s_indctr = ", "
+            Case InStr(s_strng, "; ") <> 0:   s_indctr = "; "
+            Case InStr(s_strng, ",") <> 0:    s_indctr = ","
+            Case InStr(s_strng, ";") <> 0:    s_indctr = ";"
+        End Select
+    End If
+    SplitIndctr = s_indctr
 
 End Function
 
@@ -1015,7 +1308,7 @@ Private Sub StckPop(ByRef stck As Collection, _
         Set cllTop = StckTop(TraceStack)
     Else
         '~~ There is nothing to pop because the top item is not the one requested to pop
-        Debug.Print "Stack Pop ='" & ItmId(cll) _
+        Debug.Print ErrSrc(PROC) & ": " & "Stack Pop ='" & ItmId(cll) _
                   & "', Stack Top = '" & ItmId(cllTop) _
                   & "', Stack Dir = '" & ItmDir(cllTop) _
                   & "', Stack Lvl = '" & ItmLvl(cllTop) _
@@ -1042,6 +1335,67 @@ Private Function StckTop(ByVal stck As Collection) As Collection
     Then Set StckTop = stck(stck.Count)
 End Function
 
+Private Function StringAsArray(ByVal s_strng As String, _
+                      Optional ByVal s_split As String = vbNullString, _
+                      Optional ByVal s_trim As Variant = True) As Variant
+' ----------------------------------------------------------------------------
+' Returns a string (s_strng) split into an array of strings. When no split
+' indicator (s_split) is provided it one is found by examination of the
+' string (s_strng). When the option (s_trim) is TRUE (the default), "R", or
+' "L" the items in the array are returned trimmed accordingly.
+' Example 1: arr = StringAsArray("this is a string", " ") is returned as an
+'            array with 3 items: "this", "is", "a", "string".
+' Example 2: arr = StringAsArray(FileAsString(FileName),sSplit,False) is
+'            returned as any array with records/lines of the provided file,
+'            whereby the lines are not trimmed, i.e. leading spaces are
+'            preserved.
+'            Note: The not provided split indicator has the advantage that it
+'                  is provided by the SplitIndctr service, which in that case
+'                  returns either vbCrLf or vbLf, the latter when the file is
+'                  a download.
+' Example 3: arr = FileAsArray(<file>) return the same as example 2.
+' Note: Split indicators dedected by examination are: vbCrLf, vbLf, "|&|",
+'       ", ", "; ", "," or ";". When neither is dedected vbCrLf is returned.
+' ----------------------------------------------------------------------------
+    Dim arr As Variant
+    Dim i   As Long
+    
+    If s_split = vbNullString Then s_split = SplitIndctr(s_strng)
+    arr = Split(s_strng, SplitIndctr(s_strng, s_split))
+    If Not s_trim = False Then
+        For i = LBound(arr) To UBound(arr)
+            Select Case s_trim
+                Case True:  arr(i) = VBA.Trim$(arr(i))
+                Case "R":   arr(i) = VBA.RTrim$(arr(i))
+                Case "L":   arr(i) = VBA.Trim$(arr(i))
+            End Select
+        Next i
+    End If
+    StringAsArray = arr
+
+End Function
+
+Private Function TempFile(Optional ByVal f_path As String = vbNullString, _
+                          Optional ByVal f_extension As String = ".txt", _
+                          Optional ByVal f_create_as_textstream As Boolean = True) As String
+' ------------------------------------------------------------------------------
+' Returns the full file name of a temporary randomly named file. When a path
+' (f_path) is omitted in the CurDir path, else in at the provided folder.
+' The returned temporary file is registered in cllTestFiles for being removed
+' either explicitely with TestFilesRemove or implicitly when the class
+' terminates.
+' ------------------------------------------------------------------------------
+    Dim sTemp As String
+    
+    If VBA.Left$(f_extension, 1) <> "." Then f_extension = "." & f_extension
+    sTemp = Replace(FSo.GetTempName, ".tmp", f_extension)
+    If f_path = vbNullString Then f_path = CurDir
+    sTemp = VBA.Replace(f_path & "\" & sTemp, "\\", "\")
+    TempFile = sTemp
+    If f_create_as_textstream Then FSo.CreateTextFile sTemp
+
+End Function
+
 Public Sub Terminate()
 ' ----------------------------------------------------------------------------
 ' Should be called by any error handling when a new execution trace is about
@@ -1059,10 +1413,9 @@ Private Sub TrcBgn(ByVal t_id As String, _
 ' Collect a trace begin entry with the current ticks count for the procedure
 ' or code (item).
 ' ----------------------------------------------------------------------------
-    Const PROC = "TrcEnd"
+    Dim cy  As Currency
     
-    On Error GoTo eh
-    Dim cy  As Currency:    cy = SysCrrntTcks - cyTcksPaused
+    cy = SysCrrntTcks - cyTcksPaused
            
     iTrcLvl = iTrcLvl + 1
     LogEntry t_id:=t_id _
@@ -1073,12 +1426,6 @@ Private Sub TrcBgn(ByVal t_id As String, _
            , t_ntry:=t_cll
     StckPush TraceStack, t_cll
 
-xt: Exit Sub
-    
-eh: Select Case ErrMsg(ErrSrc(PROC))
-        Case vbResume:  Stop: Resume
-        Case Else:      GoTo xt
-    End Select
 End Sub
 
 Private Sub TrcEnd(ByVal t_id As String, _

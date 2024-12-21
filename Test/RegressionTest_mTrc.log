@@ -1,65 +1,26 @@
-24-12-10 17:53:00 Elapsed Length  Execution trace by 'Common VBA Execution Trace Service (mTrc)' (https://github.com/warbe-maker/VBA-Trace)
-24-12-10 17:53:00 seconds seconds >> Regression Test Module mTrc
-24-12-10 17:53:00 00,0000         |  >> mTestmTrc.Regression_Test (arg1, arg2)
-24-12-10 17:53:00 00,0029         |  |  >> mTestmTrc.Test_01_Execution_Trace
-24-12-10 17:53:00 00,0034         |  |  |  >> mTestmTrc.Test_01_Execution_Trace_TestProc_01a (xxxx, arg2=yyyy, 12,8)
-24-12-10 17:53:00 00,0037         |  |  |  |  > mTestmTrc.Test_01_Execution_Trace_TestProc_01a call of 6b and 6c
-24-12-10 17:53:00 00,0040         |  |  |  |  |  >> mTestmTrc.Test_01_Execution_Trace_TestProc_01b
-24-12-10 17:53:00 00,0466 00,0426 |  |  |  |  |  << mTestmTrc.Test_01_Execution_Trace_TestProc_01b
-24-12-10 17:53:00 00,0471         |  |  |  |  |  >> mTestmTrc.Test_01_Execution_Trace_TestProc_01c
-24-12-10 17:53:00 00,0473 00,0002 |  |  |  |  |  << mTestmTrc.Test_01_Execution_Trace_TestProc_01c
-24-12-10 17:53:00 00,0474 00,0437 |  |  |  |  < mTestmTrc.Test_01_Execution_Trace_TestProc_01a call of 6b and 6c
-24-12-10 17:53:00 00,0476 00,0442 |  |  |  << mTestmTrc.Test_01_Execution_Trace_TestProc_01a
-24-12-10 17:53:00 00,0478 00,0449 |  |  << mTestmTrc.Test_01_Execution_Trace
-24-12-10 17:53:00                 |  |  Next will raise an error with display bypassed when Regression mode!
-24-12-10 17:53:00 00,0496         |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error
-24-12-10 17:53:00 00,0499         |  |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a
-24-12-10 17:53:00 00,0500         |  |  |  |  > mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a call of 6b and 6c
-24-12-10 17:53:00 00,0502         |  |  |  |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01b
-24-12-10 17:53:00 00,0951 00,0449 |  |  |  |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01b
-24-12-10 17:53:00 00,0954         |  |  |  |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01c
-24-12-10 17:53:00                 |  |  |  |  |  |  This procedure will raise a VB-Runtime Error 6 (oderflow) - not displayed with the regression test because asserted by mErH.Assert
-24-12-10 17:53:00 00,0963 00,0010 |  |  |  |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01c (VB-Runtime Error 6 )
-24-12-10 17:53:00 00,0964 00,0463 |  |  |  |  < mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a call of 6b and 6c
-24-12-10 17:53:00 00,0967 00,0469 |  |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a
-24-12-10 17:53:00 00,0971 00,0475 |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error
-24-12-10 17:53:00 00,0983 00,0983 |  << mTestmTrc.Regression_Test (arg1, arg2)
-24-12-10 17:53:00 00,0983 00,0983 << Regression Test Module mTrc
-24-12-10 17:53:00                 Execution trace by 'Common VBA Execution Trace Service (mTrc)' (https://github.com/warbe-maker/VBA-Trace)
-24-12-10 17:53:00                 Impact on the overall performance (caused by the trace itself): 0,3 milliseconds!
-===========================================================================================================================================
-24-12-10 17:53:23 Elapsed Length  Execution trace by 'Common VBA Execution Trace Service (mTrc)' (https://github.com/warbe-maker/VBA-Trace)
-24-12-10 17:53:23 seconds seconds >> Regression Test Module mTrc
-24-12-10 17:53:23 00,0000         |  >> mTestclsTrc.Regression_Test (arg1, arg2)
-24-12-10 17:53:25 01,5015         |  |  >> mTestclsTrc.Test_01_Execution_Trace
-24-12-10 17:53:25 01,5022         |  |  |  >> mTestclsTrc.Test_01_Execution_Trace_TestProc_01a (xxxx, arg2=yyyy, 12,8)
-24-12-10 17:53:25 01,5037         |  |  |  |  >> mTestclsTrc.Test_01_Execution_Trace_TestProc_01b
-24-12-10 17:53:25 01,6095 00,1058 |  |  |  |  << mTestclsTrc.Test_01_Execution_Trace_TestProc_01b
-24-12-10 17:53:25 01,6099         |  |  |  |  >> mTestclsTrc.Test_01_Execution_Trace_TestProc_01c
-24-12-10 17:53:25 01,6101 00,0002 |  |  |  |  << mTestclsTrc.Test_01_Execution_Trace_TestProc_01c
-24-12-10 17:53:25 01,6149 00,1127 |  |  |  << mTestclsTrc.Test_01_Execution_Trace_TestProc_01a
-24-12-10 17:53:25 01,6152 00,1137 |  |  << mTestclsTrc.Test_01_Execution_Trace
-24-12-10 17:53:26 02,7795         |  |  >> mTestclsTrc.Test_02_Execution_Trace_With_Error
-24-12-10 17:53:26 02,7806         |  |  |  >> mTestclsTrc.Test_02_Execution_Trace_With_Error_TestProc_01a
-24-12-10 17:53:26 02,7822         |  |  |  |  >> mTestclsTrc.Test_02_Execution_Trace_With_Error_TestProc_01b
-24-12-10 17:53:26 02,8879 00,1056 |  |  |  |  << mTestclsTrc.Test_02_Execution_Trace_With_Error_TestProc_01b
-24-12-10 17:53:26 02,8883         |  |  |  |  >> mTestclsTrc.Test_02_Execution_Trace_With_Error_TestProc_01c
-24-12-10 17:53:26 02,8894 00,0011 |  |  |  |  << mTestclsTrc.Test_02_Execution_Trace_With_Error_TestProc_01c (VB-Runtime Error 6 )
-24-12-10 17:53:26 02,8902 00,1096 |  |  |  << mTestclsTrc.Test_02_Execution_Trace_With_Error_TestProc_01a
-24-12-10 17:53:26 02,8905 00,1109 |  |  << mTestclsTrc.Test_02_Execution_Trace_With_Error
-24-12-10 17:53:27 03,7805         |  |  >> mTestclsTrc.Test_03_BoP_EoP
-24-12-10 17:53:27 03,7810         |  |  |  >> mTestclsTrc.Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP
-24-12-10 17:53:27 03,7814         |  |  |  |  >> mTestclsTrc.Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP
-24-12-10 17:53:27 03,7816         |  |  |  |  |  > mTestclsTrc.Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP trace of some code lines (EoC statement missing!)
-24-12-10 17:53:27 03,7819 00,0006 |  |  |  << mTestclsTrc.Test_03_BoP_EoP_TestProc_03c_paired_BoP_EoP
-24-12-10 17:53:27 03,7822 00,0012 |  |  << mTestclsTrc.Test_03_BoP_EoP_TestProc_03b_paired_BoP_EoP
-24-12-10 17:53:27 03,7825         |  |  >> mTestclsTrc.Test_03_BoP_EoP_TestProc_03d_missing_EoP
-24-12-10 17:53:27 03,7828         |  |  |  >> mTestclsTrc.Test_03_BoP_EoP_TestProc_03e_BoC_EoC
-24-12-10 17:53:27 03,7830         |  |  |  |  > Test_03_BoP_EoP_TestProc_03e_BoC_EoC code trace empty loop 1 to 10000000
-24-12-10 17:53:27 03,8601 00,0770 |  |  |  |  < Test_03_BoP_EoP_TestProc_03e_BoC_EoC code trace empty loop 1 to 10000000
-24-12-10 17:53:27 03,8607 00,0779 |  |  |  << mTestclsTrc.Test_03_BoP_EoP_TestProc_03e_BoC_EoC
-24-12-10 17:53:27 03,8615 00,0810 << mTestclsTrc.Test_03_BoP_EoP
-24-12-10 17:53:27 03,8633 03,8633 << mTestclsTrc.Regression_Test (arg1, arg2)
-24-12-10 17:53:27 03,8633 03,8633 << Regression Test Module mTrc
-24-12-10 17:53:27                 Execution trace by 'Common VBA Execution Trace Service (mTrc)' (https://github.com/warbe-maker/VBA-Trace)
-24-12-10 17:53:27                 Impact on the overall performance (caused by the trace itself): 0,7 milliseconds!
+24-12-21 23:07:38 00,0220         |  |  >> mTestmTrc.Test_01_Execution_Trace
+24-12-21 23:07:38 00,0226         |  |  |  >> mTestmTrc.Test_01_Execution_Trace_TestProc_01a (xxxx, arg2=yyyy, 12,8)
+24-12-21 23:07:38 00,0229         |  |  |  |  > mTestmTrc.Test_01_Execution_Trace_TestProc_01a call of 6b and 6c
+24-12-21 23:07:38 00,0233         |  |  |  |  |  >> mTestmTrc.Test_01_Execution_Trace_TestProc_01b
+24-12-21 23:07:38 00,0595 00,0362 |  |  |  |  |  << mTestmTrc.Test_01_Execution_Trace_TestProc_01b
+24-12-21 23:07:38 00,0604         |  |  |  |  |  >> mTestmTrc.Test_01_Execution_Trace_TestProc_01c
+24-12-21 23:07:38 00,0606 00,0002 |  |  |  |  |  << mTestmTrc.Test_01_Execution_Trace_TestProc_01c
+24-12-21 23:07:38 00,0611 00,0381 |  |  |  |  < mTestmTrc.Test_01_Execution_Trace_TestProc_01a call of 6b and 6c
+24-12-21 23:07:38 00,0613 00,0387 |  |  |  << mTestmTrc.Test_01_Execution_Trace_TestProc_01a
+24-12-21 23:07:38 00,0615 00,0395 |  |  << mTestmTrc.Test_01_Execution_Trace
+24-12-21 23:07:38                 |  |  Next will raise an error with display bypassed when Regression mode!
+24-12-21 23:07:38 00,0632         |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error
+24-12-21 23:07:38 00,0637         |  |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a
+24-12-21 23:07:38 00,0640         |  |  |  |  > mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a call of 6b and 6c
+24-12-21 23:07:38 00,0646         |  |  |  |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01b
+24-12-21 23:07:38 00,1005 00,0360 |  |  |  |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01b
+24-12-21 23:07:38 00,1011         |  |  |  |  |  >> mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01c
+24-12-21 23:07:38                 |  |  |  |  |  |  This procedure will raise a VB-Runtime Error 6 (oderflow) - not displayed with the regression test because asserted by mErH.Assert
+24-12-21 23:07:38 00,1040 00,0029 |  |  |  |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01c (VB-Runtime Error 6 )
+24-12-21 23:07:38 00,1039 00,0399 |  |  |  |  < mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a call of 6b and 6c
+24-12-21 23:07:38 00,1041 00,0405 |  |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error_TestProc_01a
+24-12-21 23:07:38 00,1044 00,0411 |  |  << mTestmTrc.Test_02_Execution_Trace_With_Error
+24-12-21 23:07:38 00,1053 00,1053 |  << mTestmTrc.Regression_Test (arg1, arg2)
+24-12-21 23:07:38 00,1053 00,1053 << Regression Test Module mTrc
+24-12-21 23:07:38                 Execution trace by 'Common VBA Execution Trace Service (mTrc)' (https://github.com/warbe-maker/VBA-Trace)
+24-12-21 23:07:38                 Impact on the overall performance (caused by the trace itself): 0,2 milliseconds!

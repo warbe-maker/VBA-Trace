@@ -5,17 +5,22 @@ Option Explicit
 ' =====================
 ' Public services:
 ' ----------------
-' Box         In analogy to the MsgBox, provides a simple message but with all
-'             the fexibility for the display of up to 49 reply buttons.
-' Buttons     Supports the specification of the buttons displayed in a matrix
-'             of 7 x 7 buttons (max 7 buttons in max 7 rows)
-' Dsply       Exposes all properties and methods for the display of any kind
-'             of message
-' Monitor     Uses modeless instances of the fMsg form - any instance is
-'             identified by the window title - to display the progress of a
-'             process or monitor intermediate results.
-' MsgInstance Creates (when not existing) and returns an fMsg object
-'             identified by the Title
+' Box            In analogy to the MsgBox, provides a simple message but with
+'                all the fexibility for the display of up to 49 reply buttons.
+' Buttons        Supports the specification of the buttons displayed in a
+'                matrix of 7 x 7 buttons (max 7 buttons in max 7 rows)
+' Dsply          Exposes all properties and methods for the display of any kind
+'                of message
+' Monitor        Uses modeless instances of the fMsg form - any instance is
+'                identified by the window title - to display the progress of a
+'                process or monitor intermediate results.
+' Instance       Creates (when not existing) and returns an fMsg object
+'                identified by the Title
+' InstanceUnload Unloads an fMsg instance identified by its title/caption. When
+'                no title is provided the most recent instance is unloaded.
+' Unload         Unloads an fMsg instance identified through ist title.When no
+'                title is provided, the most recently established/displayed
+'                fMsg instance is unloaded.
 '
 ' Uses:       fMsg
 '
@@ -144,40 +149,62 @@ Private Const ERROR_SUCCESS = 32&
 Private Const GITHUB_REPO_URL       As String = "https://github.com/warbe-maker/VBA-Message"
 Private Const TWIPSPERINCH          As Long = 1440      ' -------------
 
-Private Declare PtrSafe Function CreateDC Lib "gdi32" Alias "CreateDCA" (ByVal lpDriverName As String, ByVal lpDeviceName As String, ByVal lpOutput As String, lpInitData As LongPtr) As LongPtr
-Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hDC As LongPtr) As Long
-Private Declare PtrSafe Function GetActiveWindow Lib "user32" () As LongPtr
-Private Declare PtrSafe Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
-Private Declare PtrSafe Function GetDeviceCaps Lib "gdi32" (ByVal hDC As LongPtr, ByVal nIndex As Long) As Long
-Private Declare PtrSafe Function getFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (TimerSystemFrequency As Currency) As Long
-Private Declare PtrSafe Function GetMonitorInfo Lib "user32" Alias "GetMonitorInfoA" (ByVal hMonitor As LongPtr, ByRef lpMI As MONITORINFOEX) As Boolean
-Private Declare PtrSafe Function GetSystemMetrics Lib "user32" (ByVal nIndex As Long) As Long
-Private Declare PtrSafe Function getTickCount Lib "kernel32" Alias "QueryPerformanceCounter" (cyTickCount As Currency) As Long
-Private Declare PtrSafe Function MonitorFromWindow Lib "user32" (ByVal hWnd As LongPtr, ByVal dwFlags As Long) As LongPtr
-Private Declare PtrSafe Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As Long
-
-#If VBA7 Then
+#If Win64 Or VBA7 Then
+    Private Declare PtrSafe Function apiShellExecute Lib "shell32.dll" _
+        Alias "ShellExecuteA" _
+        (ByVal hWnd As Long, _
+        ByVal lpOperation As String, _
+        ByVal lpFile As String, _
+        ByVal lpParameters As String, _
+        ByVal lpDirectory As String, _
+        ByVal nShowCmd As Long) _
+        As Long
+    Private Declare PtrSafe Function CreateDC Lib "gdi32" Alias "CreateDCA" (ByVal lpDriverName As String, ByVal lpDeviceName As String, ByVal lpOutput As String, lpInitData As LongPtr) As LongPtr
+    Private Declare PtrSafe Function DeleteDC Lib "gdi32" (ByVal hDC As LongPtr) As Long
+    Private Declare PtrSafe Function GetActiveWindow Lib "user32" () As LongPtr
+    Private Declare PtrSafe Function GetDC Lib "user32" (ByVal hWnd As LongPtr) As LongPtr
+    Private Declare PtrSafe Function GetDeviceCaps Lib "gdi32" (ByVal hDC As LongPtr, ByVal nIndex As Long) As Long
+    Private Declare PtrSafe Function getFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (TimerSystemFrequency As Currency) As Long
+    Private Declare PtrSafe Function GetMonitorInfo Lib "user32" Alias "GetMonitorInfoA" (ByVal hMonitor As LongPtr, ByRef lpMI As MONITORINFOEX) As Boolean
+    Private Declare PtrSafe Function GetSystemMetrics Lib "user32" (ByVal nIndex As Long) As Long
+    Private Declare PtrSafe Function getTickCount Lib "kernel32" Alias "QueryPerformanceCounter" (cyTickCount As Currency) As Long
+    Private Declare PtrSafe Function MonitorFromWindow Lib "user32" (ByVal hWnd As LongPtr, ByVal dwFlags As Long) As LongPtr
+    Private Declare PtrSafe Function ReleaseDC Lib "user32" (ByVal hWnd As LongPtr, ByVal hDC As LongPtr) As Long
     Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal ms As LongPtr)
 #Else
-    Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal ms As Long)
+    Private Declare Function apiShellExecute Lib "shell32.dll" _
+        (ByVal hWnd As Long, _
+        Alias "ShellExecuteA" _
+        As Long
+        ByVal lpDirectory As String, _
+        ByVal lpFile As String, _
+        ByVal lpOperation As String, _
+        ByVal lpParameters As String, _
+        ByVal nShowCmd As Long) _
+    Private Declare Function CreateDC Lib "gdi32" Alias "CreateDCA" (ByVal lpDriverName As String, ByVal lpDeviceName As String, ByVal lpOutput As String, lpInitData As Long) As Long
+    Private Declare Function DeleteDC Lib "gdi32" (ByVal hDC As Long) As Long
+    Private Declare Function GetActiveWindow Lib "user32" () As Long
+    Private Declare Function GetDC Lib "user32" (ByVal hWnd As Long) As Long
+    Private Declare Function GetDeviceCaps Lib "gdi32" (ByVal hDC As Long, ByVal nIndex As Long) As Long
+    Private Declare Function getFrequency Lib "kernel32" Alias "QueryPerformanceFrequency" (TimerSystemFrequency As Currency) As Long
+    Private Declare Function GetMonitorInfo Lib "user32" Alias "GetMonitorInfoA" (ByVal hMonitor As Long, ByRef lpMI As MONITORINFOEX) As Boolean
+    Private Declare Function GetSystemMetrics Lib "user32" (ByVal nIndex As Long) As Long
+    Private Declare Function getTickCount Lib "kernel32" Alias "QueryPerformanceCounter" (cyTickCount As Currency) As Long
+    Private Declare Function MonitorFromWindow Lib "user32" (ByVal hWnd As Long, ByVal dwFlags As Long) As Long
+    Private Declare Function ReleaseDC Lib "user32" (ByVal hWnd As Long, ByVal hDC As Long) As Long
+    Private Declare Sub Sleep Lib "kernel32" (ByVal ms As Long)
+    Private Declare Sub Sleep Lib "kernel32" (ByVal ms As Long)
 #End If
-Private Declare PtrSafe Function apiShellExecute Lib "shell32.dll" _
-    Alias "ShellExecuteA" _
-    (ByVal hWnd As Long, _
-    ByVal lpOperation As String, _
-    ByVal lpFile As String, _
-    ByVal lpParameters As String, _
-    ByVal lpDirectory As String, _
-    ByVal nShowCmd As Long) _
-    As Long
-'***App Window Constants***
-Private Const WIN_NORMAL = 1         'Open Normal
-'***Error Codes***
-Private bModeLess           As Boolean
-Private fMonitor            As fMsg
-Private FSo                 As New FileSystemObject
 
-Public MsgInstances         As Dictionary    ' Collection of (possibly still)  active form instances
+Private Const WIN_NORMAL = 1         'Open Normal
+
+Private bModeLess        As Boolean
+Private fMonitor         As fMsg
+Private FSo              As New FileSystemObject
+Private siMsgTop         As Single
+Private siMsgLeft        As Single
+
+Public Instances         As Dictionary    ' Collection of (possibly still)  active form instances
 
 Public Property Get DsplyWidthDPI() As Variant:         DsplyWidthDPI = Screen(enWidthDPI):                                 End Property
 
@@ -292,7 +319,7 @@ Public Function Box(ByVal Prompt As String, _
     
     '~~ In order to avoid any interferance with modeless displayed fMsg form
     '~~ all services create and use their own instance identified by the message title.
-    Set MsgForm = MsgInstance(Title)
+    Set MsgForm = mMsg.Instance(Title)
     With MsgForm
         .MsgTitle = Title
         .MsgText(enSectText, 1) = Message
@@ -646,42 +673,42 @@ Sub DisplayMonitorInfo()
 End Sub
 
                
-Public Function Dsply(ByVal dsply_title As String, _
-                      ByRef dsply_msg As udtMsg, _
-             Optional ByVal dsply_Label_spec As String = vbNullString, _
-             Optional ByVal dsply_buttons As Variant = vbOKOnly, _
-             Optional ByVal dsply_buttons_app_run As Dictionary = Nothing, _
-             Optional ByVal dsply_button_default = 1, _
-             Optional ByVal dsply_button_reply_with_index As Boolean = False, _
-             Optional ByVal dsply_modeless As Boolean = False, _
-             Optional ByVal dsply_width_min As Long = 250, _
-             Optional ByVal dsply_width_max As Long = 85, _
-             Optional ByVal dsply_height_min As Long = 25, _
-             Optional ByVal dsply_height_max As Long = 85, _
-             Optional ByVal dsply_pos As Variant = 3) As Variant
+Public Function Dsply(ByVal d_title As String, _
+                      ByRef d_msg As udtMsg, _
+             Optional ByVal d_label_spec As String = vbNullString, _
+             Optional ByVal d_buttons As Variant = vbOKOnly, _
+             Optional ByVal d_buttons_app_run As Dictionary = Nothing, _
+             Optional ByVal d_button_default = 1, _
+             Optional ByVal d_button_reply_with_index As Boolean = False, _
+             Optional ByVal d_modeless As Boolean = False, _
+             Optional ByVal d_width_min As Long = 250, _
+             Optional ByVal d_width_max As Long = 85, _
+             Optional ByVal d_height_min As Long = 25, _
+             Optional ByVal d_height_max As Long = 85, _
+             Optional ByVal d_pos As Variant = 3) As Variant
 ' ------------------------------------------------------------------------------
 ' Common VBA Message Display: A service using the Common VBA Message Form as an
 ' alternative to the VBA.MsgBox.
 '
-' Argument                      | Description
-' ----------------------------- + ----------------------------------------------
-' dsply_title                   | String, Title
-' dsply_msg                     | UDT, Message
-' dsply_Label_spec              | Label width and position
-' dsply_buttons                 | Button captions as Collection
-' dsply_button_default          | Default button, either the index or the
-'                               | caption, defaults to 1 (= the first displayed
-'                               | button)
-' dsply_button_reply_with_index | Defaults to False, when True the index of the
-'                               | of the pressed button is returned else the
-'                               | caption or the VBA.MsgBox button value
-'                               | respectively
-' dsply_modeless                | The message is displayed modeless, defaults
-'                               | to False = vbModal
-' dsply_width_min               | Overwrites the default when not 0
-' dsply_width_max               | Overwrites the default when not 0
-' dsply_height_max              | Overwrites the default when not 0
-' dsply_button_width_min       | Overwrites the default when not 0
+' Parameter                 | Description
+' ------------------------- + ----------------------------------------------
+' d_title                   | String, Title
+' d_msg                     | UDT, Message
+' d_Label_spec              | Label width and position
+' d_buttons                 | Button captions as Collection
+' d_button_default          | Default button, either the index or the
+'                           | caption, defaults to 1 (= the first displayed
+'                           | button)
+' d_button_reply_with_index | Defaults to False, when True the index of the
+'                           | of the pressed button is returned else the
+'                           | caption or the VBA.MsgBox button value
+'                           | respectively
+' d_modeless                | The message is displayed modeless, defaults
+'                           | to False = vbModal
+' d_width_min               | Overwrites the default when not 0
+' d_width_max               | Overwrites the default when not 0
+' d_height_max              | Overwrites the default when not 0
+' d_button_width_min        | Overwrites the default when not 0
 '
 ' See: https://github.com/warbe-maker/Common-VBA-Message-Service
 '
@@ -699,7 +726,7 @@ Public Function Dsply(ByVal dsply_title As String, _
     Trc.Pause
 #End If
     
-    If Not BttnArgsAreValid(dsply_buttons) _
+    If Not BttnArgsAreValid(d_buttons) _
     Then Err.Raise AppErr(1), ErrSrc(PROC), _
                    "The provided buttons argument is neither empty (defaults to vbOkOnly), a string " & _
                    "(optionally comma separated), a valid VBA.MsgBox value (vbYesNo, vbRetryCancel, " & _
@@ -707,49 +734,49 @@ Public Function Dsply(ByVal dsply_title As String, _
                    "Collection, or a Dictionary! When an Array, Collection, or Dictionary at least " & _
                    "one of its items in incorrect!"
     
-    AssertWidthAndHeight dsply_width_min _
-                       , dsply_width_max _
-                       , dsply_height_min _
-                       , dsply_height_max
+    AssertWidthAndHeight d_width_min _
+                       , d_width_max _
+                       , d_height_min _
+                       , d_height_max
     
-    Set MsgForm = MsgInstance(dsply_title)
+    Set MsgForm = mMsg.Instance(d_title)
     
     With MsgForm
-        .LabelAllSpec = dsply_Label_spec    ' !!! has to be provided first
-        .ReplyWithIndex = dsply_button_reply_with_index
+        .LabelAllSpec = d_label_spec    ' !!! has to be provided first
+        .ReplyWithIndex = d_button_reply_with_index
         
         '~~ All width and height specifications by the user are "outside" dimensions !
-        If dsply_height_max > 0 Then .FormHeightOutsideMax = dsply_height_max   ' percentage of screen height in pt
-        If dsply_width_max > 0 Then .FormWidthOutsideMax = dsply_width_max     ' percentage of screen width in pt
-        If dsply_width_min > 0 Then .FormWidthOutsideMin = dsply_width_min      ' percentage of screen width in pt
+        If d_height_max > 0 Then .FormHeightOutsideMax = d_height_max   ' percentage of screen height in pt
+        If d_width_max > 0 Then .FormWidthOutsideMax = d_width_max     ' percentage of screen width in pt
+        If d_width_min > 0 Then .FormWidthOutsideMin = d_width_min      ' percentage of screen width in pt
         
-        .MsgTitle = dsply_title
+        .MsgTitle = d_title
         For i = 1 To NoOfMsgSects
             '~~ Save the Label and the text udt into a Dictionary by transfering it into an array
-            .MsgLabel(i) = dsply_msg.Section(i).Label
-            .MsgText(enSectText, i) = dsply_msg.Section(i).Text
+            .MsgLabel(i) = d_msg.Section(i).Label
+            .MsgText(enSectText, i) = d_msg.Section(i).Text
         Next i
         
-        If TypeName(dsply_buttons) = "Collection" _
-        Then .MsgBttns = dsply_buttons _
-        Else .MsgBttns = mMsg.Buttons(dsply_buttons)
+        If TypeName(d_buttons) = "Collection" _
+        Then .MsgBttns = d_buttons _
+        Else .MsgBttns = mMsg.Buttons(d_buttons)
         
-        .MsgButtonDefault = dsply_button_default
-        .ModeLess = dsply_modeless
-        If dsply_buttons_app_run Is Nothing Then Set dsply_buttons_app_run = New Dictionary
-        .ApplicationRunArgs = dsply_buttons_app_run
+        .MsgButtonDefault = d_button_default
+        .ModeLess = d_modeless
+        If d_buttons_app_run Is Nothing Then Set d_buttons_app_run = New Dictionary
+        .ApplicationRunArgs = d_buttons_app_run
 
         '+------------------------------------------------------------------------+
         '|| Setup prior showing the form is much faster and avoids flickering.   ||
         '|| For testing - indicated by VisualizerControls = True and             ||
-        '|| dsply_modeless = True - prior Setup is suspended.                    ||
+        '|| d_modeless = True - prior Setup is suspended.                    ||
         '+------------------------------------------------------------------------+
         If Not .VisualizeForTest Then .Setup
-        If dsply_modeless Then
-            .PositionOnScreen dsply_pos
+        If d_modeless Then
+            .PositionOnScreen d_pos
             .Show vbModeless
         Else
-            .PositionOnScreen dsply_pos
+            .PositionOnScreen d_pos
             .Show vbModal
         End If
     End With
@@ -825,7 +852,7 @@ Public Function ErrMsg(ByVal err_source As String, _
     ErrTitle = ErrType & " " & ErrNo & " in: '" & err_source & "'" & ErrAtLine
     
     '~~ Prepare the Error Reply Buttons
-    Set ErrButtons = mMsg.Buttons(vbResumeOk)
+    Set ErrButtons = err_buttons
         
     '~~ Display the error message by means of the mMsg's Dsply function
     iSect = 1
@@ -872,12 +899,12 @@ Public Function ErrMsg(ByVal err_source As String, _
                      "Cond. Comp. Argument 'Debugging = 1'. Pressing this button " & _
                      "and twice F8 leads straight to the code line which raised the error."
     End With
-    mMsg.Dsply dsply_title:=ErrTitle _
-             , dsply_msg:=ErrMsgText _
-             , dsply_Label_spec:="R40" _
-             , dsply_buttons:=ErrButtons _
-             , dsply_pos:=err_pos _
-             , dsply_width_min:=15
+    mMsg.Dsply d_title:=ErrTitle _
+             , d_msg:=ErrMsgText _
+             , d_label_spec:="R40" _
+             , d_buttons:=ErrButtons _
+             , d_pos:=err_pos _
+             , d_width_min:=15
     ErrMsg = mMsg.RepliedWith
     
 End Function
@@ -935,7 +962,7 @@ Public Sub Monitor(ByVal mon_title As String, _
     Const PROC = "Monitor"
     
     On Error GoTo eh
-    Set fMonitor = MsgInstance(mon_title)
+    Set fMonitor = mMsg.Instance(mon_title)
     With fMonitor
         If Not .MonitorIsInitialized Then
             AssertWidthAndHeight a_width_min:=mon_width_min _
@@ -975,7 +1002,7 @@ Public Sub MonitorFooter(ByVal mon_title As String, _
     
     On Error GoTo eh
     
-    Set fMonitor = MsgInstance(mon_title)
+    Set fMonitor = mMsg.Instance(mon_title)
     With fMonitor
         If Not .MonitorIsInitialized Then
             AssertWidthAndHeight a_width_min:=mon_width_min _
@@ -1014,7 +1041,7 @@ Public Sub MonitorHeader(ByVal mon_title As String, _
     
     On Error GoTo eh
     
-    Set fMonitor = MsgInstance(mon_title)
+    Set fMonitor = mMsg.Instance(mon_title)
     With fMonitor
         If Not .MonitorIsInitialized Then
             AssertWidthAndHeight a_width_min:=mon_width_min _
@@ -1039,61 +1066,62 @@ xt: Exit Sub
 eh: If ErrMsg(ErrSrc(PROC)) = vbYes Then: Stop: Resume
 End Sub
 
-Public Function MsgInstance(ByVal fi_key As String, _
-                   Optional ByVal fi_unload As Boolean = False) As fMsg
+Public Function Instance(ByVal i_title As String, _
+                Optional ByVal i_unload As Boolean = False) As fMsg
 ' -------------------------------------------------------------------------
 ' Returns an instance of the UserForm fMsg which is uniquely identified by
-' a uniqe string (fi_key) which may be the title of the message or anything
+' a uniqe string (i_title) which may be the title of the message or anything
 ' else including an object . An already existing or new created instance is
-' maintained in a static Dictionary with (fi_key) as the key and returned
-' to the caller. When (fi_unload) is TRUE only a possibly already existing
-' Userform identified by (fi_key) is unloaded.
+' maintained in a static Dictionary with (i_title) as the key and returned
+' to the caller. When (i_unload) is TRUE only a possibly already existing
+' Userform identified by (i_title) is unloaded.
 '
 ' Requires: Reference to the "Microsoft Scripting Runtime".
 ' Usage   : The fMsg has to be replaced by the name of the desired UserForm
 ' -------------------------------------------------------------------------
-    Const PROC = "MsgInstance"
+    Const PROC = "Instance"
     
     On Error GoTo eh
     Static cyStart      As Currency
     Dim MsecsElapsed    As Currency
     Dim MsecsWait       As Long
+    Dim fInstance       As fMsg
     
-    If MsgInstances Is Nothing Then Set MsgInstances = New Dictionary
+    If Instances Is Nothing Then Set Instances = New Dictionary
     
-    If fi_unload Then
-        If MsgInstances.Exists(fi_key) Then
+    If i_unload Then
+        If Instances.Exists(i_title) Then
             On Error Resume Next
-            Unload MsgInstances(fi_key) ' The instance may be already unloaded
-            MsgInstances.Remove fi_key
+            Unload Instances(i_title) ' The instance may be already unloaded
+            Instances.Remove i_title
         End If
         Exit Function
     End If
     
-    If Not MsgInstances.Exists(fi_key) Then
+    If Not Instances.Exists(i_title) Then
         '~~ When there is no evidence of an already existing instance a new one is established.
         '~~ In order not to interfere with any prior established instance a minimum wait time
         '~~ of 10 milliseconds is maintained.
         MsecsElapsed = (TicksCount() - cyStart) / CDec(TicksFrequency)
         MsecsWait = 10 - MsecsElapsed
         If MsecsWait > 0 Then Sleep MsecsWait
-        Set MsgInstance = Nothing
-        Set MsgInstance = New fMsg
-        MsgInstances.Add fi_key, MsgInstance
+        Set fInstance = Nothing
+        Set fInstance = New fMsg
+        Instances.Add i_title, fInstance
     Else
-        '~~ An instance identified by fi_key exists in the Dictionary.
+        '~~ An instance identified by i_title exists in the Dictionary.
         '~~ It may however have already been unloaded.
         On Error Resume Next
-        Set MsgInstance = MsgInstances(fi_key)
+        Set Instance = Instances(i_title)
         Select Case Err.Number
             Case 0
             Case 13
-                If MsgInstances.Exists(fi_key) Then
+                If Instances.Exists(i_title) Then
                     '~~ The apparently no longer existing instance is removed from the Dictionarys
-                    MsgInstances.Remove fi_key
+                    Instances.Remove i_title
                 End If
-                Set MsgInstance = New fMsg
-                MsgInstances.Add fi_key, MsgInstance
+                Set fInstance = New fMsg
+                Instances.Add i_title, fInstance
             Case Else
                 '~~ Unknown error!
                 Err.Raise 1 + vbObjectError, ErrSrc(PROC), "Unknown/unrecognized error!"
@@ -1101,7 +1129,8 @@ Public Function MsgInstance(ByVal fi_key As String, _
         On Error GoTo -1
     End If
 
-xt: Exit Function
+xt: If Not fInstance Is Nothing Then Set Instance = fInstance
+    Exit Function
 
 eh: If ErrMsg(ErrSrc(PROC)) = vbYes Then: Stop: Resume
 End Function
@@ -1124,7 +1153,7 @@ Private Function RoundUp(ByVal v As Variant) As Variant
     RoundUp = Int(v) + (v - Int(v) + 0.5) \ 1
 End Function
 
-Public Function Screen(ByVal item As enScreen) As Variant
+Public Function Screen(ByVal Item As enScreen) As Variant
 ' -------------------------------------------------------------------------
 ' Return display screen Item for monitor displaying ActiveWindow
 ' Patterned after Excel's built-in information functions CELL and INFO
@@ -1148,6 +1177,8 @@ Public Function Screen(ByVal item As enScreen) As Variant
 ' EXAMPLE: =Screen("pixelsX")
 ' Function Returns #VALUE! for invalid Item
 ' -------------------------------------------------------------------------
+    Const PROC = "Screen"
+    
     Dim xHSizeSq        As Double
     Dim xVSizeSq        As Double
     Dim xPix            As Double
@@ -1168,17 +1199,17 @@ Public Function Screen(ByVal item As enScreen) As Variant
         hWnd = GetActiveWindow()
         hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL)
         If hMonitor = 0 Then
-            Debug.Print "ActiveWindow does not intersect a monitor"
+            Debug.Print ErrSrc(PROC) & ": " & "ActiveWindow does not intersect a monitor"
             hWnd = 0
         Else
             tMonitorInfo.cbSize = Len(tMonitorInfo)
             If GetMonitorInfo(hMonitor, tMonitorInfo) = False Then
-                Debug.Print "GetMonitorInfo failed"
+                Debug.Print ErrSrc(PROC) & ": " & "GetMonitorInfo failed"
                 hWnd = 0
             Else
                 hDC = CreateDC(tMonitorInfo.szDevice, 0, 0, 0)
                 If hDC = 0 Then
-                    Debug.Print "CreateDC failed"
+                    Debug.Print ErrSrc(PROC) & ": " & "CreateDC failed"
                     hWnd = 0
                 End If
             End If
@@ -1189,7 +1220,7 @@ Public Function Screen(ByVal item As enScreen) As Variant
         tMonitorInfo.dwFlags = MONITOR_PRIMARY
         tMonitorInfo.szDevice = "PRIMARY" & vbNullChar
     End If
-    Select Case item
+    Select Case Item
         Case enAdjustmentfactor:    xHSizeSq = GetDeviceCaps(hDC, DevCap.HORZSIZE) ^ 2
                                     xVSizeSq = GetDeviceCaps(hDC, DevCap.VERTSIZE) ^ 2
                                     xPix = GetDeviceCaps(hDC, DevCap.HORZRES) ^ 2 + GetDeviceCaps(hDC, DevCap.VERTRES) ^ 2
@@ -1334,19 +1365,19 @@ xt: Exit Function
 eh: If ErrMsg(ErrSrc(PROC)) = vbYes Then: Stop: Resume
 End Function
 
-Private Function TempFile(Optional ByVal f_path As String = vbNullString, _
+Private Function TempFileFullName(Optional ByVal f_path As String = vbNullString, _
                           Optional ByVal f_extension As String = ".txt") As String
 ' ------------------------------------------------------------------------------
 ' Returns the full file name of a temporary randomly named file. When a path
 ' (f_path) is omitted in the CurDir path, else in at the provided folder.
 ' ------------------------------------------------------------------------------
-    Dim sTemp   As String
+    Dim s   As String
     
     If VBA.Left$(f_extension, 1) <> "." Then f_extension = "." & f_extension
-    sTemp = Replace(FSo.GetTempName, ".tmp", f_extension)
+    s = Replace(FSo.GetTempName, ".tmp", f_extension)
     If f_path = vbNullString Then f_path = CurDir
-    sTemp = VBA.Replace(f_path & "\" & sTemp, "\\", "\")
-    TempFile = sTemp
+    s = VBA.Replace(f_path & "\" & s, "\\", "\")
+    TempFileFullName = s
     
 End Function
 
@@ -1357,7 +1388,7 @@ Private Function CollectionAsFile(ByVal v_items As Collection, _
 '
 ' ----------------------------------------------------------------------------
 
-    If v_file_name = vbNullString Then v_file_name = TempFile
+    If v_file_name = vbNullString Then v_file_name = TempFileFullName
     StringAsFile CollectionAsString(v_items), v_file_name, v_file_append
     Set CollectionAsFile = FSo.GetFile(v_file_name)
 
@@ -1379,7 +1410,7 @@ Private Function StringAsFile(ByVal s_strng As String, _
 ' ----------------------------------------------------------------------------
     
     Select Case True
-        Case s_file = vbNullString: s_file = TempFile
+        Case s_file = vbNullString: s_file = TempFileFullName
         Case TypeName(s_file) = "File": s_file = s_file.Path
     End Select
     
@@ -1391,6 +1422,46 @@ Private Function StringAsFile(ByVal s_strng As String, _
     Set StringAsFile = FSo.GetFile(s_file)
     
 End Function
+
+Public Sub InstanceUnload(Optional ByVal i_title As String = vbNullString)
+' ----------------------------------------------------------------------------
+' Unloads an fMsg instance identified by its title/caption (i_title). When no
+' title is provided the most recent instance is unloaded.
+' ----------------------------------------------------------------------------
+    Dim fInstance   As fMsg
+    Dim sTitle      As String
+    
+    If i_title <> vbNullString Then
+        If Instances.Exists(i_title) Then
+            On Error Resume Next
+            Set fInstance = Instances(i_title)
+            If Err.Number = 0 Then
+                With fInstance
+                    siMsgTop = .Top
+                    siMsgLeft = .Left
+                End With
+                On Error Resume Next
+                Unload fInstance
+            End If
+            Instances.Remove i_title
+        End If
+    Else
+        If Not Instances Is Nothing Then
+            If Instances.Count <> 0 Then
+                Set fInstance = Instances.Items(Instances.Count - 1)
+                sTitle = Instances.Keys(Instances.Count - 1)
+                With fInstance
+                    siMsgTop = .Top
+                    siMsgLeft = .Left
+                End With
+                On Error Resume Next
+                Unload fInstance
+                Instances.Remove sTitle
+            End If
+        End If
+    End If
+    
+End Sub
 
 Private Function IsObject(ByVal i_var As Variant, _
                           ByRef i_name As String) As Boolean
@@ -1414,22 +1485,37 @@ Private Function IsObject(ByVal i_var As Variant, _
     
 End Function
 
-Private Function CollectionAsString(ByVal v_items As Collection) As String
+Private Function CollectionAsString(ByVal c_coll As Collection, _
+                           Optional ByRef c_split As String = vbNullString) As String
 ' ----------------------------------------------------------------------------
-'
+' Returns a collection's (c_coll) items as string with the items delimited
+' by a vbCrLf. Itmes are converted into a string, if an item is an object its
+' Name property is used (an error is raised when the object has no Name
+' property.
+' Note when copied: Originates in mVarTrans
+'                   See https://github.com/warbe-maker/Excel_VBA_VarTrans
 ' ----------------------------------------------------------------------------
-    Const PROC = "CollectionAsString"
-    
     Dim s       As String
-    Dim sDelim  As String
     Dim sName   As String
+    Dim sSplit  As String
     Dim v       As Variant
+    Dim v2      As Variant
     
-    For Each v In v_items
-        If IsObject(v, sName) _
-        Then s = s & sDelim & sName _
-        Else s = s & sDelim & v
-        sDelim = vbCrLf
+    If c_split = vbNullString Then c_split = vbCrLf
+    For Each v In c_coll
+        Select Case True
+            Case IsObject(v, sName)
+                s = s & sSplit & sName
+                sSplit = c_split
+            Case TypeName(v) Like "*()"
+                For Each v2 In v
+                    s = s & sSplit & CStr(v2)
+                    sSplit = c_split
+                Next v2
+            Case Else
+                s = s & sSplit & v
+                sSplit = c_split
+        End Select
     Next v
     CollectionAsString = s
 
@@ -1451,7 +1537,7 @@ Private Sub StckPush(ByRef stck As Collection, _
                            "Yes: Display stack" & vbLf & _
                            "No: Continue" & vbLf & _
                            "Cancel: Terminate process", vbYesNoCancel, "Loop warning!")
-            Case vbYes:     ShellRun CollectionAsFile(stck, TempFile).Path, WIN_NORMAL
+            Case vbYes:     ShellRun CollectionAsFile(stck, TempFileFullName).Path, WIN_NORMAL
             Case vbNo:
             Case vbCancel: Stop
         End Select

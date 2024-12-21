@@ -307,7 +307,7 @@ Private Function ErrHndlrFailed(ByVal err_number As Long, _
         Select Case err_buttons
             Case vbOKOnly, vbOKCancel, vbYesNo, vbRetryCancel, vbYesNoCancel, vbAbortRetryIgnore
             Case Else
-                MsgBox "When the err_buttons argument is a numeric value  o n l y  the valid VBA.MsgBox vaulues are supported. " & _
+                MsgBox "When the argument for the ""err_buttons"" parameter is a numeric value  o n l y  the valid VBA.MsgBox vaulues are supported. " & _
                        "For valid values please refer to:" & vbLf & _
                        "https://docs.microsoft.com/en-us/office/vba/Language/Reference/User-Interface-Help/msgbox-function" _
                        , vbOKOnly, "Only the valid VBA MsgBox vaulues are supported!"
@@ -403,10 +403,10 @@ Public Function ErrMsg(ByVal err_source As String, _
     '~~ 1. The 'Entry-Procedure' is know (EntryProcIsKnown) but yet not reached
     '~~ 2. the user has no choice to press another but the Ok button.
     '~~ ---------------------------------------------------------------------------
-'    Debug.Print "Current Proc              : '" & CurrentProc & "'"
-'    Debug.Print "EntryProc                 : '" & EntryProc & "'"
-'    Debug.Print "EntryProcReached          : " & EntryProcReached
-'    Debug.Print "ErrBttns(err_buttons) = 1 : " & ErrBttns(err_buttons)
+'    Debug.Print ErrSrc(PROC) & ": " &  "Current Proc              : '" & CurrentProc & "'"
+'    Debug.Print ErrSrc(PROC) & ": " &  "EntryProc                 : '" & EntryProc & "'"
+'    Debug.Print ErrSrc(PROC) & ": " &  "EntryProcReached          : " & EntryProcReached
+'    Debug.Print ErrSrc(PROC) & ": " &  "ErrBttns(err_buttons) = 1 : " & ErrBttns(err_buttons)
     
     If EntryProcIsKnown And CurrentProc <> EntryProc And ErrBttns(err_buttons) = 1 Then
         '~~ When the Entry Procedure is known but yet not reached and there is just one reply
@@ -500,6 +500,7 @@ Private Function ErrMsgDsply(ByVal err_source As String, _
     '~~ one of its components! If not the below code line will cause an error.
     mTrc.Pause
 #ElseIf clsTrc = 1 Then
+    If Trc Is Nothing Then Set Trc = New clsTrc
     Trc.Pause ' prevent useless timing values by exempting the display and wait time for the reply
 #End If
     ErrMsgMatter err_source:=err_source _
@@ -584,11 +585,11 @@ Private Function ErrMsgDsply(ByVal err_source As String, _
 
     Application.EnableEvents = True ' set to TRUE in case FALSE
 #If mMsg = 1 Then
-    ErrMsgDsply = mMsg.Dsply(dsply_title:=sTitle _
-                           , dsply_msg:=ErrMsgText _
-                           , dsply_width_max:=60 _
-                           , dsply_Label_spec:="R50" _
-                           , dsply_buttons:=mMsg.Buttons(err_buttons))
+    ErrMsgDsply = mMsg.Dsply(d_title:=sTitle _
+                           , d_msg:=ErrMsgText _
+                           , d_width_max:=60 _
+                           , d_label_spec:="R50" _
+                           , d_buttons:=mMsg.Buttons(err_buttons))
 #Else
     lBttns = vbYesNo
     sMsg = sMsg & vbLf & vbLf & "Debugging:" & vbLf & "Yes    = Resume Error Line" & vbLf & "No     = Terminate"
@@ -652,7 +653,7 @@ Private Sub ErrPathAdd(ByVal s As String)
     
     If cllErrPath Is Nothing Then Set cllErrPath = New Collection
     If Not ErrPathItemExists(s) Then
-'        Debug.Print "Add to ErrPath: " & s
+'        Debug.Print ErrSrc(PROC) & ": " &  "Add to ErrPath: " & s
         cllErrPath.Add s ' avoid duplicate recording of the same procedure/item
     End If
 End Sub
